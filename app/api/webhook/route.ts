@@ -48,21 +48,19 @@ export async function POST(req: Request) {
     return Response.json({ status: "no sender" });
   }
 
-  // 🔥 ambil session (AMAN)
-  const { data: sessionData } = await supabase
+  // 🔥 ambil session terbaru
+  const { data: state } = await supabase
     .from("user_sessions")
     .select("*")
     .eq("sender", sender)
     .maybeSingle();
-
-  let state = sessionData || {};
 
   console.log("STATE:", state);
 
   let reply = "";
 
   // ======================
-  // START FLOW
+  // START
   // ======================
   if (message === "halo") {
     await supabase.from("user_sessions").upsert(
@@ -82,10 +80,10 @@ export async function POST(req: Request) {
   }
 
   // ======================
-  // PILIH LAYANAN (ANTI BUG)
+  // PILIH LAYANAN
   // ======================
   else if (
-    state.step === "pilih_layanan" ||
+    state?.step === "pilih_layanan" ||
     message === "1" ||
     message === "2"
   ) {
@@ -119,28 +117,35 @@ export async function POST(req: Request) {
   }
 
   // ======================
-  // PILIH JAM
+  // PILIH JAM (FIX UNDEFINED)
   // ======================
   else if (
-    state.step === "pilih_jam" ||
+    state?.step === "pilih_jam" ||
     message.includes(":")
   ) {
     if (message.includes(":")) {
+      // 🔥 ambil ulang data terbaru
+      const { data: latest } = await supabase
+        .from("user_sessions")
+        .select("*")
+        .eq("sender", sender)
+        .maybeSingle();
+
       await supabase.from("user_sessions").upsert(
         {
           sender,
           step: "konfirmasi",
           jam: message,
-          layanan: state.layanan || "-",
-          harga: state.harga || 0,
+          layanan: latest?.layanan,
+          harga: latest?.harga,
         },
         { onConflict: "sender" }
       );
 
       reply =
         `Konfirmasi booking:\n\n` +
-        `✂️ Layanan: ${state.layanan}\n` +
-        `💰 Harga: Rp${state.harga}\n` +
+        `✂️ Layanan: ${latest?.layanan}\n` +
+        `💰 Harga: Rp${latest?.harga}\n` +
         `⏰ Jam: ${message}\n\n` +
         `Ketik *YA* untuk konfirmasi\n` +
         `Ketik *BATAL* untuk ulang`;
@@ -148,16 +153,23 @@ export async function POST(req: Request) {
   }
 
   // ======================
-  // KONFIRMASI
+  // KONFIRMASI (FIX DATA)
   // ======================
-  else if (state.step === "konfirmasi") {
+  else if (state?.step === "konfirmasi") {
     if (message === "ya") {
+      // 🔥 ambil data terbaru lagi
+      const { data: latest } = await supabase
+        .from("user_sessions")
+        .select("*")
+        .eq("sender", sender)
+        .maybeSingle();
+
       await supabase.from("bookings").insert([
         {
           sender,
-          layanan: state.layanan,
-          harga: state.harga,
-          jam: state.jam,
+          layanan: latest?.layanan,
+          harga: latest?.harga,
+          jam: latest?.jam,
           status: "confirmed",
         },
       ]);
