@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+export async function GET() {
+  return NextResponse.json({ status: "ok" });
+}
+
 export async function POST(req: Request) {
   const body = await req.json();
 
@@ -35,9 +39,7 @@ Silakan pilih layanan:
   }
 
   else if (["10:00","10:30","11:00"].includes(message)) {
-    reply = `Booking kamu jam ${message} sudah dicatat ✅
-
-Silakan datang tepat waktu ya 🙏`;
+    reply = `Booking kamu jam ${message} sudah dicatat ✅`;
   }
 
   if (reply) {
