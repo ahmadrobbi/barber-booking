@@ -6,6 +6,9 @@ const supabase = createClient(
   process.env.SUPABASE_KEY!
 );
 
+// 🧠 memory sementara (simple)
+const userState: Record<string, any> = {};
+
 export async function GET() {
   return NextResponse.json({ status: "ok" });
 }
@@ -45,13 +48,21 @@ export async function POST(req: Request) {
     return Response.json({ status: "no sender" });
   }
 
-  let reply = "";
-  let layanan = "";
-  let harga = 0;
-  let jam = "";
+  // ambil state user
+  if (!userState[sender]) {
+    userState[sender] = {};
+  }
 
-  // 🔥 FLOW
+  let state = userState[sender];
+  let reply = "";
+
+  // ======================
+  // FLOW
+  // ======================
+
   if (message === "halo") {
+    state.step = "pilih_layanan";
+
     reply =
       "Halo 👋\n" +
       "Selamat datang di Barbershop 💈\n\n" +
@@ -60,55 +71,73 @@ export async function POST(req: Request) {
       "2. Anak-anak - Rp20.000";
   }
 
-  else if (message === "1") {
-    layanan = "Dewasa";
-    harga = 25000;
+  else if (state.step === "pilih_layanan") {
+    if (message === "1") {
+      state.layanan = "Dewasa";
+      state.harga = 25000;
+      state.step = "pilih_jam";
 
-    reply = "Jam berapa? (contoh: 14:00)";
+      reply = "Pilih jam (contoh: 14:00)";
+    }
+
+    else if (message === "2") {
+      state.layanan = "Anak-anak";
+      state.harga = 20000;
+      state.step = "pilih_jam";
+
+      reply = "Pilih jam (contoh: 14:00)";
+    }
   }
 
-  else if (message === "2") {
-    layanan = "Anak-anak";
-    harga = 20000;
+  else if (state.step === "pilih_jam") {
+    if (message.includes(":")) {
+      state.jam = message;
+      state.step = "konfirmasi";
 
-    reply = "Jam berapa? (contoh: 14:00)";
+      reply =
+        `Konfirmasi booking:\n\n` +
+        `✂️ Layanan: ${state.layanan}\n` +
+        `💰 Harga: Rp${state.harga}\n` +
+        `⏰ Jam: ${state.jam}\n\n` +
+        `Ketik *YA* untuk konfirmasi\n` +
+        `Ketik *BATAL* untuk ulang`;
+    }
   }
 
-  else if (message.includes(":")) {
-    jam = message;
+  else if (state.step === "konfirmasi") {
+    if (message === "ya") {
+      // 💾 simpan ke database
+      await supabase.from("bookings").insert([
+        {
+          sender,
+          layanan: state.layanan,
+          harga: state.harga,
+          jam: state.jam,
+          status: "confirmed",
+        },
+      ]);
 
-    reply =
-      `Konfirmasi:\n\n` +
-      `⏰ Jam: ${jam}\n\n` +
-      `Ketik YA untuk lanjut`;
+      reply =
+        "✅ Booking berhasil!\n\n" +
+        "Silakan datang 10 menit sebelum jadwal 🙌";
+
+      // reset state
+      delete userState[sender];
+    }
+
+    else if (message === "batal") {
+      delete userState[sender];
+
+      reply = "Booking dibatalkan.\nKetik *halo* untuk mulai lagi.";
+    }
   }
 
-  else if (message === "ya") {
-    // 💾 SIMPAN KE DATABASE
-    const { data, error } = await supabase.from("bookings").insert([
-      {
-        sender,
-        layanan: "Dewasa",
-        harga: 25000,
-        jam: "manual",
-        status: "confirmed",
-      },
-    ]);
-
-    console.log("SUPABASE DATA:", data);
-    console.log("SUPABASE ERROR:", error);
-
-    reply =
-      "✅ Booking berhasil!\n\n" +
-      "Silakan datang 10 menit sebelum jadwal 🙌";
-  }
-
-  // ❗ kalau bukan "halo" → diam
+  // kalau tidak ada reply → diam
   if (!reply) {
     return Response.json({ status: "ignored" });
   }
 
-  // 🚀 kirim WA
+  // kirim WA
   await fetch("https://api.fonnte.com/send", {
     method: "POST",
     headers: {
