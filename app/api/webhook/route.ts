@@ -9,7 +9,6 @@ export async function POST(req: Request) {
   let sender = "";
 
   try {
-    // 🥇 coba JSON dulu
     const body = await req.json();
 
     message =
@@ -20,7 +19,6 @@ export async function POST(req: Request) {
 
     sender = body.sender || body.from || "";
   } catch (err) {
-    // 🥈 fallback ke form-data
     const text = await req.text();
 
     const params = new URLSearchParams(text);
@@ -36,7 +34,7 @@ export async function POST(req: Request) {
       "";
   }
 
-  message = message.toLowerCase();
+  message = message.toLowerCase().trim();
 
   console.log("FINAL MESSAGE:", message);
   console.log("FINAL SENDER:", sender);
@@ -45,16 +43,10 @@ export async function POST(req: Request) {
     return Response.json({ status: "no sender" });
   }
 
-  console.log("TOKEN:", process.env.FONNTE_TOKEN);
+  let reply = "";
 
-  // =========================
-  // 🔥 LOGIC BOOKING FLOW
-  // =========================
-
-  let reply = "Maaf, saya tidak mengerti 😅";
-
-  // START
-  if (message.includes("halo")) {
+  // 🔥 HANYA "halo" yang trigger
+  if (message === "halo") {
     reply =
       "Halo 👋\n" +
       "Selamat datang di Barbershop 💈\n\n" +
@@ -63,52 +55,13 @@ export async function POST(req: Request) {
       "2. Anak-anak - Rp20.000";
   }
 
-  // PILIH LAYANAN
-  else if (message === "1") {
-    reply =
-      "Kamu memilih *Dewasa* ✂️\n\n" +
-      "Mau booking jam berapa?\n" +
-      "(Contoh: 14:00)";
+  // ❗ kalau bukan "halo" → DIAM
+  if (!reply) {
+    console.log("⛔ skip reply");
+    return Response.json({ status: "ignored" });
   }
 
-  else if (message === "2") {
-    reply =
-      "Kamu memilih *Anak-anak* ✂️\n\n" +
-      "Mau booking jam berapa?\n" +
-      "(Contoh: 14:00)";
-  }
-
-  // INPUT JAM (simple detection)
-  else if (message.includes(":")) {
-    reply =
-      "Konfirmasi booking kamu:\n\n" +
-      `⏰ Jam: ${message}\n\n` +
-      "Ketik *YA* untuk konfirmasi\n" +
-      "Ketik *BATAL* untuk ulang";
-  }
-
-  // KONFIRMASI
-  else if (message === "ya") {
-    reply =
-      "✅ Booking berhasil!\n\n" +
-      "Kami tunggu kedatangannya 🙌";
-  }
-
-  else if (message === "batal") {
-    reply =
-      "Silakan pilih ulang:\n\n" +
-      "1. Dewasa - Rp25.000\n" +
-      "2. Anak-anak - Rp20.000";
-  }
-
-  else {
-    reply = "Ketik *halo* untuk mulai booking ✂️";
-  }
-
-  // =========================
-  // 🚀 KIRIM KE WHATSAPP
-  // =========================
-
+  // 🚀 kirim WA
   const res = await fetch("https://api.fonnte.com/send", {
     method: "POST",
     headers: {
