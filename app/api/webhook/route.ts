@@ -10,6 +10,9 @@ export async function POST(req: Request) {
   const message = body.message?.toLowerCase();
   const sender = body.sender;
 
+  console.log("MESSAGE:", message);
+  console.log("SENDER:", sender);
+
   let reply = "";
 
   if (!message) return NextResponse.json({ status: "ok" });
