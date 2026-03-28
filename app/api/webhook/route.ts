@@ -85,15 +85,18 @@ export async function POST(req: Request) {
 
   else if (message === "ya") {
     // 💾 SIMPAN KE DATABASE
-    await supabase.from("bookings").insert([
+    const { data, error } = await supabase.from("bookings").insert([
       {
         sender,
-        layanan: "Dewasa", // sementara fix dulu
+        layanan: "Dewasa",
         harga: 25000,
-        jam: "unknown",
+        jam: "manual",
         status: "confirmed",
       },
     ]);
+
+    console.log("SUPABASE DATA:", data);
+    console.log("SUPABASE ERROR:", error);
 
     reply =
       "✅ Booking berhasil!\n\n" +
