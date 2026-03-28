@@ -5,24 +5,25 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = await req.json();
+  const text = await req.text(); // ⬅️ PENTING
 
-  console.log("BODY:", body);
+  console.log("RAW TEXT:", text);
+
+  const params = new URLSearchParams(text);
 
   const message =
-    body.message?.text?.toLowerCase() ||
-    body.message?.toLowerCase() ||
-    body.text?.toLowerCase() ||
+    params.get("message") ||
+    params.get("text") ||
     "";
 
-  const sender = body.sender;
+  const sender = params.get("sender") || "";
 
   console.log("MESSAGE:", message);
   console.log("SENDER:", sender);
 
   let reply = "Maaf, saya tidak mengerti 😅";
 
-  if (message.includes("halo")) {
+  if (message.toLowerCase().includes("halo")) {
     reply = "Halo 👋\nSilakan pilih:\n1. Dewasa\n2. Anak-anak";
   }
 
