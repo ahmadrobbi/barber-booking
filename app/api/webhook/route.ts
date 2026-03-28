@@ -16,27 +16,13 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-
-    message =
-      body.message?.text ||
-      body.message ||
-      body.text ||
-      "";
-
+    message = body.message?.text || body.message || body.text || "";
     sender = body.sender || body.from || "";
   } catch {
     const text = await req.text();
     const params = new URLSearchParams(text);
-
-    message =
-      params.get("message") ||
-      params.get("text") ||
-      "";
-
-    sender =
-      params.get("sender") ||
-      params.get("from") ||
-      "";
+    message = params.get("message") || params.get("text") || "";
+    sender = params.get("sender") || params.get("from") || "";
   }
 
   message = message.toLowerCase().trim();
@@ -48,7 +34,7 @@ export async function POST(req: Request) {
     return Response.json({ status: "no sender" });
   }
 
-  // 🔥 ambil session terbaru
+  // 🔥 ambil session
   const { data: state } = await supabase
     .from("user_sessions")
     .select("*")
@@ -67,6 +53,9 @@ export async function POST(req: Request) {
       {
         sender,
         step: "pilih_layanan",
+        layanan: null,
+        harga: null,
+        jam: null,
       },
       { onConflict: "sender" }
     );
@@ -82,70 +71,42 @@ export async function POST(req: Request) {
   // ======================
   // PILIH LAYANAN
   // ======================
-  else if (
-    state?.step === "pilih_layanan" ||
-    message === "1" ||
-    message === "2"
-  ) {
-    if (message === "1") {
-      await supabase.from("user_sessions").upsert(
-        {
-          sender,
-          step: "pilih_jam",
-          layanan: "Dewasa",
-          harga: 25000,
-        },
-        { onConflict: "sender" }
-      );
+  else if (state?.step === "pilih_layanan") {
+    if (message === "1" || message.includes("dewasa")) {
+      await supabase.from("user_sessions").update({
+        step: "pilih_jam",
+        layanan: "Dewasa",
+        harga: 25000,
+      }).eq("sender", sender);
 
       reply = "Kamu pilih *Dewasa* ✂️\n\nMasukkan jam (contoh: 14:00)";
     }
 
-    else if (message === "2") {
-      await supabase.from("user_sessions").upsert(
-        {
-          sender,
-          step: "pilih_jam",
-          layanan: "Anak-anak",
-          harga: 20000,
-        },
-        { onConflict: "sender" }
-      );
+    else if (message === "2" || message.includes("anak")) {
+      await supabase.from("user_sessions").update({
+        step: "pilih_jam",
+        layanan: "Anak-anak",
+        harga: 20000,
+      }).eq("sender", sender);
 
       reply = "Kamu pilih *Anak-anak* ✂️\n\nMasukkan jam (contoh: 14:00)";
     }
   }
 
   // ======================
-  // PILIH JAM (FIX UNDEFINED)
+  // PILIH JAM
   // ======================
-  else if (
-    state?.step === "pilih_jam" ||
-    message.includes(":")
-  ) {
+  else if (state?.step === "pilih_jam") {
     if (message.includes(":")) {
-      // 🔥 ambil ulang data terbaru
-      const { data: latest } = await supabase
-        .from("user_sessions")
-        .select("*")
-        .eq("sender", sender)
-        .maybeSingle();
-
-      await supabase.from("user_sessions").upsert(
-        {
-          sender,
-          step: "konfirmasi",
-          jam: message,
-          layanan: latest?.layanan,
-          harga: latest?.harga,
-        },
-        { onConflict: "sender" }
-      );
+      await supabase.from("user_sessions").update({
+        step: "konfirmasi",
+        jam: message,
+      }).eq("sender", sender);
 
       reply =
         `Konfirmasi booking:\n\n` +
-        `✂️ Layanan: ${latest?.layanan}\n` +
-        `💰 Harga: Rp${latest?.harga}\n` +
+        `✂️ Layanan: ${state.layanan}\n` +
+        `💰 Harga: Rp${state.harga}\n` +
         `⏰ Jam: ${message}\n\n` +
         `Ketik *YA* untuk konfirmasi\n` +
         `Ketik *BATAL* untuk ulang`;
@@ -153,23 +114,16 @@ export async function POST(req: Request) {
   }
 
   // ======================
-  // KONFIRMASI (FIX DATA)
+  // KONFIRMASI
   // ======================
   else if (state?.step === "konfirmasi") {
     if (message === "ya") {
-      // 🔥 ambil data terbaru lagi
-      const { data: latest } = await supabase
-        .from("user_sessions")
-        .select("*")
-        .eq("sender", sender)
-        .maybeSingle();
-
       await supabase.from("bookings").insert([
         {
           sender,
-          layanan: latest?.layanan,
-          harga: latest?.harga,
-          jam: latest?.jam,
+          layanan: state.layanan,
+          harga: state.harga,
+          jam: state.jam,
           status: "confirmed",
         },
       ]);
@@ -197,7 +151,7 @@ export async function POST(req: Request) {
   }
 
   // ======================
-  // DEFAULT (DIAM)
+  // DEFAULT
   // ======================
   if (!reply) {
     console.log("⛔ NO REPLY");
