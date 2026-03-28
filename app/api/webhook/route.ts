@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-let userState: any = {};
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_KEY!
+);
 
 export async function GET() {
   return NextResponse.json({ status: "ok" });
@@ -20,9 +24,8 @@ export async function POST(req: Request) {
       "";
 
     sender = body.sender || body.from || "";
-  } catch (err) {
+  } catch {
     const text = await req.text();
-
     const params = new URLSearchParams(text);
 
     message =
@@ -42,121 +45,67 @@ export async function POST(req: Request) {
     return Response.json({ status: "no sender" });
   }
 
-  // INIT USER
-  if (!userState[sender]) {
-    userState[sender] = { step: 0 };
-  }
-
-  const state = userState[sender];
-
   let reply = "";
+  let layanan = "";
+  let harga = 0;
+  let jam = "";
 
-  // =========================
-  // STEP 0 → START
-  // =========================
+  // 🔥 FLOW
   if (message === "halo") {
-    state.step = 1;
-
     reply =
       "Halo 👋\n" +
       "Selamat datang di Barbershop 💈\n\n" +
-      "Pilih layanan (bisa lebih dari satu):\n" +
+      "Pilih layanan:\n" +
       "1. Dewasa - Rp25.000\n" +
-      "2. Anak-anak - Rp20.000\n\n" +
-      "Contoh: 1 atau 1,2";
+      "2. Anak-anak - Rp20.000";
   }
 
-  // =========================
-  // STEP 1 → PILIH LAYANAN
-  // =========================
-  else if (state.step === 1) {
-    const selected = message.split(",");
+  else if (message === "1") {
+    layanan = "Dewasa";
+    harga = 25000;
 
-    let layanan = [];
-    let total = 0;
-
-    for (let item of selected) {
-      item = item.trim();
-
-      if (item === "1") {
-        layanan.push("Dewasa");
-        total += 25000;
-      }
-
-      if (item === "2") {
-        layanan.push("Anak-anak");
-        total += 20000;
-      }
-    }
-
-    if (layanan.length === 0) {
-      reply = "Pilihan tidak valid. Contoh: 1 atau 1,2";
-    } else {
-      state.layanan = layanan;
-      state.total = total;
-      state.step = 2;
-
-      reply =
-        `Layanan: ${layanan.join(", ")}\n` +
-        `Total: Rp${total}\n\n` +
-        "Mau booking jam berapa?\n(Contoh: 14:00)";
-    }
+    reply = "Jam berapa? (contoh: 14:00)";
   }
 
-  // =========================
-  // STEP 2 → INPUT JAM
-  // =========================
-  else if (state.step === 2) {
-    state.jam = message;
-    state.step = 3;
+  else if (message === "2") {
+    layanan = "Anak-anak";
+    harga = 20000;
+
+    reply = "Jam berapa? (contoh: 14:00)";
+  }
+
+  else if (message.includes(":")) {
+    jam = message;
 
     reply =
-      "Konfirmasi booking:\n\n" +
-      `Layanan: ${state.layanan.join(", ")}\n` +
-      `Jam: ${state.jam}\n` +
-      `Total: Rp${state.total}\n\n` +
-      "Ketik *YA* untuk konfirmasi\n" +
-      "Ketik *BATAL* untuk ulang";
+      `Konfirmasi:\n\n` +
+      `⏰ Jam: ${jam}\n\n` +
+      `Ketik YA untuk lanjut`;
   }
 
-  // =========================
-  // STEP 3 → KONFIRMASI
-  // =========================
-  else if (state.step === 3) {
-    if (message === "ya") {
-      reply =
-        "✅ Booking berhasil!\n\n" +
-        `📅 Jam: ${state.jam}\n` +
-        `💰 Total: Rp${state.total}\n\n` +
-        "⏰ Harap datang 10 menit sebelum jadwal ya 🙏";
+  else if (message === "ya") {
+    // 💾 SIMPAN KE DATABASE
+    await supabase.from("bookings").insert([
+      {
+        sender,
+        layanan: "Dewasa", // sementara fix dulu
+        harga: 25000,
+        jam: "unknown",
+        status: "confirmed",
+      },
+    ]);
 
-      state.step = 0; // reset
-    }
-
-    else if (message === "batal") {
-      state.step = 1;
-
-      reply =
-        "Silakan pilih ulang:\n" +
-        "1. Dewasa - Rp25.000\n" +
-        "2. Anak-anak - Rp20.000";
-    }
-
-    else {
-      reply = "Ketik YA atau BATAL ya 🙏";
-    }
+    reply =
+      "✅ Booking berhasil!\n\n" +
+      "Silakan datang 10 menit sebelum jadwal 🙌";
   }
 
-  // =========================
-  // ❗ DI LUAR FLOW → DIAM
-  // =========================
+  // ❗ kalau bukan "halo" → diam
   if (!reply) {
     return Response.json({ status: "ignored" });
   }
 
-  // =========================
-  // 🚀 KIRIM WA
-  // =========================
+  // 🚀 kirim WA
   await fetch("https://api.fonnte.com/send", {
     method: "POST",
     headers: {
