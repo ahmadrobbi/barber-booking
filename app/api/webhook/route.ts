@@ -4,56 +4,101 @@ export async function GET() {
   return NextResponse.json({ status: "ok" });
 }
 
+let userState: any = {};
+
 export async function POST(req: Request) {
-  let message = "";
-  let sender = "";
+  const text = await req.text();
+  const params = new URLSearchParams(text);
 
-  try {
-    const body = await req.json();
+  const message = (params.get("message") || "").toLowerCase();
+  const sender = params.get("sender") || "";
 
-    message =
-      body.message?.text ||
-      body.message ||
-      body.text ||
-      "";
+  let reply = "";
 
-    sender = body.sender || body.from || "";
-  } catch (err) {
-    const text = await req.text();
-
-    const params = new URLSearchParams(text);
-
-    message =
-      params.get("message") ||
-      params.get("text") ||
-      "";
-
-    sender =
-      params.get("sender") ||
-      params.get("from") ||
-      "";
+  // INIT USER
+  if (!userState[sender]) {
+    userState[sender] = { step: 0 };
   }
 
-  message = message.toLowerCase();
+  const state = userState[sender];
 
-  console.log("FINAL MESSAGE:", message);
-  console.log("FINAL SENDER:", sender);
-
-  if (!sender) {
-    return Response.json({ status: "no sender" });
-  }
-
-  // ✅ LOG TOKEN (tambahkan di sini juga)
-  console.log("TOKEN:", process.env.FONNTE_TOKEN);
-
-  let reply = "Maaf, saya tidak mengerti 😅";
-
+  // STEP 0 → START
   if (message.includes("halo")) {
-    reply = "Halo 👋\nSilakan pilih:\n1. Dewasa\n2. Anak-anak";
+    state.step = 1;
+
+    reply =
+      "Halo 👋\n" +
+      "Selamat datang di Barbershop 💈\n\n" +
+      "Silakan pilih layanan:\n" +
+      "1. Dewasa - Rp25.000\n" +
+      "2. Anak-anak - Rp20.000";
   }
 
-  // 🔥 👉 DI SINI TEMPATNYA
-  const res = await fetch("https://api.fonnte.com/send", {
+  // STEP 1 → PILIH LAYANAN
+  else if (state.step === 1) {
+    if (message === "1") {
+      state.layanan = "Dewasa";
+      state.harga = "Rp25.000";
+    } else if (message === "2") {
+      state.layanan = "Anak-anak";
+      state.harga = "Rp20.000";
+    } else {
+      reply = "Pilihan tidak valid. Ketik 1 atau 2 ya 🙏";
+      return sendReply(sender, reply);
+    }
+
+    state.step = 2;
+
+    reply =
+      `Kamu memilih *${state.layanan}* ✂️\n\n` +
+      "Mau booking jam berapa?\n" +
+      "(Contoh: 13:00 / 15:30)";
+  }
+
+  // STEP 2 → INPUT JAM
+  else if (state.step === 2) {
+    state.jam = message;
+    state.step = 3;
+
+    reply =
+      "Konfirmasi booking kamu:\n\n" +
+      `👤 Layanan: ${state.layanan}\n` +
+      `⏰ Jam: ${state.jam}\n` +
+      `💰 Harga: ${state.harga}\n\n` +
+      "Ketik *YA* untuk konfirmasi\n" +
+      "Ketik *BATAL* untuk ulang";
+  }
+
+  // STEP 3 → KONFIRMASI
+  else if (state.step === 3) {
+    if (message === "ya") {
+      reply =
+        "✅ Booking berhasil!\n\n" +
+        "Kami tunggu kedatangannya 🙌";
+
+      state.step = 0; // reset
+    } else if (message === "batal") {
+      state.step = 1;
+
+      reply =
+        "Oke, silakan pilih ulang:\n\n" +
+        "1. Dewasa - Rp25.000\n" +
+        "2. Anak-anak - Rp20.000";
+    } else {
+      reply = "Ketik *YA* atau *BATAL* ya 🙏";
+    }
+  }
+
+  else {
+    reply = "Ketik *halo* untuk mulai booking ✂️";
+  }
+
+  return sendReply(sender, reply);
+}
+
+// 🔥 helper kirim WA
+async function sendReply(sender: string, message: string) {
+  await fetch("https://api.fonnte.com/send", {
     method: "POST",
     headers: {
       Authorization: process.env.FONNTE_TOKEN!,
@@ -61,12 +106,9 @@ export async function POST(req: Request) {
     },
     body: JSON.stringify({
       target: sender,
-      message: reply,
+      message: message,
     }),
   });
-
-  const result = await res.text();
-  console.log("FONNTE RESPONSE:", result);
 
   return Response.json({ status: "ok" });
 }
