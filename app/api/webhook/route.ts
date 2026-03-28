@@ -9,10 +9,7 @@ export async function POST(req: Request) {
   let sender = "";
 
   try {
-    // 🥇 coba JSON dulu
     const body = await req.json();
-
-    console.log("BODY JSON:", body);
 
     message =
       body.message?.text ||
@@ -22,10 +19,7 @@ export async function POST(req: Request) {
 
     sender = body.sender || body.from || "";
   } catch (err) {
-    // 🥈 fallback ke text (form-data)
     const text = await req.text();
-
-    console.log("RAW TEXT:", text);
 
     const params = new URLSearchParams(text);
 
@@ -46,9 +40,11 @@ export async function POST(req: Request) {
   console.log("FINAL SENDER:", sender);
 
   if (!sender) {
-    console.log("❌ SENDER KOSONG - STOP");
-    return NextResponse.json({ status: "no sender" });
+    return Response.json({ status: "no sender" });
   }
+
+  // ✅ LOG TOKEN (tambahkan di sini juga)
+  console.log("TOKEN:", process.env.FONNTE_TOKEN);
 
   let reply = "Maaf, saya tidak mengerti 😅";
 
@@ -56,7 +52,8 @@ export async function POST(req: Request) {
     reply = "Halo 👋\nSilakan pilih:\n1. Dewasa\n2. Anak-anak";
   }
 
-  await fetch("https://api.fonnte.com/send", {
+  // 🔥 👉 DI SINI TEMPATNYA
+  const res = await fetch("https://api.fonnte.com/send", {
     method: "POST",
     headers: {
       Authorization: process.env.FONNTE_TOKEN!,
@@ -68,5 +65,8 @@ export async function POST(req: Request) {
     }),
   });
 
-  return NextResponse.json({ status: "ok" });
+  const result = await res.text();
+  console.log("FONNTE RESPONSE:", result);
+
+  return Response.json({ status: "ok" });
 }
