@@ -46,9 +46,9 @@ export async function POST(req: Request) {
   let reply = "";
 
   // ======================
-  // START
+  // START / RESET
   // ======================
-  if (message === "halo") {
+  if (message === "halo" || !state) {
     await supabase.from("user_sessions").upsert(
       {
         sender,
@@ -71,37 +71,47 @@ export async function POST(req: Request) {
   // ======================
   // PILIH LAYANAN
   // ======================
-  else if (state?.step === "pilih_layanan") {
-    if (message === "1" || message.includes("dewasa")) {
-      await supabase.from("user_sessions").update({
-        step: "pilih_jam",
-        layanan: "Dewasa",
-        harga: 25000,
-      }).eq("sender", sender);
+  else if (state.step === "pilih_layanan") {
+    if (message === "1") {
+      await supabase.from("user_sessions")
+        .update({
+          step: "pilih_jam",
+          layanan: "Dewasa",
+          harga: 25000,
+        })
+        .eq("sender", sender);
 
       reply = "Kamu pilih *Dewasa* ✂️\n\nMasukkan jam (contoh: 14:00)";
     }
 
-    else if (message === "2" || message.includes("anak")) {
-      await supabase.from("user_sessions").update({
-        step: "pilih_jam",
-        layanan: "Anak-anak",
-        harga: 20000,
-      }).eq("sender", sender);
+    else if (message === "2") {
+      await supabase.from("user_sessions")
+        .update({
+          step: "pilih_jam",
+          layanan: "Anak-anak",
+          harga: 20000,
+        })
+        .eq("sender", sender);
 
       reply = "Kamu pilih *Anak-anak* ✂️\n\nMasukkan jam (contoh: 14:00)";
+    }
+
+    else {
+      reply = "Ketik *1* atau *2* untuk pilih layanan ya ✂️";
     }
   }
 
   // ======================
   // PILIH JAM
   // ======================
-  else if (state?.step === "pilih_jam") {
+  else if (state.step === "pilih_jam") {
     if (message.includes(":")) {
-      await supabase.from("user_sessions").update({
-        step: "konfirmasi",
-        jam: message,
-      }).eq("sender", sender);
+      await supabase.from("user_sessions")
+        .update({
+          step: "konfirmasi",
+          jam: message,
+        })
+        .eq("sender", sender);
 
       reply =
         `Konfirmasi booking:\n\n` +
@@ -110,13 +120,15 @@ export async function POST(req: Request) {
         `⏰ Jam: ${message}\n\n` +
         `Ketik *YA* untuk konfirmasi\n` +
         `Ketik *BATAL* untuk ulang`;
+    } else {
+      reply = "Format jam salah.\nContoh: 14:00";
     }
   }
 
   // ======================
   // KONFIRMASI
   // ======================
-  else if (state?.step === "konfirmasi") {
+  else if (state.step === "konfirmasi") {
     if (message === "ya") {
       await supabase.from("bookings").insert([
         {
@@ -148,14 +160,17 @@ export async function POST(req: Request) {
         "❌ Booking dibatalkan.\n\n" +
         "Ketik *halo* untuk mulai lagi.";
     }
+
+    else {
+      reply = "Ketik *YA* atau *BATAL* ya";
+    }
   }
 
   // ======================
-  // DEFAULT
+  // SAFETY NET (ANTI DIAM)
   // ======================
   if (!reply) {
-    console.log("⛔ NO REPLY");
-    return Response.json({ status: "ignored" });
+    reply = "Ketik *halo* untuk mulai booking ✂️";
   }
 
   // ======================
