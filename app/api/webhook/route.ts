@@ -27,14 +27,11 @@ export async function POST(req: Request) {
 
   message = message.toLowerCase().trim();
 
-  console.log("MESSAGE:", message);
-  console.log("SENDER:", sender);
-
   if (!sender) {
     return Response.json({ status: "no sender" });
   }
 
-  // 🔥 ambil session
+  // ambil session
   const { data: state } = await supabase
     .from("user_sessions")
     .select("*")
@@ -46,9 +43,9 @@ export async function POST(req: Request) {
   let reply = "";
 
   // ======================
-  // START / RESET
+  // START
   // ======================
-  if (message === "halo" || !state) {
+  if (message === "halo") {
     await supabase.from("user_sessions").upsert(
       {
         sender,
@@ -66,6 +63,13 @@ export async function POST(req: Request) {
       "Pilih layanan:\n" +
       "1. Dewasa - Rp25.000\n" +
       "2. Anak-anak - Rp20.000";
+  }
+
+  // ======================
+  // ❗ kalau belum pernah halo → DIAM
+  // ======================
+  else if (!state) {
+    return Response.json({ status: "ignored" });
   }
 
   // ======================
@@ -121,7 +125,7 @@ export async function POST(req: Request) {
         `Ketik *YA* untuk konfirmasi\n` +
         `Ketik *BATAL* untuk ulang`;
     } else {
-      reply = "Format jam salah.\nContoh: 14:00";
+      reply = "Format jam salah. Contoh: 14:00";
     }
   }
 
@@ -167,16 +171,14 @@ export async function POST(req: Request) {
   }
 
   // ======================
-  // SAFETY NET (ANTI DIAM)
+  // fallback
   // ======================
   if (!reply) {
-    reply = "Ketik *halo* untuk mulai booking ✂️";
+    return Response.json({ status: "ignored" });
   }
 
-  // ======================
-  // KIRIM WA
-  // ======================
-  const res = await fetch("https://api.fonnte.com/send", {
+  // kirim WA
+  await fetch("https://api.fonnte.com/send", {
     method: "POST",
     headers: {
       Authorization: process.env.FONNTE_TOKEN!,
@@ -187,9 +189,6 @@ export async function POST(req: Request) {
       message: reply,
     }),
   });
-
-  const result = await res.text();
-  console.log("FONNTE RESPONSE:", result);
 
   return Response.json({ status: "ok" });
 }
