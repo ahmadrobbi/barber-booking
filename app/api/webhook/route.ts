@@ -6,6 +6,10 @@ const supabase = createClient(
   process.env.SUPABASE_KEY!
 );
 
+export async function GET() {
+  return NextResponse.json({ status: "ok" });
+}
+
 export async function POST(req: Request) {
   let message = "";
   let sender = "";
@@ -17,17 +21,20 @@ export async function POST(req: Request) {
   } catch {
     const text = await req.text();
     const params = new URLSearchParams(text);
-    message = params.get("message") || "";
-    sender = params.get("sender") || "";
+    message = params.get("message") || params.get("text") || "";
+    sender = params.get("sender") || params.get("from") || "";
   }
 
   message = message.toLowerCase().trim();
+
+  console.log("MESSAGE:", message);
+  console.log("SENDER:", sender);
 
   if (!sender) {
     return Response.json({ status: "no sender" });
   }
 
-  // ambil state
+  // 🔥 ambil session
   const { data: state } = await supabase
     .from("user_sessions")
     .select("*")
@@ -39,81 +46,66 @@ export async function POST(req: Request) {
   let reply = "";
 
   // ======================
-  // START
+  // START / RESET
   // ======================
-  if (message === "halo") {
+  if (message === "halo" || !state) {
     await supabase.from("user_sessions").upsert(
       {
         sender,
         step: "pilih_layanan",
         layanan: null,
         harga: null,
-        tanggal: null,
         jam: null,
       },
       { onConflict: "sender" }
     );
 
     reply =
-      "Halo 👋\n\n" +
+      "Halo 👋\n" +
+      "Selamat datang di Barbershop 💈\n\n" +
       "Pilih layanan:\n" +
       "1. Dewasa - Rp25.000\n" +
       "2. Anak-anak - Rp20.000";
   }
 
   // ======================
-  // kalau belum mulai → DIAM
-  // ======================
-  else if (!state) {
-    return Response.json({ status: "ignored" });
-  }
-
-  // ======================
   // PILIH LAYANAN
   // ======================
   else if (state.step === "pilih_layanan") {
-    if (message === "1" || message === "2") {
-      const layanan = message === "1" ? "Dewasa" : "Anak-anak";
-      const harga = message === "1" ? 25000 : 20000;
-
+    if (message === "1") {
       await supabase.from("user_sessions")
         .update({
-          step: "pilih_tanggal",
-          layanan,
-          harga,
+          step: "pilih_jam",
+          layanan: "Dewasa",
+          harga: 25000,
         })
         .eq("sender", sender);
 
-      reply = "Masukkan tanggal booking (contoh: 2026-04-02)";
-    } else {
-      reply = "Ketik *1* atau *2* ya";
+      reply = "Kamu pilih *Dewasa* ✂️\n\nMasukkan jam (contoh: 14:00)";
     }
-  }
 
-  // ======================
-  // PILIH TANGGAL
-  // ======================
-  else if (state.step === "pilih_tanggal") {
+    else if (message === "2") {
+      await supabase.from("user_sessions")
+        .update({
+          step: "pilih_jam",
+          layanan: "Anak-anak",
+          harga: 20000,
+        })
+        .eq("sender", sender);
 
-    await supabase.from("user_sessions")
-      .update({
-        step: "pilih_jam",
-        tanggal: message,
-      })
-      .eq("sender", sender);
+      reply = "Kamu pilih *Anak-anak* ✂️\n\nMasukkan jam (contoh: 14:00)";
+    }
 
-    reply = "Masukkan jam (contoh: 14:00)";
+    else {
+      reply = "Ketik *1* atau *2* untuk pilih layanan ya ✂️";
+    }
   }
 
   // ======================
   // PILIH JAM
   // ======================
   else if (state.step === "pilih_jam") {
-
-    if (!message.includes(":")) {
-      reply = "Format jam salah. Contoh: 14:00";
-    } else {
-
+    if (message.includes(":")) {
       await supabase.from("user_sessions")
         .update({
           step: "konfirmasi",
@@ -121,21 +113,15 @@ export async function POST(req: Request) {
         })
         .eq("sender", sender);
 
-      // 🔥 ambil state terbaru (WAJIB)
-      const { data: newState } = await supabase
-        .from("user_sessions")
-        .select("*")
-        .eq("sender", sender)
-        .single();
-
       reply =
         `Konfirmasi booking:\n\n` +
-        `✂️ ${newState.layanan}\n` +
-        `📅 ${newState.tanggal}\n` +
-        `⏰ ${newState.jam}\n` +
-        `💰 Rp${newState.harga}\n\n` +
+        `✂️ Layanan: ${state.layanan}\n` +
+        `💰 Harga: Rp${state.harga}\n` +
+        `⏰ Jam: ${message}\n\n` +
         `Ketik *YA* untuk konfirmasi\n` +
         `Ketik *BATAL* untuk ulang`;
+    } else {
+      reply = "Format jam salah.\nContoh: 14:00";
     }
   }
 
@@ -143,15 +129,12 @@ export async function POST(req: Request) {
   // KONFIRMASI
   // ======================
   else if (state.step === "konfirmasi") {
-
     if (message === "ya") {
-
       await supabase.from("bookings").insert([
         {
           sender,
           layanan: state.layanan,
           harga: state.harga,
-          tanggal: state.tanggal,
           jam: state.jam,
           status: "confirmed",
         },
@@ -164,8 +147,6 @@ export async function POST(req: Request) {
 
       reply =
         "✅ Booking berhasil!\n\n" +
-        `📅 ${state.tanggal}\n` +
-        `⏰ ${state.jam}\n\n` +
         "Silakan datang 10 menit sebelum jadwal 🙌";
     }
 
@@ -175,7 +156,9 @@ export async function POST(req: Request) {
         .delete()
         .eq("sender", sender);
 
-      reply = "❌ Booking dibatalkan.\n\nKetik *halo* untuk mulai lagi.";
+      reply =
+        "❌ Booking dibatalkan.\n\n" +
+        "Ketik *halo* untuk mulai lagi.";
     }
 
     else {
@@ -184,17 +167,16 @@ export async function POST(req: Request) {
   }
 
   // ======================
-  // fallback
+  // SAFETY NET (ANTI DIAM)
   // ======================
   if (!reply) {
-    console.log("NO REPLY");
-    return Response.json({ status: "ignored" });
+    reply = "Ketik *halo* untuk mulai booking ✂️";
   }
 
   // ======================
-  // kirim WA
+  // KIRIM WA
   // ======================
-  await fetch("https://api.fonnte.com/send", {
+  const res = await fetch("https://api.fonnte.com/send", {
     method: "POST",
     headers: {
       Authorization: process.env.FONNTE_TOKEN!,
@@ -205,6 +187,9 @@ export async function POST(req: Request) {
       message: reply,
     }),
   });
+
+  const result = await res.text();
+  console.log("FONNTE RESPONSE:", result);
 
   return Response.json({ status: "ok" });
 }
