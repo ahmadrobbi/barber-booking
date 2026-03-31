@@ -1,5 +1,6 @@
 export default function Home() {
-  const phone = "6285852538431"; // ganti nomor barber
+  //const phone = "6285852538431"; // ganti nomor barber
+  const phone = "6287749105273";
 
   const message = encodeURIComponent(
     "Halo 👋 saya mau booking cukur rambut"
