@@ -35,16 +35,21 @@ export async function POST(req: Request) {
 
   message = message.toLowerCase().trim();
 
+  console.log("MESSAGE:", message);
+  console.log("SENDER:", sender);
+
   if (!sender) {
     return Response.json({ status: "no sender" });
   }
 
-  // ambil session
+  // 🔥 ambil session
   const { data: state } = await supabase
     .from("user_sessions")
     .select("*")
     .eq("sender", sender)
     .maybeSingle();
+
+  console.log("STATE:", state);
 
   let reply = "";
 
@@ -75,11 +80,9 @@ export async function POST(req: Request) {
   // PILIH LAYANAN
   // ======================
   else if (state.step === "pilih_layanan") {
-
     if (message !== "1" && message !== "2") {
-      reply = "Ketik 1 atau 2 ya";
+      reply = "Ketik *1* atau *2* ya";
     } else {
-
       const layanan = message === "1" ? "Dewasa" : "Anak-anak";
       const harga = message === "1" ? 25000 : 20000;
 
@@ -95,7 +98,7 @@ export async function POST(req: Request) {
         { onConflict: "sender" }
       );
 
-      reply = "Masukkan tanggal (2026-04-01)";
+      reply = "Masukkan tanggal (format: 2026-04-01)";
     }
   }
 
@@ -103,11 +106,9 @@ export async function POST(req: Request) {
   // PILIH TANGGAL
   // ======================
   else if (state.step === "pilih_tanggal") {
-
     if (!message.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      reply = "Format tanggal salah (2026-04-01)";
+      reply = "Format tanggal salah\nContoh: 2026-04-01";
     } else {
-
       await supabase.from("user_sessions").upsert(
         {
           ...state,
@@ -118,7 +119,7 @@ export async function POST(req: Request) {
         { onConflict: "sender" }
       );
 
-      reply = "Masukkan jam (14:00)";
+      reply = "Masukkan jam (contoh: 14:00)";
     }
   }
 
@@ -126,12 +127,10 @@ export async function POST(req: Request) {
   // PILIH JAM
   // ======================
   else if (state.step === "pilih_jam") {
-
     if (!message.match(/^\d{2}:\d{2}$/)) {
-      reply = "Format jam salah (14:00)";
+      reply = "Format jam salah\nContoh: 14:00";
     } else {
-
-      // ambil state terbaru
+      // 🔥 ambil data terbaru
       const { data: fresh } = await supabase
         .from("user_sessions")
         .select("*")
@@ -141,13 +140,11 @@ export async function POST(req: Request) {
       if (!fresh?.tanggal) {
         reply = "❌ Tanggal hilang, ketik halo ulang";
       } else {
-
         const bentrok = await isSlotTaken(fresh.tanggal, message);
 
         if (bentrok) {
-          reply = "❌ Jam sudah penuh";
+          reply = "❌ Jam sudah diambil, pilih jam lain";
         } else {
-
           await supabase.from("user_sessions").upsert(
             {
               ...fresh,
@@ -159,11 +156,11 @@ export async function POST(req: Request) {
           );
 
           reply =
-            `Konfirmasi:\n\n` +
-            `${fresh.layanan}\n` +
-            `${fresh.tanggal}\n` +
-            `${message}\n\n` +
-            `Ketik YA`;
+            `Konfirmasi booking:\n\n` +
+            `✂️ ${fresh.layanan}\n` +
+            `📅 ${fresh.tanggal}\n` +
+            `⏰ ${message}\n\n` +
+            `Ketik *YA* untuk lanjut`;
         }
       }
     }
@@ -173,9 +170,7 @@ export async function POST(req: Request) {
   // KONFIRMASI
   // ======================
   else if (state.step === "konfirmasi") {
-
     if (message === "ya") {
-
       const { data: fresh } = await supabase
         .from("user_sessions")
         .select("*")
@@ -185,9 +180,8 @@ export async function POST(req: Request) {
       const bentrok = await isSlotTaken(fresh.tanggal, fresh.jam);
 
       if (bentrok) {
-        reply = "❌ Slot sudah diambil";
+        reply = "❌ Slot sudah diambil orang lain";
       } else {
-
         await supabase.from("bookings").insert([
           {
             sender,
@@ -204,10 +198,10 @@ export async function POST(req: Request) {
           .delete()
           .eq("sender", sender);
 
-        reply = "✅ Booking berhasil";
+        reply = "✅ Booking berhasil! 🙌";
       }
     } else {
-      reply = "Ketik YA";
+      reply = "Ketik *YA* untuk konfirmasi";
     }
   }
 
@@ -215,9 +209,12 @@ export async function POST(req: Request) {
   // FALLBACK
   // ======================
   if (!reply) {
-    reply = "Ketik halo untuk mulai";
+    reply = "Ketik *halo* untuk mulai booking";
   }
 
+  // ======================
+  // KIRIM WA
+  // ======================
   await fetch("https://api.fonnte.com/send", {
     method: "POST",
     headers: {
