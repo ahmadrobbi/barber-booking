@@ -47,6 +47,8 @@ async function getAvailableSlots(tanggal: string) {
 // MAIN API
 // ======================
 export async function POST(req: Request) {
+  console.log("🔥 VERSION TERBARU AKTIF");
+  console.log("🔥 VERSION TERBARU AKTIF");
   let message = "";
   let sender = "";
 
