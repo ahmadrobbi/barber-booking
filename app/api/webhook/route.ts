@@ -7,7 +7,18 @@ const supabase = createClient(
   process.env.SUPABASE_KEY!
 );
 
-// cek bentrok
+// ======================
+// SLOT JAM TERSEDIA
+// ======================
+const ALL_SLOTS = [
+  "09:00","10:00","11:00",
+  "13:00","14:00","15:00",
+  "16:00","17:00","18:00"
+];
+
+// ======================
+// CEK SLOT TERISI
+// ======================
 async function isSlotTaken(tanggal: string, jam: string) {
   const { data } = await supabase
     .from("bookings")
@@ -18,6 +29,23 @@ async function isSlotTaken(tanggal: string, jam: string) {
   return data && data.length > 0;
 }
 
+// ======================
+// AMBIL SLOT KOSONG
+// ======================
+async function getAvailableSlots(tanggal: string) {
+  const { data } = await supabase
+    .from("bookings")
+    .select("jam")
+    .eq("tanggal", tanggal);
+
+  const booked = data?.map(i => i.jam) || [];
+
+  return ALL_SLOTS.filter(jam => !booked.includes(jam));
+}
+
+// ======================
+// MAIN API
+// ======================
 export async function POST(req: Request) {
   let message = "";
   let sender = "";
@@ -48,7 +76,7 @@ export async function POST(req: Request) {
   let reply = "";
 
   // ======================
-  // START (FIX)
+  // START
   // ======================
   if (message === "halo") {
     await supabase.from("user_sessions").upsert(
@@ -64,17 +92,26 @@ export async function POST(req: Request) {
     );
 
     reply =
-      "Halo 👋\n\n" +
-      "Pilih layanan:\n" +
-      "1. Dewasa\n" +
-      "2. Anak-anak";
+      "Halo 👋 Selamat datang di *Barbershop Premium* 💈\n\n" +
+      "Kami siap bikin kamu tampil lebih percaya diri 😎\n\n" +
+      "✨ *Pilih layanan terbaik:*\n\n" +
+
+      "1️⃣ *Dewasa Premium*\n" +
+      "✂️ Potong + styling rapi\n" +
+      "💰 Rp25.000\n\n" +
+
+      "2️⃣ *Anak-anak*\n" +
+      "👶 Potong santai & nyaman\n" +
+      "💰 Rp20.000\n\n" +
+
+      "Balas dengan *1* atau *2* ya 👇";
   }
 
   // ======================
   // STATE NULL
   // ======================
   else if (!state) {
-    reply = "Ketik *halo* untuk mulai booking";
+    reply = "Ketik *halo* untuk mulai booking ✂️";
   }
 
   // ======================
@@ -84,7 +121,7 @@ export async function POST(req: Request) {
 
     if (message === "1" || message === "2") {
 
-      const layanan = message === "1" ? "Dewasa" : "Anak-anak";
+      const layanan = message === "1" ? "Dewasa Premium" : "Anak-anak";
       const harga = message === "1" ? 25000 : 20000;
 
       await supabase.from("user_sessions").upsert(
@@ -97,24 +134,31 @@ export async function POST(req: Request) {
         { onConflict: "sender" }
       );
 
-      reply = "Masukkan tanggal (format: 2026-04-01)";
+      reply =
+        `Mantap 👍 kamu pilih *${layanan}*\n\n` +
+        `Sekarang pilih tanggal booking ya 📅\n\n` +
+        `Contoh: 2026-04-01`;
     }
 
     else {
-      reply = "Ketik 1 atau 2 ya";
+      reply = "Ketik *1* atau *2* ya ✂️";
     }
   }
 
   // ======================
-  // PILIH TANGGAL (FIX VALIDASI)
+  // PILIH TANGGAL
   // ======================
   else if (state.step === "pilih_tanggal") {
 
     const isTanggalValid = /^\d{4}-\d{2}-\d{2}$/.test(message);
 
     if (!isTanggalValid) {
-      reply = "❌ Format tanggal salah\nContoh: 2026-04-01";
+      reply =
+        "❌ Format tanggal salah\n\n" +
+        "Contoh: 2026-04-01";
     } else {
+
+      const slots = await getAvailableSlots(message);
 
       await supabase.from("user_sessions").upsert(
         {
@@ -126,25 +170,32 @@ export async function POST(req: Request) {
         { onConflict: "sender" }
       );
 
-      reply = "Masukkan jam (contoh: 14:00)";
+      reply =
+        `📅 Tanggal dipilih: *${message}*\n\n` +
+        `⏰ *Jam tersedia:*\n` +
+        `${slots.join(", ")}\n\n` +
+        `Ketik jam yang kamu mau ya 👇\n` +
+        `Contoh: 14:00`;
     }
   }
 
   // ======================
-  // PILIH JAM (FIX VALIDASI)
+  // PILIH JAM
   // ======================
   else if (state.step === "pilih_jam") {
 
     const isJamValid = /^\d{2}:\d{2}$/.test(message);
 
     if (!isJamValid) {
-      reply = "❌ Format jam salah\nContoh: 14:00";
+      reply =
+        "❌ Format jam salah\n\n" +
+        "Contoh: 14:00";
     } else {
 
       const bentrok = await isSlotTaken(state.tanggal, message);
 
       if (bentrok) {
-        reply = "❌ Jam sudah dibooking, pilih jam lain";
+        reply = "❌ Jam sudah dibooking, pilih jam lain ya";
       } else {
 
         await supabase.from("user_sessions").upsert(
@@ -158,12 +209,13 @@ export async function POST(req: Request) {
         );
 
         reply =
-          `Konfirmasi:\n\n` +
-          `✂️ ${state.layanan}\n` +
-          `📅 ${state.tanggal}\n` +
-          `⏰ ${message}\n` +
-          `💰 Rp${state.harga}\n\n` +
-          `Ketik YA / BATAL`;
+          `📌 *Konfirmasi Booking*\n\n` +
+          `✂️ Layanan : ${state.layanan}\n` +
+          `📅 Tanggal : ${state.tanggal}\n` +
+          `⏰ Jam : ${message}\n` +
+          `💰 Total : Rp${state.harga}\n\n` +
+          `✅ Ketik *YA* untuk lanjut\n` +
+          `❌ Ketik *BATAL* untuk ulang`;
       }
     }
   }
@@ -178,7 +230,7 @@ export async function POST(req: Request) {
       const bentrok = await isSlotTaken(state.tanggal, state.jam);
 
       if (bentrok) {
-        reply = "❌ Slot sudah diambil";
+        reply = "❌ Slot sudah diambil orang lain";
       } else {
 
         await supabase.from("bookings").insert([
@@ -198,8 +250,11 @@ export async function POST(req: Request) {
           .eq("sender", sender);
 
         reply =
-          "✅ Booking berhasil!\n\n" +
-          `${state.tanggal} ${state.jam}`;
+          "✅ *Booking berhasil!*\n\n" +
+          `📅 ${state.tanggal}\n` +
+          `⏰ ${state.jam}\n\n` +
+          "🙏 Mohon datang 10 menit sebelum jadwal\n" +
+          "Sampai ketemu di barbershop! 💈";
       }
     }
 
@@ -209,11 +264,11 @@ export async function POST(req: Request) {
         .delete()
         .eq("sender", sender);
 
-      reply = "Booking dibatalkan";
+      reply = "❌ Booking dibatalkan\nKetik *halo* untuk mulai lagi";
     }
 
     else {
-      reply = "Ketik YA atau BATAL";
+      reply = "Ketik *YA* atau *BATAL* ya";
     }
   }
 
@@ -221,9 +276,12 @@ export async function POST(req: Request) {
   // SAFETY
   // ======================
   if (!reply) {
-    reply = "Ketik halo untuk mulai";
+    reply = "Ketik *halo* untuk mulai booking ✂️";
   }
 
+  // ======================
+  // KIRIM WA
+  // ======================
   await fetch("https://api.fonnte.com/send", {
     method: "POST",
     headers: {
