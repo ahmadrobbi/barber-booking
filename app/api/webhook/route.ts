@@ -1,5 +1,3 @@
-
-import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -7,15 +5,21 @@ const supabase = createClient(
   process.env.SUPABASE_KEY!
 );
 
-// 🔥 cek bentrok
+// Konstanta Harga agar mudah diubah
+const PRICING = {
+  "1": { nama: "Dewasa", harga: 25000 },
+  "2": { nama: "Anak-anak", harga: 20000 },
+};
+
 async function isSlotTaken(tanggal: string, jam: string) {
   const { data } = await supabase
     .from("bookings")
-    .select("*")
+    .select("id")
     .eq("tanggal", tanggal)
-    .eq("jam", jam);
+    .eq("jam", jam)
+    .maybeSingle();
 
-  return data && data.length > 0;
+  return !!data;
 }
 
 export async function POST(req: Request) {
@@ -24,197 +28,137 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    message = body.message?.text || body.message || body.text || "";
+    // Prioritaskan mengambil pesan teks murni
+    message = (body.message?.text || body.message || body.text || "").toLowerCase().trim();
     sender = body.sender || body.from || "";
-  } catch {
-    const text = await req.text();
-    const params = new URLSearchParams(text);
-    message = params.get("message") || params.get("text") || "";
-    sender = params.get("sender") || params.get("from") || "";
+  } catch (e) {
+    return Response.json({ status: "error", message: "Invalid JSON" });
   }
 
-  message = message.toLowerCase().trim();
+  if (!sender) return Response.json({ status: "no sender" });
 
-  console.log("MESSAGE:", message);
-  console.log("SENDER:", sender);
-
-  if (!sender) {
-    return Response.json({ status: "no sender" });
-  }
-
-  // 🔥 ambil session
+  // 1. Ambil State User
   const { data: state } = await supabase
     .from("user_sessions")
     .select("*")
     .eq("sender", sender)
     .maybeSingle();
 
-  console.log("STATE:", state);
-
   let reply = "";
 
   // ======================
-  // START
+  // LOGIKA FLOW (STATE MACHINE)
   // ======================
+
+  // RESET ATAU MULAI BARU
   if (message === "halo" || !state) {
-    await supabase.from("user_sessions").upsert(
-      {
-        sender,
-        step: "pilih_layanan",
-        layanan: null,
-        harga: null,
-        tanggal: null,
-        jam: null,
-      },
-      { onConflict: "sender" }
-    );
+    await supabase.from("user_sessions").upsert({
+      sender,
+      step: "pilih_layanan",
+      layanan: null,
+      harga: null,
+      tanggal: null,
+      jam: null,
+    }, { onConflict: "sender" });
 
-    reply =
-      "Halo 👋\n\n" +
-      "Pilih layanan:\n" +
-      "1. Dewasa\n" +
-      "2. Anak-anak";
-  }
-
-  // ======================
+    reply = "Halo 👋 Selamat datang di Barbershop!\n\n" +
+            "Pilih layanan:\n" +
+            "1. Dewasa (Rp 25.000)\n" +
+            "2. Anak-anak (Rp 20.000)\n\n" +
+            "Ketik angkanya saja.";
+  } 
+  
   // PILIH LAYANAN
-  // ======================
   else if (state.step === "pilih_layanan") {
-    if (message !== "1" && message !== "2") {
-      reply = "Ketik *1* atau *2* ya";
+    const pilihan = PRICING[message as keyof typeof PRICING];
+    if (!pilihan) {
+      reply = "⚠️ Mohon ketik *1* untuk Dewasa atau *2* untuk Anak-anak.";
     } else {
-      const layanan = message === "1" ? "Dewasa" : "Anak-anak";
-      const harga = message === "1" ? 25000 : 20000;
+      await supabase.from("user_sessions").update({
+        step: "pilih_tanggal",
+        layanan: pilihan.nama,
+        harga: pilihan.harga,
+      }).eq("sender", sender);
 
-      await supabase.from("user_sessions").upsert(
-        {
-          sender,
-          step: "pilih_tanggal",
-          layanan,
-          harga,
-          tanggal: null,
-          jam: null,
-        },
-        { onConflict: "sender" }
-      );
-
-      reply = "Masukkan tanggal (format: 2026-04-01)";
+      reply = "📅 Masukkan tanggal booking\nFormat: *YYYY-MM-DD*\nContoh: 2026-04-01";
     }
   }
 
-  // ======================
   // PILIH TANGGAL
-  // ======================
   else if (state.step === "pilih_tanggal") {
-    if (!message.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      reply = "Format tanggal salah\nContoh: 2026-04-01";
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(message)) {
+      reply = "❌ Format tanggal salah.\nGunakan format *YYYY-MM-DD* (Contoh: 2026-04-01)";
     } else {
-      await supabase.from("user_sessions").upsert(
-        {
-          ...state,
-          sender,
-          step: "pilih_jam",
-          tanggal: message,
-        },
-        { onConflict: "sender" }
-      );
+      await supabase.from("user_sessions").update({
+        step: "pilih_jam",
+        tanggal: message,
+      }).eq("sender", sender);
 
-      reply = "Masukkan jam (contoh: 14:00)";
+      reply = "⏰ Pilih jam booking\nFormat: *HH:mm*\nContoh: 14:00";
     }
   }
 
-  // ======================
   // PILIH JAM
-  // ======================
   else if (state.step === "pilih_jam") {
-    if (!message.match(/^\d{2}:\d{2}$/)) {
-      reply = "Format jam salah\nContoh: 14:00";
+    const timeRegex = /^\d{2}:\d{2}$/;
+    if (!timeRegex.test(message)) {
+      reply = "❌ Format jam salah.\nContoh: 14:00";
     } else {
-      // 🔥 ambil data terbaru
-      const { data: fresh } = await supabase
-        .from("user_sessions")
-        .select("*")
-        .eq("sender", sender)
-        .single();
-
-      if (!fresh?.tanggal) {
-        reply = "❌ Tanggal hilang, ketik halo ulang";
-      } else {
-        const bentrok = await isSlotTaken(fresh.tanggal, message);
-
-        if (bentrok) {
-          reply = "❌ Jam sudah diambil, pilih jam lain";
-        } else {
-          await supabase.from("user_sessions").upsert(
-            {
-              ...fresh,
-              sender,
-              step: "konfirmasi",
-              jam: message,
-            },
-            { onConflict: "sender" }
-          );
-
-          reply =
-            `Konfirmasi booking:\n\n` +
-            `✂️ ${fresh.layanan}\n` +
-            `📅 ${fresh.tanggal}\n` +
-            `⏰ ${message}\n\n` +
-            `Ketik *YA* untuk lanjut`;
-        }
-      }
-    }
-  }
-
-  // ======================
-  // KONFIRMASI
-  // ======================
-  else if (state.step === "konfirmasi") {
-    if (message === "ya") {
-      const { data: fresh } = await supabase
-        .from("user_sessions")
-        .select("*")
-        .eq("sender", sender)
-        .single();
-
-      const bentrok = await isSlotTaken(fresh.tanggal, fresh.jam);
+      // Cek bentrok langsung menggunakan tanggal dari state
+      const bentrok = await isSlotTaken(state.tanggal, message);
 
       if (bentrok) {
-        reply = "❌ Slot sudah diambil orang lain";
+        reply = "🚫 Maaf, jam " + message + " sudah penuh. Silakan masukkan jam lain:";
       } else {
-        await supabase.from("bookings").insert([
-          {
-            sender,
-            layanan: fresh.layanan,
-            harga: fresh.harga,
-            tanggal: fresh.tanggal,
-            jam: fresh.jam,
-            status: "confirmed",
-          },
-        ]);
+        await supabase.from("user_sessions").update({
+          step: "konfirmasi",
+          jam: message,
+        }).eq("sender", sender);
 
-        await supabase
-          .from("user_sessions")
-          .delete()
-          .eq("sender", sender);
-
-        reply = "✅ Booking berhasil! 🙌";
+        reply = `📝 *Konfirmasi Booking*\n\n` +
+                `• Layanan: ${state.layanan}\n` +
+                `• Tanggal: ${state.tanggal}\n` +
+                `• Jam: ${message}\n` +
+                `• Total: *Rp ${state.harga.toLocaleString('id-ID')}*\n\n` +
+                `Ketik *YA* untuk memproses booking.`;
       }
-    } else {
-      reply = "Ketik *YA* untuk konfirmasi";
     }
   }
 
-  // ======================
-  // FALLBACK
-  // ======================
-  if (!reply) {
-    reply = "Ketik *halo* untuk mulai booking";
+  // KONFIRMASI AKHIR
+  else if (state.step === "konfirmasi") {
+    if (message === "ya") {
+      // Double check ketersediaan terakhir
+      const bentrok = await isSlotTaken(state.tanggal, state.jam);
+      
+      if (bentrok) {
+        reply = "❌ Waduh, slot baru saja diambil orang lain. Ketik *halo* untuk mulai lagi.";
+      } else {
+        // Pindah ke tabel bookings
+        await supabase.from("bookings").insert([{
+          sender,
+          layanan: state.layanan,
+          harga: state.harga,
+          tanggal: state.tanggal,
+          jam: state.jam,
+          status: "confirmed"
+        }]);
+
+        // Hapus session
+        await supabase.from("user_sessions").delete().eq("sender", sender);
+
+        reply = `✅ *BOOKING BERHASIL!*\n\n` +
+                `Terima kasih sudah memesan.\n` +
+                `Total yang harus dibayar di kasir: *Rp ${state.harga.toLocaleString('id-ID')}*.\n\n` +
+                `Sampai jumpa di lokasi! ✂️`;
+      }
+    } else {
+      reply = "Mohon ketik *YA* untuk konfirmasi atau *halo* untuk batal.";
+    }
   }
 
-  // ======================
-  // KIRIM WA
-  // ======================
+  // 2. Kirim Pesan via Fonnte
   await fetch("https://api.fonnte.com/send", {
     method: "POST",
     headers: {
@@ -223,10 +167,9 @@ export async function POST(req: Request) {
     },
     body: JSON.stringify({
       target: sender,
-      message: reply,
+      message: reply || "Ketik *halo* untuk mulai.",
     }),
   });
 
   return Response.json({ status: "ok" });
 }
-
