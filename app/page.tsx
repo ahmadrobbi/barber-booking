@@ -34,26 +34,28 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CAROUSEL LAYANAN */}
+      {/* LAYANAN (CAROUSEL) */}
       <section className="py-16 px-6 text-center">
         <h2 className="text-2xl font-bold mb-8">Layanan Kami</h2>
 
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {[
-            { name: "Fade Cut", price: "Rp30K" },
-            { name: "Undercut", price: "Rp25K" },
-            { name: "Hair Coloring", price: "Rp80K" },
-            { name: "Kids Cut", price: "Rp20K" },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="min-w-[200px] bg-white text-black p-4 rounded-xl shadow"
-            >
-              <div className="h-32 bg-gray-200 rounded mb-3" />
-              <h3 className="font-semibold">{item.name}</h3>
-              <p className="text-gray-500">{item.price}</p>
-            </div>
-          ))}
+        <div className="flex justify-center">
+          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory max-w-5xl w-full pb-4">
+            {[
+              { name: "Fade Cut", price: "Rp30K" },
+              { name: "Undercut", price: "Rp25K" },
+              { name: "Hair Coloring", price: "Rp80K" },
+              { name: "Kids Cut", price: "Rp20K" },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="snap-center min-w-[250px] bg-white text-black p-4 rounded-xl shadow flex-shrink-0"
+              >
+                <div className="h-32 bg-gray-200 rounded mb-3" />
+                <h3 className="font-semibold">{item.name}</h3>
+                <p className="text-gray-500">{item.price}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -61,7 +63,7 @@ export default function Home() {
       <section className="py-16 px-6 bg-gray-900 text-center">
         <h2 className="text-2xl font-bold mb-8">Hasil Cukur</h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-32 bg-gray-700 rounded-xl" />
           ))}
@@ -76,9 +78,7 @@ export default function Home() {
 
         <div className="max-w-xl mx-auto">
           <div className="aspect-video bg-gray-800 rounded-xl flex items-center justify-center">
-            <span className="text-gray-400">
-              (Embed Video di sini)
-            </span>
+            <span className="text-gray-400">(Video di sini)</span>
           </div>
         </div>
       </section>
@@ -89,20 +89,22 @@ export default function Home() {
           Apa Kata Pelanggan
         </h2>
 
-        <div className="flex gap-4 overflow-x-auto">
-          {[
-            "Pelayanan cepat & hasil rapi 🔥",
-            "Barber terbaik langganan saya!",
-            "Gak perlu antri, enak banget 👍",
-          ].map((text, i) => (
-            <div
-              key={i}
-              className="min-w-[250px] bg-white text-black p-4 rounded-xl"
-            >
-              <p className="text-sm">⭐️⭐️⭐️⭐️⭐️</p>
-              <p className="mt-2">{text}</p>
-            </div>
-          ))}
+        <div className="flex justify-center">
+          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory max-w-5xl w-full pb-4">
+            {[
+              "Pelayanan cepat & hasil rapi 🔥",
+              "Barber terbaik langganan saya!",
+              "Gak perlu antri, enak banget 👍",
+            ].map((text, i) => (
+              <div
+                key={i}
+                className="snap-center min-w-[280px] bg-white text-black p-4 rounded-xl flex-shrink-0"
+              >
+                <p className="text-sm">⭐️⭐️⭐️⭐️⭐️</p>
+                <p className="mt-2">{text}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

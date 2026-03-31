@@ -27,72 +27,67 @@ export default async function AdminPage() {
     data?.filter((x) => x.status === "confirmed").length || 0;
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      {/* HEADER */}
-      <h1 className="text-3xl font-bold mb-6">📊 Dashboard Booking</h1>
+    <div className="p-6 bg-gray-50 min-h-screen text-gray-900">
+      <h1 className="text-3xl font-bold mb-6">
+        📊 Dashboard Booking
+      </h1>
 
       {/* SUMMARY */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-xl shadow">
-          <p className="text-sm text-gray-500">Total Booking</p>
+        <div className="bg-white p-4 rounded-xl shadow border">
+          <p className="text-sm text-gray-600">Total Booking</p>
           <h2 className="text-2xl font-bold">{total}</h2>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow">
-          <p className="text-sm text-gray-500">Confirmed</p>
+        <div className="bg-white p-4 rounded-xl shadow border">
+          <p className="text-sm text-gray-600">Confirmed</p>
           <h2 className="text-2xl font-bold text-green-600">
             {confirmed}
           </h2>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow">
-          <p className="text-sm text-gray-500">Pending</p>
+        <div className="bg-white p-4 rounded-xl shadow border">
+          <p className="text-sm text-gray-600">Pending</p>
           <h2 className="text-2xl font-bold text-yellow-500">
             {total - confirmed}
           </h2>
         </div>
       </div>
 
-      {/* GRID PER TANGGAL */}
+      {/* GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Object.entries(grouped).map(([date, bookings]) => (
           <div
             key={date}
-            className="bg-white rounded-2xl shadow p-4 hover:shadow-lg transition"
+            className="bg-white rounded-2xl shadow p-4 border"
           >
-            {/* HEADER DATE */}
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="font-bold text-lg">{date}</h2>
+            <div className="flex justify-between mb-3">
+              <h2 className="font-bold">{date}</h2>
               <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
                 {bookings.length} booking
               </span>
             </div>
 
-            {/* LIST BOOKING */}
-            <div className="space-y-2 max-h-60 overflow-auto">
+            <div className="space-y-2">
               {bookings.map((item: any) => (
                 <div
                   key={item.id}
-                  className="flex justify-between items-center bg-gray-50 p-2 rounded-lg"
+                  className="flex justify-between bg-gray-50 p-2 rounded"
                 >
                   <div>
-                    <p className="text-sm font-medium">
-                      {item.layanan}
-                    </p>
+                    <p className="font-medium">{item.layanan}</p>
                     <p className="text-xs text-gray-500">
                       {item.sender}
                     </p>
                   </div>
 
                   <div className="text-right">
-                    <p className="text-sm font-semibold">
-                      {item.jam}
-                    </p>
+                    <p className="font-semibold">{item.jam}</p>
                     <span
-                      className={`text-xs px-2 py-1 rounded text-white ${
+                      className={`text-xs px-2 py-1 rounded ${
                         item.status === "confirmed"
-                          ? "bg-green-500"
-                          : "bg-yellow-500"
+                          ? "bg-green-500 text-white"
+                          : "bg-yellow-500 text-black"
                       }`}
                     >
                       {item.status}
