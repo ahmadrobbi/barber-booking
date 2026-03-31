@@ -5,7 +5,6 @@ const supabase = createClient(
   process.env.SUPABASE_KEY!
 );
 
-// Konstanta Harga agar mudah diubah
 const PRICING = {
   "1": { nama: "Dewasa", harga: 25000 },
   "2": { nama: "Anak-anak", harga: 20000 },
@@ -18,7 +17,6 @@ async function isSlotTaken(tanggal: string, jam: string) {
     .eq("tanggal", tanggal)
     .eq("jam", jam)
     .maybeSingle();
-
   return !!data;
 }
 
@@ -28,11 +26,11 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    // Prioritaskan mengambil pesan teks murni
-    message = (body.message?.text || body.message || body.text || "").toLowerCase().trim();
+    // Normalisasi pesan: hapus spasi, huruf kecil
+    message = (body.message?.text || body.message || body.text || "").toString().trim().toLowerCase();
     sender = body.sender || body.from || "";
   } catch (e) {
-    return Response.json({ status: "error", message: "Invalid JSON" });
+    return Response.json({ status: "error" });
   }
 
   if (!sender) return Response.json({ status: "no sender" });
@@ -46,11 +44,11 @@ export async function POST(req: Request) {
 
   let reply = "";
 
-  // ======================
-  // LOGIKA FLOW (STATE MACHINE)
-  // ======================
+  // ==========================================
+  // LOGIKA FLOW (URUTAN DIBALIK AGAR LEBIH STABIL)
+  // ==========================================
 
-  // RESET ATAU MULAI BARU
+  // A. RESET / MULAI BARU (Hanya jika ketik halo atau belum ada state)
   if (message === "halo" || !state) {
     await supabase.from("user_sessions").upsert({
       sender,
@@ -61,100 +59,84 @@ export async function POST(req: Request) {
       jam: null,
     }, { onConflict: "sender" });
 
-    reply = "Halo 👋 Selamat datang di Barbershop!\n\n" +
-            "Pilih layanan:\n" +
-            "1. Dewasa (Rp 25.000)\n" +
-            "2. Anak-anak (Rp 20.000)\n\n" +
-            "Ketik angkanya saja.";
+    reply = "Halo 👋 Selamat datang di Barbershop!\n\nPilih layanan:\n1. Dewasa (Rp 25.000)\n2. Anak-anak (Rp 20.000)\n\nKetik angkanya saja.";
   } 
-  
-  // PILIH LAYANAN
+
+  // B. SEDANG PILIH LAYANAN
   else if (state.step === "pilih_layanan") {
     const pilihan = PRICING[message as keyof typeof PRICING];
     if (!pilihan) {
-      reply = "⚠️ Mohon ketik *1* untuk Dewasa atau *2* untuk Anak-anak.";
+      reply = "⚠️ Mohon ketik *1* atau *2* saja.";
     } else {
       await supabase.from("user_sessions").update({
         step: "pilih_tanggal",
         layanan: pilihan.nama,
         harga: pilihan.harga,
       }).eq("sender", sender);
-
       reply = "📅 Masukkan tanggal booking\nFormat: *YYYY-MM-DD*\nContoh: 2026-04-01";
     }
   }
 
-  // PILIH TANGGAL
+  // C. SEDANG PILIH TANGGAL (Penyebab Error Sebelumnya di sini)
   else if (state.step === "pilih_tanggal") {
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(message)) {
-      reply = "❌ Format tanggal salah.\nGunakan format *YYYY-MM-DD* (Contoh: 2026-04-01)";
+      reply = "❌ Format tanggal salah.\nGunakan format *YYYY-MM-DD*\nContoh: 2026-04-01";
     } else {
       await supabase.from("user_sessions").update({
         step: "pilih_jam",
         tanggal: message,
       }).eq("sender", sender);
-
       reply = "⏰ Pilih jam booking\nFormat: *HH:mm*\nContoh: 14:00";
     }
   }
 
-  // PILIH JAM
+  // D. SEDANG PILIH JAM
   else if (state.step === "pilih_jam") {
     const timeRegex = /^\d{2}:\d{2}$/;
     if (!timeRegex.test(message)) {
       reply = "❌ Format jam salah.\nContoh: 14:00";
     } else {
-      // Cek bentrok langsung menggunakan tanggal dari state
+      // PENTING: Gunakan state.tanggal yang sudah tersimpan di database
       const bentrok = await isSlotTaken(state.tanggal, message);
-
       if (bentrok) {
-        reply = "🚫 Maaf, jam " + message + " sudah penuh. Silakan masukkan jam lain:";
+        reply = `🚫 Maaf, jam ${message} pada tanggal ${state.tanggal} sudah penuh. Pilih jam lain:`;
       } else {
         await supabase.from("user_sessions").update({
           step: "konfirmasi",
           jam: message,
         }).eq("sender", sender);
 
-        reply = `📝 *Konfirmasi Booking*\n\n` +
+        reply = `📝 *KONFIRMASI BOOKING*\n\n` +
                 `• Layanan: ${state.layanan}\n` +
                 `• Tanggal: ${state.tanggal}\n` +
                 `• Jam: ${message}\n` +
                 `• Total: *Rp ${state.harga.toLocaleString('id-ID')}*\n\n` +
-                `Ketik *YA* untuk memproses booking.`;
+                `Ketik *YA* untuk memproses.`;
       }
     }
   }
 
-  // KONFIRMASI AKHIR
+  // E. KONFIRMASI AKHIR
   else if (state.step === "konfirmasi") {
     if (message === "ya") {
-      // Double check ketersediaan terakhir
-      const bentrok = await isSlotTaken(state.tanggal, state.jam);
-      
-      if (bentrok) {
-        reply = "❌ Waduh, slot baru saja diambil orang lain. Ketik *halo* untuk mulai lagi.";
-      } else {
-        // Pindah ke tabel bookings
-        await supabase.from("bookings").insert([{
-          sender,
-          layanan: state.layanan,
-          harga: state.harga,
-          tanggal: state.tanggal,
-          jam: state.jam,
-          status: "confirmed"
-        }]);
+      await supabase.from("bookings").insert([{
+        sender,
+        layanan: state.layanan,
+        harga: state.harga,
+        tanggal: state.tanggal,
+        jam: state.jam,
+        status: "confirmed"
+      }]);
 
-        // Hapus session
-        await supabase.from("user_sessions").delete().eq("sender", sender);
+      await supabase.from("user_sessions").delete().eq("sender", sender);
 
-        reply = `✅ *BOOKING BERHASIL!*\n\n` +
-                `Terima kasih sudah memesan.\n` +
-                `Total yang harus dibayar di kasir: *Rp ${state.harga.toLocaleString('id-ID')}*.\n\n` +
-                `Sampai jumpa di lokasi! ✂️`;
-      }
+      reply = `✅ *BOOKING BERHASIL!*\n\n` +
+              `Layanan: ${state.layanan}\n` +
+              `Total Bayar: *Rp ${state.harga.toLocaleString('id-ID')}*\n\n` +
+              `Silakan datang tepat waktu ya! ✂️`;
     } else {
-      reply = "Mohon ketik *YA* untuk konfirmasi atau *halo* untuk batal.";
+      reply = "Ketik *YA* untuk konfirmasi atau *halo* untuk ulang.";
     }
   }
 
@@ -167,7 +149,7 @@ export async function POST(req: Request) {
     },
     body: JSON.stringify({
       target: sender,
-      message: reply || "Ketik *halo* untuk mulai.",
+      message: reply,
     }),
   });
 
