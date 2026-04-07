@@ -72,6 +72,46 @@ const galleryVideos = [
   },
 ] as const;
 
+const outlets = [
+  {
+    name: "DANKE 1.0 Wiyung (Surabaya)",
+    address: "Jl. Klumprik PDAM No. 30, Wiyung, Surabaya Barat",
+  },
+  {
+    name: "DANKE 2.0 Karang Pilang (Surabaya)",
+    address: "Jl. Griya Kebraon Selatan II/24, Karang Pilang, Surabaya Selatan",
+  },
+  {
+    name: "DANKE 3.0 Tenggilis Mejoyo (Surabaya)",
+    address: "Jl. Raya Tenggilis No. 133A, Tenggilis Mejoyo, Surabaya Timur",
+  },
+  {
+    name: "DANKE 6.0 Ruko Purimas (Surabaya)",
+    address:
+      "Jl. I Gusti Ngurah Rai Blok A2-17 (Ruko Purimas), Gunung Anyar, Surabaya",
+  },
+  {
+    name: "DANKE 7.0 Pondok Candra (Sidoarjo)",
+    address: "Jl. Taman Asri D35, Pondok Candra, Sidoarjo",
+  },
+  {
+    name: "DANKE 8.0 Ketintang (Surabaya)",
+    address: "Jl. Ketintang Baru XIV No. 1 (Warung Dulang 88), Surabaya",
+  },
+  {
+    name: "DANKE 9.0 Wiguna (Surabaya)",
+    address: "Jl. Raya Wiguna Selatan No. 24C (Atas Hore Laundry), Surabaya",
+  },
+  {
+    name: "DANKE 10 Magersari (Sidoarjo)",
+    address: "Perum Griya Karya Magersari Permai Blok A6A, Sidoarjo 61274",
+  },
+  {
+    name: "Danke Home Service",
+    address: "Area Surabaya - Sidoarjo (basis: Griya Kebraon Selatan)",
+  },
+] as const;
+
 export default function Home() {
   const phone = "6287749105273";
   const message = encodeURIComponent("Halo, saya mau booking cukur rambut.");
@@ -79,13 +119,44 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0f0f1b] text-white font-sans">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0f0f1b]/90 backdrop-blur">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <a href="#beranda" className="flex items-center gap-3">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 font-bold text-black">
+              BB
+            </span>
+            <span>
+              <strong className="block text-base leading-tight">BarberBooking</strong>
+              <span className="block text-xs text-white/65">Inspired by Danke-style layout</span>
+            </span>
+          </a>
+
+          <div className="hidden items-center gap-5 text-sm text-white/85 md:flex">
+            <a href="#beranda" className="hover:text-amber-300">Beranda</a>
+            <a href="#layanan" className="hover:text-amber-300">Layanan</a>
+            <a href="#style" className="hover:text-amber-300">Style</a>
+            <a href="#galeri" className="hover:text-amber-300">Galeri</a>
+            <a href="#cabang" className="hover:text-amber-300">Cabang</a>
+            <a href="#kontak" className="hover:text-amber-300">Kontak</a>
+          </div>
+        </nav>
+        <div className="mx-auto flex max-w-6xl gap-4 overflow-x-auto px-6 pb-4 text-sm text-white/80 md:hidden">
+          <a href="#beranda" className="whitespace-nowrap hover:text-amber-300">Beranda</a>
+          <a href="#layanan" className="whitespace-nowrap hover:text-amber-300">Layanan</a>
+          <a href="#style" className="whitespace-nowrap hover:text-amber-300">Style</a>
+          <a href="#galeri" className="whitespace-nowrap hover:text-amber-300">Galeri</a>
+          <a href="#cabang" className="whitespace-nowrap hover:text-amber-300">Cabang</a>
+          <a href="#kontak" className="whitespace-nowrap hover:text-amber-300">Kontak</a>
+        </div>
+      </header>
+
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-24 -left-16 h-72 w-72 rounded-full bg-orange-500/30 blur-3xl" />
         <div className="absolute top-20 right-0 h-80 w-80 rounded-full bg-cyan-500/25 blur-3xl" />
         <div className="absolute bottom-10 left-1/3 h-64 w-64 rounded-full bg-pink-500/20 blur-3xl" />
       </div>
 
-      <section className="relative mx-auto max-w-6xl px-6 pb-20 pt-20 md:pt-28">
+      <section id="beranda" className="relative mx-auto max-w-6xl scroll-mt-24 px-6 pb-20 pt-20 md:pt-28">
         <div className="inline-flex items-center rounded-full border border-white/20 bg-white/[0.08] px-4 py-1 text-xs tracking-wide text-white/[0.85] backdrop-blur">
           BARBERBOOKING • FAST SLOT
         </div>
@@ -151,7 +222,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-6xl px-6 py-14">
+      <section id="layanan" className="relative mx-auto max-w-6xl scroll-mt-24 px-6 py-14">
         <h2 className="text-2xl font-bold md:text-3xl">Layanan Kami</h2>
         <p className="mt-2 text-white/70">Pilih style yang paling cocok dengan karakter kamu.</p>
         <div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -171,7 +242,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-6xl px-6 py-12">
+      <section id="testimoni" className="relative mx-auto max-w-6xl scroll-mt-24 px-6 py-12">
         <div className="rounded-3xl border border-white/[0.14] bg-gradient-to-br from-[#1a1d37] via-[#202042] to-[#2a1836] p-7 md:p-10">
           <h2 className="text-2xl font-bold md:text-3xl">Apa Kata Pelanggan</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -189,7 +260,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-6xl px-6 py-12">
+      <section id="style" className="relative mx-auto max-w-6xl scroll-mt-24 px-6 py-12">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-2xl font-bold md:text-3xl">Slideshow Style Rambut</h2>
@@ -225,7 +296,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-6xl px-6 py-12">
+      <section id="galeri" className="relative mx-auto max-w-6xl scroll-mt-24 px-6 py-12">
         <h2 className="text-2xl font-bold md:text-3xl">Gallery Foto & Video</h2>
         <p className="mt-2 text-white/70">
           Dokumentasi hasil cukur dan suasana kerja barber kami.
@@ -281,6 +352,44 @@ export default function Home() {
           Booking Sekarang
         </a>
       </section>
+
+      <footer id="kontak" className="relative mt-6 border-t border-white/10 bg-[#0b0b16]">
+        <div className="mx-auto grid max-w-6xl gap-8 px-6 py-12 md:grid-cols-2">
+          <section>
+            <h3 className="text-xl font-bold">Alamat Utama</h3>
+            <p className="mt-3 text-sm text-white/80">
+              Danke 1.0 Wiyung
+              <br />
+              Jl. Klumprik PDAM No. 30, Wiyung, Surabaya Barat
+              <br />
+              Jawa Timur, Indonesia
+            </p>
+            <p className="mt-4 text-sm text-white/70">
+              WhatsApp: 0821-3269-1999
+              <br />
+              Jam Operasional: 09.00 - 22.00
+            </p>
+            <a
+              href={waLink}
+              className="mt-5 inline-flex rounded-lg bg-gradient-to-r from-emerald-400 to-green-500 px-4 py-2 text-sm font-semibold text-black"
+            >
+              Booking via WhatsApp
+            </a>
+          </section>
+
+          <section id="cabang" className="scroll-mt-24">
+            <h3 className="text-xl font-bold">Cabang Danke Barbershop</h3>
+            <ul className="mt-3 space-y-2 text-sm text-white/80">
+              {outlets.map((outlet) => (
+                <li key={outlet.name} className="rounded-lg border border-white/10 bg-white/[0.04] p-3">
+                  <p className="font-semibold text-white">{outlet.name}</p>
+                  <p className="mt-1 text-white/70">{outlet.address}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </footer>
     </main>
   );
 }
