@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Barlow_Condensed, Cinzel_Decorative } from "next/font/google";
+import { GalleryLightbox } from "@/components/gallery-lightbox";
 
 const menuFont = Barlow_Condensed({
   subsets: ["latin"],
@@ -83,9 +84,8 @@ const products = [
 ] as const;
 
 const outlets = [
-  "BAROKAH 1.0 - Jl. Klumprik PDAM 30, Wiyung, Surabaya Barat",
-  "BAROKAH 2.0 - Jl. Griya Kebraon Selatan II 24-B, Karang Pilang",
-  "BAROKAH 3.0 - Jl. Raya Tenggilis 133A, Surabaya Timur",
+  "Jl. Ahmad Yani, Santren, Rengel, Tuban",
+  "Kapas, Bojonegoro",
 ] as const;
 
 const navItems = [
@@ -259,20 +259,7 @@ export default function Home() {
             <h2 className={`${menuFont.className} text-5xl font-bold md:text-6xl`}>Our Gallery</h2>
             <p className="mt-3 text-[#444]">Galeri foto dari Barokah Barbershop</p>
           </div>
-          <div className="mt-10 grid gap-0 sm:grid-cols-2 lg:grid-cols-4">
-            {gallery.map((image, i) => (
-              <figure key={image} className="group relative h-56 overflow-hidden">
-                <img
-                  src={image}
-                  alt={`Gallery danke ${i + 1}`}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                />
-                <figcaption className="absolute inset-x-0 bottom-0 bg-black/55 px-3 py-2 text-sm text-white">
-                  Barokah • Gallery
-                </figcaption>
-              </figure>
-            ))}
-          </div>
+          <GalleryLightbox images={gallery} />
         </div>
       </section>
 
