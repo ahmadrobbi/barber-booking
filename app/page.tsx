@@ -33,6 +33,45 @@ const testimonials = [
   "Barber-nya komunikatif, style sesuai referensi yang diminta.",
 ] as const;
 
+const styleSlides = [
+  {
+    title: "Classic Pompadour",
+    detail: "Volume atas yang tegas dengan sisi rapi untuk tampilan formal-casual.",
+    image:
+      "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=1400&q=80",
+  },
+  {
+    title: "Textured Crop",
+    detail: "Potongan modern low maintenance dengan tekstur natural di bagian atas.",
+    image:
+      "https://images.unsplash.com/photo-1517832606299-7ae9b720a186?auto=format&fit=crop&w=1400&q=80",
+  },
+  {
+    title: "Low Fade + Beard Blend",
+    detail: "Transisi halus dari rambut ke janggut untuk look bersih dan maskulin.",
+    image:
+      "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=1400&q=80",
+  },
+] as const;
+
+const galleryPhotos = [
+  "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1593702288056-f8fd3d74c46d?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1200&q=80",
+] as const;
+
+const galleryVideos = [
+  {
+    title: "Proses Fade Cut",
+    src: "https://www.youtube.com/embed/0Q9-jM4N9k4",
+  },
+  {
+    title: "Hair Styling Finish",
+    src: "https://www.youtube.com/embed/-FC4G5M-tH8",
+  },
+] as const;
+
 export default function Home() {
   const phone = "6287749105273";
   const message = encodeURIComponent("Halo, saya mau booking cukur rambut.");
@@ -147,6 +186,86 @@ export default function Home() {
               </article>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="relative mx-auto max-w-6xl px-6 py-12">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-bold md:text-3xl">Slideshow Style Rambut</h2>
+            <p className="mt-2 text-white/70">
+              Geser ke samping untuk lihat inspirasi style dan rekomendasi layanan.
+            </p>
+          </div>
+          <p className="rounded-lg border border-white/20 bg-white/[0.08] px-3 py-2 text-xs text-white/80">
+            Swipe • Snap • Pilih Style
+          </p>
+        </div>
+
+        <div className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
+          {styleSlides.map((slide) => (
+            <article
+              key={slide.title}
+              className="group min-w-[280px] snap-center overflow-hidden rounded-2xl border border-white/15 bg-[#141429] md:min-w-[430px]"
+            >
+              <div className="relative h-64 overflow-hidden md:h-72">
+                <img
+                  src={slide.image}
+                  alt={slide.title}
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+              </div>
+              <div className="p-4">
+                <h3 className="text-lg font-semibold">{slide.title}</h3>
+                <p className="mt-2 text-sm text-white/[0.72]">{slide.detail}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="relative mx-auto max-w-6xl px-6 py-12">
+        <h2 className="text-2xl font-bold md:text-3xl">Gallery Foto & Video</h2>
+        <p className="mt-2 text-white/70">
+          Dokumentasi hasil cukur dan suasana kerja barber kami.
+        </p>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {galleryPhotos.map((image, i) => (
+            <figure
+              key={image}
+              className="overflow-hidden rounded-2xl border border-white/15 bg-[#141429]"
+            >
+              <img
+                src={image}
+                alt={`Gallery hasil cukur ${i + 1}`}
+                className="h-52 w-full object-cover transition duration-500 hover:scale-105"
+              />
+            </figure>
+          ))}
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {galleryVideos.map((video) => (
+            <article
+              key={video.title}
+              className="overflow-hidden rounded-2xl border border-white/15 bg-[#121226]"
+            >
+              <div className="aspect-video w-full">
+                <iframe
+                  src={video.src}
+                  title={video.title}
+                  className="h-full w-full"
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              </div>
+              <p className="px-4 py-3 text-sm text-white/80">{video.title}</p>
+            </article>
+          ))}
         </div>
       </section>
 
