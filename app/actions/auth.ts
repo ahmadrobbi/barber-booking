@@ -13,6 +13,14 @@ function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function normalizePhoneNumber(phone: string) {
+  return phone.replace(/[^\d+]/g, "");
+}
+
+function validatePhoneNumber(phone: string) {
+  return /^[+]?\d{10,20}$/.test(phone);
+}
+
 function formatAuthError(message: string) {
   return { message };
 }
@@ -38,6 +46,7 @@ export async function registerUser(
 ) {
   const name = normalizeText(formData.get("name"));
   const email = normalizeText(formData.get("email")).toLowerCase();
+  const noHp = normalizePhoneNumber(normalizeText(formData.get("no_hp")));
   const password = normalizeText(formData.get("password"));
 
   if (name.length < 3) {
@@ -46,6 +55,10 @@ export async function registerUser(
 
   if (!validateEmail(email)) {
     return formatAuthError("Format email belum valid.");
+  }
+
+  if (!validatePhoneNumber(noHp)) {
+    return formatAuthError("Nomor HP/WhatsApp harus 10-20 digit angka.");
   }
 
   if (password.length < 6) {
@@ -77,6 +90,7 @@ export async function registerUser(
     .insert({
       name,
       email,
+      no_hp: noHp,
       password_hash: passwordHash,
     })
     .select("id, name, email")

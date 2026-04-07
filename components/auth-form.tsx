@@ -35,19 +35,37 @@ export function AuthForm({ action, mode }: AuthFormProps) {
   return (
     <form action={formAction} className="space-y-5">
       {isRegister ? (
-        <div>
-          <label htmlFor="name" className="mb-2 block text-sm font-medium text-white/80">
-            Nama Lengkap
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            placeholder="Masukkan nama lengkap"
-            className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-amber-300"
-            required
-          />
-        </div>
+        <>
+          <div>
+            <label htmlFor="name" className="mb-2 block text-sm font-medium text-white/80">
+              Nama Lengkap
+            </label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              placeholder="Masukkan nama lengkap"
+              className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-amber-300"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="no_hp" className="mb-2 block text-sm font-medium text-white/80">
+              No. HP / WhatsApp
+            </label>
+            <input
+              id="no_hp"
+              name="no_hp"
+              type="tel"
+              inputMode="tel"
+              placeholder="Contoh: 081234567890"
+              maxLength={20}
+              className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-amber-300"
+              required
+            />
+          </div>
+        </>
       ) : null}
 
       <div>
