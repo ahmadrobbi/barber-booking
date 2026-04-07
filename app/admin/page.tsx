@@ -1,13 +1,23 @@
-import { createClient } from "@supabase/supabase-js";
+import { logoutUser } from "@/app/actions/auth";
+import { requireSession } from "@/lib/auth";
+import { createAdminSupabase } from "@/lib/supabase";
+
 export const dynamic = "force-dynamic";
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-);
+const supabase = createAdminSupabase();
+
+type BookingRow = {
+  id: number;
+  sender: string | null;
+  layanan: string | null;
+  harga: number | null;
+  jam: string | null;
+  status: string | null;
+  tanggal: string | null;
+};
 
 // ✅ grouping by tanggal (tanpa parsing aneh)
-function groupByDate(data: any[]) {
-  const map: Record<string, any[]> = {};
+function groupByDate(data: BookingRow[]) {
+  const map: Record<string, BookingRow[]> = {};
 
   for (const item of data) {
     if (!item.tanggal) continue;
@@ -22,6 +32,8 @@ function groupByDate(data: any[]) {
 }
 
 export default async function AdminPage() {
+  const session = await requireSession();
+
   // ✅ ambil data + sort langsung dari DB
   const { data, error } = await supabase
     .from("bookings")
@@ -50,9 +62,27 @@ export default async function AdminPage() {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen text-gray-900">
-      <h1 className="text-3xl font-bold mb-6">
-        📊 Dashboard Booking
-      </h1>
+      <div className="mb-6 flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-500">Login sebagai</p>
+          <p className="text-lg font-semibold text-gray-900">{session.name}</p>
+          <p className="text-sm text-gray-500">{session.email}</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold">
+            Dashboard Booking
+          </h1>
+          <form action={logoutUser}>
+            <button
+              type="submit"
+              className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+            >
+              Logout
+            </button>
+          </form>
+        </div>
+      </div>
 
       {/* SUMMARY */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -91,7 +121,7 @@ export default async function AdminPage() {
             </div>
 
             <div className="space-y-2">
-              {bookings.map((item: any) => (
+              {bookings.map((item) => (
                 <div
                   key={item.id}
                   className="flex justify-between bg-gray-50 p-2 rounded"

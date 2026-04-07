@@ -116,6 +116,23 @@ export default function Home() {
             <a href="#gallery" className="text-white/85 hover:text-amber-300">Gallery</a>
             <a href="#ourproduct" className="text-white/85 hover:text-amber-300">Our Product</a>
             <a href="#franchise" className="text-white/85 hover:text-amber-300">Franchise</a>
+            <Link href="/login" className="text-white/85 hover:text-amber-300">Login</Link>
+            <Link href="/register" className="text-white/85 hover:text-amber-300">Register</Link>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href="/login"
+              className="rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+            >
+              Login
+            </Link>
+            <Link
+              href="/register"
+              className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-400"
+            >
+              Register
+            </Link>
           </div>
         </nav>
       </header>
@@ -141,10 +158,16 @@ export default function Home() {
                 Booking Sekarang
               </a>
               <Link
-                href="/admin"
+                href="/login"
                 className="rounded-md border border-white/40 px-6 py-3 font-semibold text-white hover:bg-white/10"
               >
                 Login Dashboard
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-md border border-amber-400/50 px-6 py-3 font-semibold text-amber-200 hover:bg-amber-300/10"
+              >
+                Register Admin
               </Link>
             </div>
           </div>
