@@ -2,114 +2,79 @@ import Link from "next/link";
 
 const services = [
   {
-    name: "Fade Signature",
-    price: "Rp35K",
-    desc: "Gradasi bersih dengan detail garis tajam.",
-    accent: "from-amber-400 to-orange-500",
+    name: "Cut & Wash",
+    price: "START IDR 30.000 / session",
+    points: [
+      "Haircut sesuai keinginan",
+      "Rekomendasi model sesuai bentuk wajah",
+      "Shampoo + vitamin rambut",
+      "Styling akhir dengan pomade",
+    ],
   },
   {
-    name: "Undercut Modern",
-    price: "Rp30K",
-    desc: "Style clean untuk look rapi seharian.",
-    accent: "from-cyan-400 to-blue-500",
+    name: "Cut & Wash (KIDS)",
+    price: "START IDR 25.000 / session",
+    points: [
+      "Untuk anak sampai usia 10 tahun",
+      "Haircut sesuai keinginan",
+      "Shampoo + vitamin rambut",
+      "Styling rapi dan nyaman",
+    ],
   },
   {
-    name: "Color + Styling",
-    price: "Rp85K",
-    desc: "Warna trend + styling by request.",
-    accent: "from-pink-500 to-rose-500",
-  },
-  {
-    name: "Kids Cut",
-    price: "Rp25K",
-    desc: "Potong santai, cepat, dan ramah anak.",
-    accent: "from-lime-400 to-emerald-500",
+    name: "Hair Color For Men",
+    price: "START IDR 100.000 / session",
+    points: [
+      "Konsultasi pilihan warna",
+      "Coloring & grading sesuai request",
+      "Shampoo setelah proses",
+      "Vitamin rambut setelah coloring",
+    ],
   },
 ] as const;
 
-const testimonials = [
-  "Booking online bikin hemat waktu, datang langsung dicukur.",
-  "Tempat nyaman, hasil fade rapih banget dan tahan lama.",
-  "Barber-nya komunikatif, style sesuai referensi yang diminta.",
+const gallery = [
+  "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1512690459411-b0fd1c86b8a8?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1593702288056-f8fd3d74c46d?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1621605816051-9f0ecf7b2b8f?auto=format&fit=crop&w=900&q=80",
 ] as const;
 
-const styleSlides = [
+const products = [
   {
-    title: "Classic Pompadour",
-    detail: "Volume atas yang tegas dengan sisi rapi untuk tampilan formal-casual.",
+    title: "Pomade Oil Based",
+    description: "Hold kuat dengan karakter classic look yang tahan lama.",
     image:
-      "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1621605816051-9f0ecf7b2b8f?auto=format&fit=crop&w=800&q=80",
   },
   {
-    title: "Textured Crop",
-    detail: "Potongan modern low maintenance dengan tekstur natural di bagian atas.",
+    title: "Pomade Water Based",
+    description: "Mudah dibersihkan, cocok untuk penggunaan harian.",
     image:
-      "https://images.unsplash.com/photo-1517832606299-7ae9b720a186?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1621605816202-9699ad9f7cdb?auto=format&fit=crop&w=800&q=80",
   },
   {
-    title: "Low Fade + Beard Blend",
-    detail: "Transisi halus dari rambut ke janggut untuk look bersih dan maskulin.",
+    title: "Merchandise",
+    description: "Produk official barbershop dengan desain casual.",
     image:
-      "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=1400&q=80",
-  },
-] as const;
-
-const galleryPhotos = [
-  "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1593702288056-f8fd3d74c46d?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1200&q=80",
-] as const;
-
-const galleryVideos = [
-  {
-    title: "Proses Fade Cut",
-    src: "https://www.youtube.com/embed/0Q9-jM4N9k4",
+      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80",
   },
   {
-    title: "Hair Styling Finish",
-    src: "https://www.youtube.com/embed/-FC4G5M-tH8",
+    title: "Perfume",
+    description: "Wangi maskulin untuk melengkapi tampilan fresh.",
+    image:
+      "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=800&q=80",
   },
 ] as const;
 
 const outlets = [
-  {
-    name: "DANKE 1.0 Wiyung (Surabaya)",
-    address: "Jl. Klumprik PDAM No. 30, Wiyung, Surabaya Barat",
-  },
-  {
-    name: "DANKE 2.0 Karang Pilang (Surabaya)",
-    address: "Jl. Griya Kebraon Selatan II/24, Karang Pilang, Surabaya Selatan",
-  },
-  {
-    name: "DANKE 3.0 Tenggilis Mejoyo (Surabaya)",
-    address: "Jl. Raya Tenggilis No. 133A, Tenggilis Mejoyo, Surabaya Timur",
-  },
-  {
-    name: "DANKE 6.0 Ruko Purimas (Surabaya)",
-    address:
-      "Jl. I Gusti Ngurah Rai Blok A2-17 (Ruko Purimas), Gunung Anyar, Surabaya",
-  },
-  {
-    name: "DANKE 7.0 Pondok Candra (Sidoarjo)",
-    address: "Jl. Taman Asri D35, Pondok Candra, Sidoarjo",
-  },
-  {
-    name: "DANKE 8.0 Ketintang (Surabaya)",
-    address: "Jl. Ketintang Baru XIV No. 1 (Warung Dulang 88), Surabaya",
-  },
-  {
-    name: "DANKE 9.0 Wiguna (Surabaya)",
-    address: "Jl. Raya Wiguna Selatan No. 24C (Atas Hore Laundry), Surabaya",
-  },
-  {
-    name: "DANKE 10 Magersari (Sidoarjo)",
-    address: "Perum Griya Karya Magersari Permai Blok A6A, Sidoarjo 61274",
-  },
-  {
-    name: "Danke Home Service",
-    address: "Area Surabaya - Sidoarjo (basis: Griya Kebraon Selatan)",
-  },
+  "DANKE 1.0 - Jl. Klumprik PDAM 30, Wiyung, Surabaya Barat",
+  "DANKE 2.0 - Jl. Griya Kebraon Selatan II 24-B, Karang Pilang",
+  "DANKE 3.0 - Jl. Raya Tenggilis 133A, Surabaya Timur",
 ] as const;
 
 export default function Home() {
@@ -118,277 +83,205 @@ export default function Home() {
   const waLink = `https://wa.me/${phone}?text=${message}`;
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0f0f1b] text-white font-sans">
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0f0f1b]/90 backdrop-blur">
+    <main className="bg-[#111111] text-white font-sans">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur">
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <a href="#beranda" className="flex items-center gap-3">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 font-bold text-black">
-              BB
+          <a href="#home" className="flex items-center gap-3">
+            <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-amber-300/60 bg-amber-400/20 font-bold text-amber-200">
+              DB
             </span>
             <span>
-              <strong className="block text-base leading-tight">BarberBooking</strong>
-              <span className="block text-xs text-white/65">Inspired by Danke-style layout</span>
+              <strong className="block text-base leading-tight">DANKE Barbershop</strong>
+              <span className="block text-xs text-white/60">Official Style Landing</span>
             </span>
           </a>
 
-          <div className="hidden items-center gap-5 text-sm text-white/85 md:flex">
-            <a href="#beranda" className="hover:text-amber-300">Beranda</a>
-            <a href="#layanan" className="hover:text-amber-300">Layanan</a>
-            <a href="#style" className="hover:text-amber-300">Style</a>
-            <a href="#galeri" className="hover:text-amber-300">Galeri</a>
-            <a href="#cabang" className="hover:text-amber-300">Cabang</a>
-            <a href="#kontak" className="hover:text-amber-300">Kontak</a>
+          <div className="hidden items-center gap-6 text-sm md:flex">
+            <a href="#home" className="text-white/85 hover:text-amber-300">Home</a>
+            <a href="#profil" className="text-white/85 hover:text-amber-300">Profil</a>
+            <a href="#services" className="text-white/85 hover:text-amber-300">Services</a>
+            <a href="#gallery" className="text-white/85 hover:text-amber-300">Gallery</a>
+            <a href="#ourproduct" className="text-white/85 hover:text-amber-300">Our Product</a>
+            <a href="#franchise" className="text-white/85 hover:text-amber-300">Franchise</a>
           </div>
         </nav>
-        <div className="mx-auto flex max-w-6xl gap-4 overflow-x-auto px-6 pb-4 text-sm text-white/80 md:hidden">
-          <a href="#beranda" className="whitespace-nowrap hover:text-amber-300">Beranda</a>
-          <a href="#layanan" className="whitespace-nowrap hover:text-amber-300">Layanan</a>
-          <a href="#style" className="whitespace-nowrap hover:text-amber-300">Style</a>
-          <a href="#galeri" className="whitespace-nowrap hover:text-amber-300">Galeri</a>
-          <a href="#cabang" className="whitespace-nowrap hover:text-amber-300">Cabang</a>
-          <a href="#kontak" className="whitespace-nowrap hover:text-amber-300">Kontak</a>
-        </div>
       </header>
 
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-24 -left-16 h-72 w-72 rounded-full bg-orange-500/30 blur-3xl" />
-        <div className="absolute top-20 right-0 h-80 w-80 rounded-full bg-cyan-500/25 blur-3xl" />
-        <div className="absolute bottom-10 left-1/3 h-64 w-64 rounded-full bg-pink-500/20 blur-3xl" />
-      </div>
-
-      <section id="beranda" className="relative mx-auto max-w-6xl scroll-mt-24 px-6 pb-20 pt-20 md:pt-28">
-        <div className="inline-flex items-center rounded-full border border-white/20 bg-white/[0.08] px-4 py-1 text-xs tracking-wide text-white/[0.85] backdrop-blur">
-          BARBERBOOKING • FAST SLOT
-        </div>
-        <div className="mt-6 grid gap-10 md:grid-cols-[1.15fr_0.85fr] md:items-center">
+      <section
+        id="home"
+        className="relative min-h-[82vh] bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(9,9,9,0.65), rgba(9,9,9,0.75)), url('https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=1800&q=80')",
+        }}
+      >
+        <div className="mx-auto flex min-h-[82vh] max-w-6xl items-center justify-center px-6 text-center">
           <div>
-            <h1 className="text-4xl leading-tight font-bold md:text-6xl">
-              Style Lebih
-              <span className="bg-gradient-to-r from-amber-300 via-orange-400 to-pink-400 bg-clip-text text-transparent">
-                {" "}
-                Fresh
-              </span>
-              , Booking Lebih Cepat
-            </h1>
-            <p className="mt-5 max-w-xl text-base text-white/[0.75] md:text-lg">
-              Barbershop modern dengan sistem booking WhatsApp. Pilih jam, datang, dan langsung dilayani tanpa antri panjang.
+            <p className="text-sm uppercase tracking-[0.28em] text-amber-300/90">
+              Selamat Datang Di DANKE Barbershop
             </p>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href={waLink}
-                className="rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 px-6 py-3 font-semibold text-black transition hover:scale-[1.02]"
-              >
-                Booking via WhatsApp
+            <h1 className="mt-4 text-4xl font-bold uppercase md:text-6xl">
+              Pilihan Terbaik Untuk Merubah Penampilan Anda
+            </h1>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <a href={waLink} className="rounded-md bg-amber-500 px-6 py-3 font-semibold text-black hover:bg-amber-400">
+                Booking Sekarang
               </a>
               <Link
                 href="/admin"
-                className="rounded-xl border border-white/30 bg-white/10 px-6 py-3 font-semibold text-white transition hover:bg-white/[0.18]"
+                className="rounded-md border border-white/40 px-6 py-3 font-semibold text-white hover:bg-white/10"
               >
-                Login Admin
+                Login Dashboard
               </Link>
             </div>
-
-            <div className="mt-8 flex flex-wrap gap-3 text-sm">
-              <span className="rounded-lg bg-white/[0.12] px-3 py-2 text-white/[0.85]">
-                120+ booking / minggu
-              </span>
-              <span className="rounded-lg bg-white/[0.12] px-3 py-2 text-white/[0.85]">
-                Rating 4.9/5
-              </span>
-              <span className="rounded-lg bg-white/[0.12] px-3 py-2 text-white/[0.85]">
-                Open 10:00 - 22:00
-              </span>
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-white/15 bg-white/[0.08] p-5 backdrop-blur">
-            <p className="mb-4 text-sm text-white/70">Pilihan Populer Minggu Ini</p>
-            <div className="space-y-3">
-              {services.slice(0, 3).map((item) => (
-                <div
-                  key={item.name}
-                  className="rounded-xl border border-white/10 bg-[#121226] p-3"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-semibold">{item.name}</p>
-                    <p className="text-sm text-amber-300">{item.price}</p>
-                  </div>
-                  <p className="mt-1 text-sm text-white/[0.65]">{item.desc}</p>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
 
-      <section id="layanan" className="relative mx-auto max-w-6xl scroll-mt-24 px-6 py-14">
-        <h2 className="text-2xl font-bold md:text-3xl">Layanan Kami</h2>
-        <p className="mt-2 text-white/70">Pilih style yang paling cocok dengan karakter kamu.</p>
-        <div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {services.map((item) => (
-            <div
-              key={item.name}
-              className="group rounded-2xl border border-white/[0.12] bg-[#141429]/90 p-4 transition hover:-translate-y-1"
-            >
-              <div
-                className={`mb-4 h-2 w-24 rounded-full bg-gradient-to-r ${item.accent}`}
-              />
-              <h3 className="font-semibold">{item.name}</h3>
-              <p className="mt-1 text-sm text-white/[0.65]">{item.desc}</p>
-              <p className="mt-4 text-lg font-bold text-amber-300">{item.price}</p>
-            </div>
-          ))}
+      <section id="profil" className="scroll-mt-24 bg-[#f8f8f8] py-20 text-center text-[#141414]">
+        <div className="mx-auto max-w-4xl px-6">
+          <div className="mx-auto inline-flex h-28 w-28 items-center justify-center rounded-full border-4 border-[#141414] text-3xl font-bold">
+            DB
+          </div>
+          <h2 className="mt-6 text-4xl font-bold uppercase">DANKE BARBERSHOP</h2>
+          <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-[#434343] md:text-base">
+            DANKE Barbershop adalah layanan potong rambut dan perawatan rambut khusus pria dewasa, remaja, dan anak-anak.
+            Kami berkomitmen menghadirkan pelayanan terbaik, kualitas konsisten, dan pengalaman grooming yang nyaman.
+          </p>
         </div>
       </section>
 
-      <section id="testimoni" className="relative mx-auto max-w-6xl scroll-mt-24 px-6 py-12">
-        <div className="rounded-3xl border border-white/[0.14] bg-gradient-to-br from-[#1a1d37] via-[#202042] to-[#2a1836] p-7 md:p-10">
-          <h2 className="text-2xl font-bold md:text-3xl">Apa Kata Pelanggan</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {testimonials.map((text, i) => (
+      <section id="services" className="scroll-mt-24 bg-[#141414] py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold">Service dan Harga Kami</h2>
+            <p className="mt-3 text-white/70">
+              Beragam service dengan kualitas dan harga terbaik untuk anda
+            </p>
+          </div>
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {services.map((service, index) => (
               <article
-                key={text}
-                className="rounded-2xl bg-white/10 p-4 backdrop-blur"
+                key={service.name}
+                className={`rounded-xl border p-6 ${
+                  index === 2
+                    ? "border-amber-300/60 bg-amber-300/10"
+                    : "border-white/10 bg-black/20"
+                }`}
               >
-                <p className="text-xs text-amber-300">★★★★★</p>
-                <p className="mt-2 text-sm text-white/[0.88]">{text}</p>
-                <p className="mt-3 text-xs text-white/50">Pelanggan #{i + 1}</p>
+                <h3 className="text-2xl font-semibold">{service.name}</h3>
+                <p className="mt-2 text-amber-300">{service.price}</p>
+                <ul className="mt-4 space-y-2 text-sm text-white/80">
+                  {service.points.map((point) => (
+                    <li key={point}>• {point}</li>
+                  ))}
+                </ul>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="style" className="relative mx-auto max-w-6xl scroll-mt-24 px-6 py-12">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-bold md:text-3xl">Slideshow Style Rambut</h2>
-            <p className="mt-2 text-white/70">
-              Geser ke samping untuk lihat inspirasi style dan rekomendasi layanan.
-            </p>
+      <section id="gallery" className="scroll-mt-24 bg-[#f5f5f5] py-20 text-[#111]">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold">Our Gallery</h2>
+            <p className="mt-3 text-[#444]">Galeri foto dari DANKE Barbershop</p>
           </div>
-          <p className="rounded-lg border border-white/20 bg-white/[0.08] px-3 py-2 text-xs text-white/80">
-            Swipe • Snap • Pilih Style
-          </p>
-        </div>
-
-        <div className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
-          {styleSlides.map((slide) => (
-            <article
-              key={slide.title}
-              className="group min-w-[280px] snap-center overflow-hidden rounded-2xl border border-white/15 bg-[#141429] md:min-w-[430px]"
-            >
-              <div className="relative h-64 overflow-hidden md:h-72">
+          <div className="mt-10 grid gap-0 sm:grid-cols-2 lg:grid-cols-4">
+            {gallery.map((image, i) => (
+              <figure key={image} className="group relative h-56 overflow-hidden">
                 <img
-                  src={slide.image}
-                  alt={slide.title}
+                  src={image}
+                  alt={`Gallery danke ${i + 1}`}
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-              </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold">{slide.title}</h3>
-                <p className="mt-2 text-sm text-white/[0.72]">{slide.detail}</p>
-              </div>
-            </article>
-          ))}
+                <figcaption className="absolute inset-x-0 bottom-0 bg-black/55 px-3 py-2 text-sm text-white">
+                  Danke • Gallery
+                </figcaption>
+              </figure>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section id="galeri" className="relative mx-auto max-w-6xl scroll-mt-24 px-6 py-12">
-        <h2 className="text-2xl font-bold md:text-3xl">Gallery Foto & Video</h2>
-        <p className="mt-2 text-white/70">
-          Dokumentasi hasil cukur dan suasana kerja barber kami.
-        </p>
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {galleryPhotos.map((image, i) => (
-            <figure
-              key={image}
-              className="overflow-hidden rounded-2xl border border-white/15 bg-[#141429]"
-            >
-              <img
-                src={image}
-                alt={`Gallery hasil cukur ${i + 1}`}
-                className="h-52 w-full object-cover transition duration-500 hover:scale-105"
-              />
-            </figure>
-          ))}
-        </div>
-
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          {galleryVideos.map((video) => (
-            <article
-              key={video.title}
-              className="overflow-hidden rounded-2xl border border-white/15 bg-[#121226]"
-            >
-              <div className="aspect-video w-full">
-                <iframe
-                  src={video.src}
-                  title={video.title}
-                  className="h-full w-full"
-                  loading="lazy"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allowFullScreen
+      <section id="ourproduct" className="scroll-mt-24 bg-[#141414] py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="text-center">
+            <p className="text-sm uppercase tracking-[0.2em] text-amber-300">List Menu</p>
+            <h2 className="mt-2 text-4xl font-bold">Hair and Body Treatment</h2>
+            <p className="mt-3 text-white/70">
+              Produk pendukung untuk menjaga rambut tetap dalam tampilan terbaik.
+            </p>
+          </div>
+          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {products.map((product) => (
+              <article key={product.title} className="text-center">
+                <img
+                  src={product.image}
+                  alt={product.title}
+                  className="mx-auto h-44 w-44 rounded-full border border-white/20 object-cover"
                 />
-              </div>
-              <p className="px-4 py-3 text-sm text-white/80">{video.title}</p>
-            </article>
-          ))}
+                <h3 className="mt-5 text-lg font-semibold">{product.title}</h3>
+                <p className="mt-2 text-sm text-white/75">{product.description}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-5xl px-6 pb-20 pt-12 text-center">
-        <h2 className="text-3xl font-bold md:text-4xl">Siap Upgrade Penampilan Hari Ini?</h2>
-        <p className="mx-auto mt-3 max-w-2xl text-white/[0.75]">
-          Klik tombol booking, pilih waktu yang kamu mau, dan nikmati service cepat tanpa antre.
-        </p>
-        <a
-          href={waLink}
-          className="mt-7 inline-flex rounded-xl bg-gradient-to-r from-amber-400 via-orange-400 to-pink-500 px-8 py-4 text-lg font-bold text-black transition hover:scale-[1.02]"
-        >
-          Booking Sekarang
-        </a>
+      <section
+        id="franchise"
+        className="scroll-mt-24 bg-cover bg-center py-24 text-center"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(10,10,10,0.65), rgba(10,10,10,0.75)), url('https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=1800&q=80')",
+        }}
+      >
+        <div className="mx-auto max-w-3xl px-6">
+          <h2 className="text-4xl font-bold uppercase">Franchise Opportunity</h2>
+          <p className="mt-4 text-white/85">
+            Peluang untuk bergabung dan bermitra dengan DANKE Barbershop terbuka lebar.
+          </p>
+        </div>
       </section>
 
-      <footer id="kontak" className="relative mt-6 border-t border-white/10 bg-[#0b0b16]">
-        <div className="mx-auto grid max-w-6xl gap-8 px-6 py-12 md:grid-cols-2">
+      <footer className="bg-[#0d0d0d] py-16">
+        <div className="mx-auto grid max-w-6xl gap-8 px-6 md:grid-cols-[1.2fr_0.8fr_1fr]">
           <section>
-            <h3 className="text-xl font-bold">Alamat Utama</h3>
-            <p className="mt-3 text-sm text-white/80">
-              Danke 1.0 Wiyung
-              <br />
-              Jl. Klumprik PDAM No. 30, Wiyung, Surabaya Barat
-              <br />
-              Jawa Timur, Indonesia
-            </p>
-            <p className="mt-4 text-sm text-white/70">
-              WhatsApp: 0821-3269-1999
-              <br />
-              Jam Operasional: 09.00 - 22.00
-            </p>
-            <a
-              href={waLink}
-              className="mt-5 inline-flex rounded-lg bg-gradient-to-r from-emerald-400 to-green-500 px-4 py-2 text-sm font-semibold text-black"
-            >
-              Booking via WhatsApp
-            </a>
+            <iframe
+              src="https://www.google.com/maps?q=-7.330272194709938,112.68222121477523&z=15&output=embed"
+              className="h-72 w-full rounded-lg border border-white/10"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Danke Map"
+            />
           </section>
-
-          <section id="cabang" className="scroll-mt-24">
-            <h3 className="text-xl font-bold">Cabang Danke Barbershop</h3>
-            <ul className="mt-3 space-y-2 text-sm text-white/80">
+          <section>
+            <h3 className="text-lg font-bold">Information</h3>
+            <ul className="mt-4 space-y-2 text-sm text-white/75">
+              <li>FAQs</li>
+              <li>Privacy</li>
+              <li>Terms Condition</li>
+            </ul>
+            <p className="mt-6 text-sm text-white/75">
+              Telepon: (031) 7675193
+              <br />
+              Email: dankebarber@gmail.com
+            </p>
+          </section>
+          <section>
+            <h3 className="text-lg font-bold">DANKE BARBERSHOP OUTLET</h3>
+            <ul className="mt-4 space-y-3 text-sm text-white/75">
               {outlets.map((outlet) => (
-                <li key={outlet.name} className="rounded-lg border border-white/10 bg-white/[0.04] p-3">
-                  <p className="font-semibold text-white">{outlet.name}</p>
-                  <p className="mt-1 text-white/70">{outlet.address}</p>
-                </li>
+                <li key={outlet}>• {outlet}</li>
               ))}
             </ul>
           </section>
         </div>
+        <p className="mt-12 text-center text-sm text-white/50">
+          Copyright © {new Date().getFullYear()} DANKE Barbershop.
+        </p>
       </footer>
     </main>
   );
