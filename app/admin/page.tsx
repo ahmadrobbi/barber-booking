@@ -17,7 +17,7 @@ function groupByDate(data: any[]) {
     if (!map[key]) map[key] = [];
     map[key].push(item);
   }
-
+    
   return map;
 }
 
