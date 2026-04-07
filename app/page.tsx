@@ -323,9 +323,9 @@ export default function Home() {
               <li>Terms Condition</li>
             </ul>
             <p className="mt-6 text-sm text-white/75">
-              Telepon: (031) 7675193
+              Telepon: +62 857-3177-5939
               <br />
-              Email: dankebarber@gmail.com
+              Email: munir@gmail.com
             </p>
           </section>
           <section>
