@@ -5,53 +5,48 @@ const supabase = createClient(
   process.env.SUPABASE_KEY!
 );
 
-// 🔥 normalize tanggal (handle format text kacau)
-function normalizeDate(date: string) {
-  try {
-    return new Date(date).toISOString().split("T")[0];
-  } catch {
-    return null;
-  }
-}
-
-// 🔥 grouping aman
+// ✅ grouping by tanggal (tanpa parsing aneh)
 function groupByDate(data: any[]) {
   const map: Record<string, any[]> = {};
 
-  data.forEach((item) => {
-    if (!item.tanggal) return;
+  for (const item of data) {
+    if (!item.tanggal) continue;
 
-    const normalized = normalizeDate(item.tanggal);
-    if (!normalized) return;
+    const key = item.tanggal; // 🔥 langsung pakai dari DB
 
-    if (!map[normalized]) map[normalized] = [];
-    map[normalized].push(item);
-  });
+    if (!map[key]) map[key] = [];
+    map[key].push(item);
+  }
 
   return map;
 }
 
 export default async function AdminPage() {
+  // ✅ ambil data + sort langsung dari DB
   const { data, error } = await supabase
     .from("bookings")
     .select("*")
-    .not("tanggal", "is", null); // 🔥 skip null
+    .not("tanggal", "is", null)
+    .order("tanggal", { ascending: false }) // 🔥 penting
+    .order("jam", { ascending: true }); // optional (biar jam urut)
 
   if (error) {
     return <div>Error: {error.message}</div>;
   }
 
-  const grouped = groupByDate(data || []);
+  const safeData = data || [];
 
-  // 🔥 sorting tanggal biar urut
+  const grouped = groupByDate(safeData);
+
+  // ✅ sorting tanggal DESC (latest di atas)
   const groupedEntries = Object.entries(grouped).sort(
-    ([a], [b]) =>
-      new Date(a).getTime() - new Date(b).getTime()
+    ([a], [b]) => new Date(b).getTime() - new Date(a).getTime()
   );
 
-  const total = data?.length || 0;
-  const confirmed =
-    data?.filter((x) => x.status === "confirmed").length || 0;
+  const total = safeData.length;
+  const confirmed = safeData.filter(
+    (x) => x.status === "confirmed"
+  ).length;
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen text-gray-900">
@@ -102,14 +97,18 @@ export default async function AdminPage() {
                   className="flex justify-between bg-gray-50 p-2 rounded"
                 >
                   <div>
-                    <p className="font-medium">{item.layanan}</p>
+                    <p className="font-medium">
+                      {item.layanan}
+                    </p>
                     <p className="text-xs text-gray-500">
                       {item.sender}
                     </p>
                   </div>
 
                   <div className="text-right">
-                    <p className="font-semibold">{item.jam}</p>
+                    <p className="font-semibold">
+                      {item.jam}
+                    </p>
                     <span
                       className={`text-xs px-2 py-1 rounded ${
                         item.status === "confirmed"
