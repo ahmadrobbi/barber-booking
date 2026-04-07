@@ -116,8 +116,6 @@ export default function Home() {
             <a href="#gallery" className="text-white/85 hover:text-amber-300">Gallery</a>
             <a href="#ourproduct" className="text-white/85 hover:text-amber-300">Our Product</a>
             <a href="#franchise" className="text-white/85 hover:text-amber-300">Franchise</a>
-            <Link href="/login" className="text-white/85 hover:text-amber-300">Login</Link>
-            <Link href="/register" className="text-white/85 hover:text-amber-300">Register</Link>
           </div>
 
           <div className="flex items-center gap-2">

@@ -17,6 +17,21 @@ function formatAuthError(message: string) {
   return { message };
 }
 
+function mapSupabaseAuthError(message: string, code?: string) {
+  if (code === "42P01") {
+    return "Tabel dashboard_users belum ada di Supabase.";
+  }
+
+  if (
+    code === "42501" ||
+    message.toLowerCase().includes("row-level security policy")
+  ) {
+    return "Register gagal karena server belum memakai SUPABASE_SERVICE_ROLE_KEY di Vercel.";
+  }
+
+  return message;
+}
+
 export async function registerUser(
   _prevState: AuthFormState | void,
   formData: FormData
@@ -47,9 +62,7 @@ export async function registerUser(
 
   if (existingUserError && existingUserError.code !== "PGRST116") {
     return formatAuthError(
-      existingUserError.code === "42P01"
-        ? "Tabel dashboard_users belum ada di Supabase."
-        : existingUserError.message
+      mapSupabaseAuthError(existingUserError.message, existingUserError.code)
     );
   }
 
@@ -71,9 +84,9 @@ export async function registerUser(
 
   if (createUserError || !newUser) {
     return formatAuthError(
-      createUserError?.code === "42P01"
-        ? "Tabel dashboard_users belum ada di Supabase."
-        : createUserError?.message || "Registrasi gagal. Coba lagi."
+      createUserError
+        ? mapSupabaseAuthError(createUserError.message, createUserError.code)
+        : "Registrasi gagal. Coba lagi."
     );
   }
 
@@ -106,9 +119,7 @@ export async function loginUser(
 
   if (userError && userError.code !== "PGRST116") {
     return formatAuthError(
-      userError.code === "42P01"
-        ? "Tabel dashboard_users belum ada di Supabase."
-        : userError.message
+      mapSupabaseAuthError(userError.message, userError.code)
     );
   }
 
