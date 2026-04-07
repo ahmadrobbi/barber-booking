@@ -308,7 +308,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl gap-8 px-6 md:grid-cols-[1.2fr_0.8fr_1fr]">
           <section>
             <iframe
-              src="https://www.google.com/maps/place/Gang+Pesantren+Rengel+Tuban/@-7.0826861,111.9784887,13z/data=!4m10!1m2!2m1!1ssantren+rengel+tuban!3m6!1s0x2e77852daff5fde3:0x23fa8223e05e517e!8m2!3d-7.0655957!4d112.009581!15sChRzYW50cmVuIHJlbmdlbCB0dWJhbpIBEHBsYWNlX29mX3dvcnNoaXDgAQA!16s%2Fg%2F11b701hdtz?entry=ttu&g_ep=EgoyMDI2MDQwMS4wIKXMDSoASAFQAw%3D%3Dhttps://www.google.com/maps?q=-7.330272194709938,112.68222121477523&z=15&output=embed"
+              src="https://www.google.com/maps?q=-7.330272194709938,112.68222121477523&z=15&output=embed"
               className="h-72 w-full rounded-lg border border-white/10"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
