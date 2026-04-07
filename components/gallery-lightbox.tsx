@@ -55,7 +55,7 @@ export function GalleryLightbox({ images }: GalleryLightboxProps) {
         ))}
       </div>
 
-      {activeImage ? (
+      {activeImage && activeIndex !== null ? (
         <div
           className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 px-4 py-8"
           onClick={() => setActiveIndex(null)}
