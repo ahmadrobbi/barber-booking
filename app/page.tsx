@@ -49,10 +49,10 @@ const gallery = [
   "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=900&q=80",
   "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=900&q=80",
   "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1512690459411-b0fd1c86b8a8?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1593702288056-f8fd3d74c46d?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1621605816051-9f0ecf7b2b8f?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=900&q=80",
 ] as const;
 
 const products = [
@@ -60,13 +60,13 @@ const products = [
     title: "Pomade Oil Based",
     description: "Hold kuat dengan karakter classic look yang tahan lama.",
     image:
-      "https://images.unsplash.com/photo-1621605816051-9f0ecf7b2b8f?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=800&q=80",
   },
   {
     title: "Pomade Water Based",
     description: "Mudah dibersihkan, cocok untuk penggunaan harian.",
     image:
-      "https://images.unsplash.com/photo-1621605816202-9699ad9f7cdb?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=800&q=80",
   },
   {
     title: "Merchandise",
@@ -78,7 +78,7 @@ const products = [
     title: "Perfume",
     description: "Wangi maskulin untuk melengkapi tampilan fresh.",
     image:
-      "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=800&q=80",
   },
 ] as const;
 
