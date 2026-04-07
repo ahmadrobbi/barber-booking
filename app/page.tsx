@@ -88,6 +88,15 @@ const outlets = [
   "BAROKAH 3.0 - Jl. Raya Tenggilis 133A, Surabaya Timur",
 ] as const;
 
+const navItems = [
+  { href: "#home", label: "Home" },
+  { href: "#profil", label: "Profil" },
+  { href: "#services", label: "Services" },
+  { href: "#gallery", label: "Gallery" },
+  { href: "#ourproduct", label: "Our Product" },
+  { href: "#franchise", label: "Franchise" },
+] as const;
+
 export default function Home() {
   const phone = "6287749105273";
   const message = encodeURIComponent("Halo, saya mau booking cukur rambut.");
@@ -96,41 +105,67 @@ export default function Home() {
   return (
     <main className="bg-[#111111] text-white font-sans">
       <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <a href="#home" className="flex items-center gap-3">
-            <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-amber-300/60 bg-amber-400/20 font-bold text-amber-200">
+        <nav className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+          <div className="flex items-center justify-between gap-4 lg:gap-8">
+            <a href="#home" className="flex shrink-0 items-center gap-3 pr-4">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-300/60 bg-amber-400/20 text-sm font-bold text-amber-200">
               BB
-            </span>
-            <span>
-              <strong className={`${logoFont.className} block text-xl leading-tight tracking-wide md:text-2xl`}>
-                Barokah Barbershop
-              </strong>
-              <span className="block text-xs text-white/60 md:text-sm">Official Style Landing</span>
-            </span>
-          </a>
+              </span>
+              <span>
+                <strong className={`${logoFont.className} block text-lg leading-tight tracking-[0.04em] md:text-[1.7rem]`}>
+                  Barokah Barbershop
+                </strong>
+                <span className="block text-[11px] text-white/60 md:text-sm">Official Style Landing</span>
+              </span>
+            </a>
 
-          <div className={`${menuFont.className} hidden items-center gap-6 text-base tracking-wide md:flex md:text-xl`}>
-            <a href="#home" className="text-white/85 hover:text-amber-300">Home</a>
-            <a href="#profil" className="text-white/85 hover:text-amber-300">Profil</a>
-            <a href="#services" className="text-white/85 hover:text-amber-300">Services</a>
-            <a href="#gallery" className="text-white/85 hover:text-amber-300">Gallery</a>
-            <a href="#ourproduct" className="text-white/85 hover:text-amber-300">Our Product</a>
-            <a href="#franchise" className="text-white/85 hover:text-amber-300">Franchise</a>
+            <div className={`${menuFont.className} hidden flex-1 items-center justify-end gap-7 text-[1.15rem] tracking-wide lg:flex xl:gap-9`}>
+              {navItems.map((item) => (
+                <a key={item.href} href={item.href} className="text-white/85 transition hover:text-amber-300">
+                  {item.label}
+                </a>
+              ))}
+            </div>
+
+            <div className="hidden shrink-0 items-center gap-2 lg:flex">
+              <Link
+                href="/login"
+                className="rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-400"
+              >
+                Register
+              </Link>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Link
-              href="/login"
-              className="rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-400"
-            >
-              Register
-            </Link>
+          <div className="mt-4 space-y-3 lg:hidden">
+            <div className="flex items-center gap-2">
+              <Link
+                href="/login"
+                className="flex-1 rounded-md border border-white/15 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="flex-1 rounded-md bg-amber-500 px-4 py-2 text-center text-sm font-semibold text-black transition hover:bg-amber-400"
+              >
+                Register
+              </Link>
+            </div>
+
+            <div className={`${menuFont.className} flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-white/10 pt-3 text-base tracking-wide`}>
+              {navItems.map((item) => (
+                <a key={item.href} href={item.href} className="text-white/80 transition hover:text-amber-300">
+                  {item.label}
+                </a>
+              ))}
+            </div>
           </div>
         </nav>
       </header>
