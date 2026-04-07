@@ -1,4 +1,15 @@
 import Link from "next/link";
+import { Barlow_Condensed, Cinzel_Decorative } from "next/font/google";
+
+const menuFont = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+});
+
+const logoFont = Cinzel_Decorative({
+  subsets: ["latin"],
+  weight: ["700"],
+});
 
 const services = [
   {
@@ -72,9 +83,9 @@ const products = [
 ] as const;
 
 const outlets = [
-  "DANKE 1.0 - Jl. Klumprik PDAM 30, Wiyung, Surabaya Barat",
-  "DANKE 2.0 - Jl. Griya Kebraon Selatan II 24-B, Karang Pilang",
-  "DANKE 3.0 - Jl. Raya Tenggilis 133A, Surabaya Timur",
+  "BAROKAH 1.0 - Jl. Klumprik PDAM 30, Wiyung, Surabaya Barat",
+  "BAROKAH 2.0 - Jl. Griya Kebraon Selatan II 24-B, Karang Pilang",
+  "BAROKAH 3.0 - Jl. Raya Tenggilis 133A, Surabaya Timur",
 ] as const;
 
 export default function Home() {
@@ -88,15 +99,17 @@ export default function Home() {
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <a href="#home" className="flex items-center gap-3">
             <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-amber-300/60 bg-amber-400/20 font-bold text-amber-200">
-              DB
+              BB
             </span>
             <span>
-              <strong className="block text-base leading-tight">DANKE Barbershop</strong>
-              <span className="block text-xs text-white/60">Official Style Landing</span>
+              <strong className={`${logoFont.className} block text-xl leading-tight tracking-wide md:text-2xl`}>
+                Barokah Barbershop
+              </strong>
+              <span className="block text-xs text-white/60 md:text-sm">Official Style Landing</span>
             </span>
           </a>
 
-          <div className="hidden items-center gap-6 text-sm md:flex">
+          <div className={`${menuFont.className} hidden items-center gap-6 text-base tracking-wide md:flex md:text-xl`}>
             <a href="#home" className="text-white/85 hover:text-amber-300">Home</a>
             <a href="#profil" className="text-white/85 hover:text-amber-300">Profil</a>
             <a href="#services" className="text-white/85 hover:text-amber-300">Services</a>
@@ -118,9 +131,9 @@ export default function Home() {
         <div className="mx-auto flex min-h-[82vh] max-w-6xl items-center justify-center px-6 text-center">
           <div>
             <p className="text-sm uppercase tracking-[0.28em] text-amber-300/90">
-              Selamat Datang Di DANKE Barbershop
+              Selamat Datang Di Barokah Barbershop
             </p>
-            <h1 className="mt-4 text-4xl font-bold uppercase md:text-6xl">
+            <h1 className={`${menuFont.className} mt-4 text-5xl font-bold uppercase md:text-7xl`}>
               Pilihan Terbaik Untuk Merubah Penampilan Anda
             </h1>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -138,23 +151,25 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="profil" className="scroll-mt-24 bg-[#f8f8f8] py-20 text-center text-[#141414]">
+      <section id="profil" className="scroll-mt-24 bg-[#f8f8f8] py-24 text-center text-[#141414]">
         <div className="mx-auto max-w-4xl px-6">
           <div className="mx-auto inline-flex h-28 w-28 items-center justify-center rounded-full border-4 border-[#141414] text-3xl font-bold">
-            DB
+            BB
           </div>
-          <h2 className="mt-6 text-4xl font-bold uppercase">DANKE BARBERSHOP</h2>
+          <h2 className={`${menuFont.className} mt-6 text-5xl font-bold uppercase md:text-6xl`}>
+            BAROKAH BARBERSHOP
+          </h2>
           <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-[#434343] md:text-base">
-            DANKE Barbershop adalah layanan potong rambut dan perawatan rambut khusus pria dewasa, remaja, dan anak-anak.
+            Barokah Barbershop adalah layanan potong rambut dan perawatan rambut khusus pria dewasa, remaja, dan anak-anak.
             Kami berkomitmen menghadirkan pelayanan terbaik, kualitas konsisten, dan pengalaman grooming yang nyaman.
           </p>
         </div>
       </section>
 
-      <section id="services" className="scroll-mt-24 bg-[#141414] py-20">
+      <section id="services" className="scroll-mt-24 bg-[#141414] py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center">
-            <h2 className="text-4xl font-bold">Service dan Harga Kami</h2>
+            <h2 className={`${menuFont.className} text-5xl font-bold md:text-6xl`}>Service dan Harga Kami</h2>
             <p className="mt-3 text-white/70">
               Beragam service dengan kualitas dan harga terbaik untuk anda
             </p>
@@ -182,11 +197,11 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="gallery" className="scroll-mt-24 bg-[#f5f5f5] py-20 text-[#111]">
+      <section id="gallery" className="scroll-mt-24 bg-[#f5f5f5] py-24 text-[#111]">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center">
-            <h2 className="text-4xl font-bold">Our Gallery</h2>
-            <p className="mt-3 text-[#444]">Galeri foto dari DANKE Barbershop</p>
+            <h2 className={`${menuFont.className} text-5xl font-bold md:text-6xl`}>Our Gallery</h2>
+            <p className="mt-3 text-[#444]">Galeri foto dari Barokah Barbershop</p>
           </div>
           <div className="mt-10 grid gap-0 sm:grid-cols-2 lg:grid-cols-4">
             {gallery.map((image, i) => (
@@ -197,7 +212,7 @@ export default function Home() {
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 />
                 <figcaption className="absolute inset-x-0 bottom-0 bg-black/55 px-3 py-2 text-sm text-white">
-                  Danke • Gallery
+                  Barokah • Gallery
                 </figcaption>
               </figure>
             ))}
@@ -205,11 +220,11 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="ourproduct" className="scroll-mt-24 bg-[#141414] py-20">
+      <section id="ourproduct" className="scroll-mt-24 bg-[#141414] py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center">
             <p className="text-sm uppercase tracking-[0.2em] text-amber-300">List Menu</p>
-            <h2 className="mt-2 text-4xl font-bold">Hair and Body Treatment</h2>
+            <h2 className={`${menuFont.className} mt-2 text-5xl font-bold md:text-6xl`}>Hair and Body Treatment</h2>
             <p className="mt-3 text-white/70">
               Produk pendukung untuk menjaga rambut tetap dalam tampilan terbaik.
             </p>
@@ -232,16 +247,16 @@ export default function Home() {
 
       <section
         id="franchise"
-        className="scroll-mt-24 bg-cover bg-center py-24 text-center"
+        className="scroll-mt-24 bg-cover bg-center py-28 text-center"
         style={{
           backgroundImage:
             "linear-gradient(rgba(10,10,10,0.65), rgba(10,10,10,0.75)), url('https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=1800&q=80')",
         }}
       >
         <div className="mx-auto max-w-3xl px-6">
-          <h2 className="text-4xl font-bold uppercase">Franchise Opportunity</h2>
+          <h2 className={`${menuFont.className} text-5xl font-bold uppercase md:text-6xl`}>Franchise Opportunity</h2>
           <p className="mt-4 text-white/85">
-            Peluang untuk bergabung dan bermitra dengan DANKE Barbershop terbuka lebar.
+            Peluang untuk bergabung dan bermitra dengan Barokah Barbershop terbuka lebar.
           </p>
         </div>
       </section>
@@ -254,7 +269,7 @@ export default function Home() {
               className="h-72 w-full rounded-lg border border-white/10"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="Danke Map"
+              title="Barokah Map"
             />
           </section>
           <section>
@@ -271,7 +286,7 @@ export default function Home() {
             </p>
           </section>
           <section>
-            <h3 className="text-lg font-bold">DANKE BARBERSHOP OUTLET</h3>
+            <h3 className="text-lg font-bold">BAROKAH BARBERSHOP OUTLET</h3>
             <ul className="mt-4 space-y-3 text-sm text-white/75">
               {outlets.map((outlet) => (
                 <li key={outlet}>• {outlet}</li>
@@ -280,7 +295,7 @@ export default function Home() {
           </section>
         </div>
         <p className="mt-12 text-center text-sm text-white/50">
-          Copyright © {new Date().getFullYear()} DANKE Barbershop.
+          Copyright © {new Date().getFullYear()} Barokah Barbershop.
         </p>
       </footer>
     </main>
