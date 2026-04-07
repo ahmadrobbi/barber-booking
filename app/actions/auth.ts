@@ -1,16 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import type { AuthFormState } from "@/lib/auth-form-state";
 import { createSession, destroySession, hashPassword, verifyPassword } from "@/lib/auth";
 import { createAdminSupabase } from "@/lib/supabase";
-
-export type AuthFormState = {
-  message: string;
-};
-
-export const initialAuthFormState: AuthFormState = {
-  message: "",
-};
 
 function normalizeText(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";

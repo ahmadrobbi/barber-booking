@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import type { AuthFormState } from "@/app/actions/auth";
-import { initialAuthFormState } from "@/app/actions/auth";
+import type { AuthFormState } from "@/lib/auth-form-state";
+import { initialAuthFormState } from "@/lib/auth-form-state";
 
 type AuthFormProps = {
   action: (
