@@ -19,10 +19,10 @@ export default async function LoginPage() {
             Barokah Barbershop
           </Link>
           <h1 className="mt-6 max-w-xl text-4xl font-bold leading-tight md:text-6xl">
-            Login dashboard untuk pantau booking barber secara real-time.
+            Login admin untuk memantau seluruh transaksi booking barber.
           </h1>
           <p className="mt-5 max-w-lg text-base leading-7 text-white/70">
-            Masuk dengan akun admin yang sudah terdaftar untuk melihat booking WhatsApp yang sudah masuk ke Supabase.
+            Halaman ini khusus owner atau admin barbershop. Pelanggan tidak perlu akun dan bisa booking langsung dari form publik.
           </p>
         </section>
 
@@ -30,7 +30,7 @@ export default async function LoginPage() {
           <p className="text-sm uppercase tracking-[0.2em] text-amber-300">Dashboard Access</p>
           <h2 className="mt-3 text-3xl font-semibold">Login</h2>
           <p className="mt-2 text-sm text-white/60">
-            Gunakan email dan password yang sudah terdaftar.
+            Gunakan email dan password admin yang sudah terdaftar.
           </p>
           <div className="mt-8">
             <AuthForm action={loginUser} mode="login" />

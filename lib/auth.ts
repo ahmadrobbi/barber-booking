@@ -7,6 +7,7 @@ import {
 import { promisify } from "node:util";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { createAdminSupabase } from "@/lib/supabase";
 
 const scrypt = promisify(scryptCallback);
 
@@ -18,6 +19,16 @@ export type DashboardSession = {
   email: string;
   name: string;
   expiresAt: number;
+};
+
+export type UserRole = "admin" | "member";
+
+export type DashboardUser = {
+  id: string;
+  email: string;
+  name: string;
+  no_hp: string;
+  role: UserRole;
 };
 
 type SessionUser = {
@@ -154,4 +165,45 @@ export async function requireSession() {
   }
 
   return session;
+}
+
+export async function getCurrentUser() {
+  const session = await getSession();
+
+  if (!session) {
+    return null;
+  }
+
+  const supabase = createAdminSupabase();
+  const { data, error } = await supabase
+    .from("dashboard_users")
+    .select("id, name, email, no_hp, role")
+    .eq("id", session.userId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data as DashboardUser;
+}
+
+export async function requireUser() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  return user;
+}
+
+export async function requireAdmin() {
+  const user = await requireUser();
+
+  if (user.role !== "admin") {
+    redirect("/login");
+  }
+
+  return user;
 }

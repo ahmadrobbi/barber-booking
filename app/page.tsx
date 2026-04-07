@@ -129,16 +129,16 @@ export default function Home() {
 
             <div className="hidden shrink-0 items-center gap-2 lg:flex">
               <Link
+                href="/booking"
+                className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-400"
+              >
+                Booking
+              </Link>
+              <Link
                 href="/login"
                 className="rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-400"
-              >
-                Register
+                Login Admin
               </Link>
             </div>
           </div>
@@ -146,16 +146,16 @@ export default function Home() {
           <div className="mt-4 space-y-3 lg:hidden">
             <div className="flex items-center gap-2">
               <Link
+                href="/booking"
+                className="flex-1 rounded-md bg-amber-500 px-4 py-2 text-center text-sm font-semibold text-black transition hover:bg-amber-400"
+              >
+                Booking
+              </Link>
+              <Link
                 href="/login"
                 className="flex-1 rounded-md border border-white/15 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                className="flex-1 rounded-md bg-amber-500 px-4 py-2 text-center text-sm font-semibold text-black transition hover:bg-amber-400"
-              >
-                Register
+                Login Admin
               </Link>
             </div>
 
@@ -187,20 +187,20 @@ export default function Home() {
               Pilihan Terbaik Untuk Merubah Penampilan Anda
             </h1>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <a href={waLink} className="rounded-md bg-amber-500 px-6 py-3 font-semibold text-black hover:bg-amber-400">
-                Booking Sekarang
+              <Link
+                href="/booking"
+                className="rounded-md bg-amber-500 px-6 py-3 font-semibold text-black hover:bg-amber-400"
+              >
+                Form Booking Publik
+              </Link>
+              <a href={waLink} className="rounded-md border border-amber-400/50 px-6 py-3 font-semibold text-amber-200 hover:bg-amber-300/10">
+                Booking via WhatsApp
               </a>
               <Link
                 href="/login"
                 className="rounded-md border border-white/40 px-6 py-3 font-semibold text-white hover:bg-white/10"
               >
-                Login Dashboard
-              </Link>
-              <Link
-                href="/register"
-                className="rounded-md border border-amber-400/50 px-6 py-3 font-semibold text-amber-200 hover:bg-amber-300/10"
-              >
-                Register Admin
+                Login Admin
               </Link>
             </div>
           </div>

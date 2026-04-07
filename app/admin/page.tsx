@@ -1,160 +1,146 @@
-import { logoutUser } from "@/app/actions/auth";
-import { requireSession } from "@/lib/auth";
-import { createAdminSupabase } from "@/lib/supabase";
+import Link from "next/link";
+import { requireAdmin } from "@/lib/auth";
+import { formatPrice, getAllBookings, groupBookingsByDate } from "@/lib/dashboard";
 
 export const dynamic = "force-dynamic";
-const supabase = createAdminSupabase();
-
-type BookingRow = {
-  id: number;
-  sender: string | null;
-  layanan: string | null;
-  harga: number | null;
-  jam: string | null;
-  status: string | null;
-  tanggal: string | null;
-};
-
-// ✅ grouping by tanggal (tanpa parsing aneh)
-function groupByDate(data: BookingRow[]) {
-  const map: Record<string, BookingRow[]> = {};
-
-  for (const item of data) {
-    if (!item.tanggal) continue;
-
-    const key = item.tanggal; // 🔥 langsung pakai dari DB
-
-    if (!map[key]) map[key] = [];
-    map[key].push(item);
-  }
-    
-  return map;
-}
 
 export default async function AdminPage() {
-  const session = await requireSession();
-
-  // ✅ ambil data + sort langsung dari DB
-  const { data, error } = await supabase
-    .from("bookings")
-    .select("*")
-    .not("tanggal", "is", null)
-    .order("tanggal", { ascending: false }) // 🔥 penting
-    .order("jam", { ascending: true }); // optional (biar jam urut)
-
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
-
-  const safeData = data || [];
-
-  const grouped = groupByDate(safeData);
-
-  // ✅ sorting tanggal DESC (latest di atas)
-  const groupedEntries = Object.entries(grouped).sort(
-    ([a], [b]) => new Date(b).getTime() - new Date(a).getTime()
-  );
-
-  const total = safeData.length;
-  const confirmed = safeData.filter(
-    (x) => x.status === "confirmed"
-  ).length;
+  await requireAdmin();
+  const bookings = await getAllBookings();
+  const groupedEntries = groupBookingsByDate(bookings);
+  const total = bookings.length;
+  const confirmed = bookings.filter((booking) => booking.status === "confirmed").length;
+  const pending = bookings.filter((booking) => booking.status === "pending").length;
+  const omzet = bookings
+    .filter((booking) => booking.status === "confirmed")
+    .reduce((sum, booking) => sum + (booking.harga ?? 0), 0);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen text-gray-900">
-      <div className="mb-6 flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-500">Login sebagai</p>
-          <p className="text-lg font-semibold text-gray-900">{session.name}</p>
-          <p className="text-sm text-gray-500">{session.email}</p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold">
-            Dashboard Booking
-          </h1>
-          <form action={logoutUser}>
-            <button
-              type="submit"
-              className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-            >
-              Logout
-            </button>
-          </form>
-        </div>
-      </div>
-
-      {/* SUMMARY */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-xl shadow border">
-          <p className="text-sm text-gray-600">Total Booking</p>
-          <h2 className="text-2xl font-bold">{total}</h2>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow border">
-          <p className="text-sm text-gray-600">Confirmed</p>
-          <h2 className="text-2xl font-bold text-green-600">
-            {confirmed}
-          </h2>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow border">
-          <p className="text-sm text-gray-600">Pending</p>
-          <h2 className="text-2xl font-bold text-yellow-500">
-            {total - confirmed}
-          </h2>
-        </div>
-      </div>
-
-      {/* GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {groupedEntries.map(([date, bookings]) => (
-          <div
-            key={date}
-            className="bg-white rounded-2xl shadow p-4 border"
+    <div className="space-y-6">
+      <section className="rounded-[2rem] bg-stone-950 px-6 py-8 text-white md:px-8">
+        <p className="text-xs uppercase tracking-[0.3em] text-amber-300/70">Owner Dashboard</p>
+        <h1 className="mt-3 text-3xl font-semibold md:text-4xl">
+          Pantau transaksi booking dan alur operasional barber dari satu tempat.
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-white/70">
+          Dashboard ini difokuskan untuk owner. Booking publik, WhatsApp webhook, dan transaksi terbaru semuanya mengalir ke sini agar kontrol operasional tetap rapi.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href="/admin/settings/webhook"
+            className="rounded-2xl bg-amber-400 px-5 py-3 text-sm font-semibold text-stone-950 transition hover:bg-amber-300"
           >
-            <div className="flex justify-between mb-3">
-              <h2 className="font-bold">{date}</h2>
-              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
-                {bookings.length} booking
-              </span>
+            Buka Setting Webhook
+          </Link>
+          <Link
+            href="/admin/profile"
+            className="rounded-2xl border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+          >
+            Lihat Profil
+          </Link>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <article className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-stone-500">Total Booking</p>
+          <p className="mt-3 text-4xl font-semibold">{total}</p>
+        </article>
+        <article className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-stone-500">Confirmed</p>
+          <p className="mt-3 text-4xl font-semibold text-emerald-600">{confirmed}</p>
+        </article>
+        <article className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-stone-500">Pending</p>
+          <p className="mt-3 text-4xl font-semibold text-amber-600">{pending}</p>
+        </article>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <article className="rounded-[1.75rem] border border-stone-200 bg-[#fff8ef] p-5 shadow-sm xl:col-span-2">
+          <p className="text-sm text-stone-500">Estimasi Omzet Confirmed</p>
+          <p className="mt-3 text-4xl font-semibold">{formatPrice(omzet)}</p>
+          <p className="mt-3 text-sm leading-7 text-stone-600">
+            Nilai ini dihitung dari transaksi dengan status confirmed agar owner bisa melihat ringkasan pendapatan terkonfirmasi.
+          </p>
+        </article>
+        <article className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-stone-500">Sumber Booking</p>
+          <p className="mt-3 text-lg font-semibold">Publik Form + WhatsApp</p>
+        </article>
+        <article className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-stone-500">Webhook Status</p>
+          <p className="mt-3 text-lg font-semibold">Kelola di menu setting</p>
+        </article>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <article className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Transaksi Booking</p>
+              <h2 className="mt-3 text-2xl font-semibold">Daftar booking pelanggan</h2>
             </div>
+            <span className="rounded-full bg-stone-100 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+              {total} transaksi
+            </span>
+          </div>
 
-            <div className="space-y-2">
-              {bookings.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex justify-between bg-gray-50 p-2 rounded"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {item.layanan}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {item.sender}
-                    </p>
-                  </div>
-
-                  <div className="text-right">
-                    <p className="font-semibold">
-                      {item.jam}
-                    </p>
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${
-                        item.status === "confirmed"
-                          ? "bg-green-500 text-white"
-                          : "bg-yellow-500 text-black"
-                      }`}
-                    >
-                      {item.status}
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            {groupedEntries.length === 0 ? (
+              <div className="rounded-[1.75rem] border border-dashed border-stone-300 bg-stone-50 p-5 text-sm text-stone-500">
+                Belum ada transaksi booking yang masuk.
+              </div>
+            ) : (
+              groupedEntries.map(([date, items]) => (
+                <article key={date} className="rounded-[1.75rem] bg-stone-50 p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-lg font-semibold">{date}</h3>
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+                      {items.length} booking
                     </span>
                   </div>
-                </div>
-              ))}
-            </div>
+                  <div className="mt-4 space-y-3">
+                    {items.map((item) => (
+                      <div key={item.id} className="rounded-2xl bg-white p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="font-semibold text-stone-900">{item.layanan}</p>
+                            <p className="mt-1 text-sm text-stone-500">{item.sender}</p>
+                          </div>
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${
+                              item.status === "confirmed"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-amber-100 text-amber-700"
+                            }`}
+                          >
+                            {item.status}
+                          </span>
+                        </div>
+                        <div className="mt-4 flex items-center justify-between text-sm text-stone-600">
+                          <span>{item.jam}</span>
+                          <span>{formatPrice(item.harga)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              ))
+            )}
           </div>
-        ))}
-      </div>
+        </article>
+
+        <article className="rounded-[2rem] border border-stone-200 bg-[#f0dfc7] p-6 shadow-sm">
+          <p className="text-sm uppercase tracking-[0.28em] text-stone-600">Catatan Owner</p>
+          <h2 className="mt-3 text-2xl font-semibold">Hal penting untuk dijaga</h2>
+          <div className="mt-5 space-y-4 text-sm leading-7 text-stone-700">
+            <p>Booking publik akan masuk sebagai <strong>pending</strong> agar bisa diverifikasi dulu sebelum dianggap confirmed.</p>
+            <p>Nomor WhatsApp pelanggan tersimpan pada field pengirim sehingga mudah dipakai untuk follow up manual atau reminder.</p>
+            <p>Webhook Fonnte bisa kamu cek dan rapikan dari menu setting jika domain atau endpoint berubah.</p>
+          </div>
+        </article>
+      </section>
     </div>
   );
 }

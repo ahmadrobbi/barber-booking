@@ -5,6 +5,7 @@ create table if not exists public.dashboard_users (
   name text not null,
   email text not null unique,
   no_hp varchar(20) not null,
+  role varchar(20) not null default 'member',
   password_hash text not null,
   created_at timestamptz not null default now()
 );
@@ -14,6 +15,9 @@ alter table public.dashboard_users
 
 alter table public.dashboard_users
   alter column no_hp type varchar(20);
+
+alter table public.dashboard_users
+  add column if not exists role varchar(20) not null default 'member';
 
 create unique index if not exists dashboard_users_email_idx
   on public.dashboard_users (email);

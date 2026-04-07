@@ -105,12 +105,12 @@ export function AuthForm({ action, mode }: AuthFormProps) {
       <SubmitButton mode={mode} />
 
       <p className="text-center text-sm text-white/60">
-        {isRegister ? "Sudah punya akun?" : "Belum punya akun?"}{" "}
+        {isRegister ? "Sudah punya akun?" : "Akses dashboard hanya untuk admin."}{" "}
         <Link
-          href={isRegister ? "/login" : "/register"}
+          href="/login"
           className="font-medium text-amber-300 transition hover:text-amber-200"
         >
-          {isRegister ? "Login di sini" : "Register sekarang"}
+          {isRegister ? "Login di sini" : "Login admin"}
         </Link>
       </p>
     </form>
