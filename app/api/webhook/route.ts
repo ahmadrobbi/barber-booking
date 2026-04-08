@@ -1,238 +1,234 @@
 import { createClient } from "@supabase/supabase-js";
+import {
+  formatBookingDateLabel,
+  formatRupiah,
+  getChatbotTemplates,
+  getDateBySelection,
+  getDateOptionsText,
+  getServiceBySelection,
+  getServiceOptionsText,
+  getSlotBySelection,
+  getSlotOptionsText,
+  renderTemplate,
+} from "@/lib/chatbot";
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_KEY!
 );
 
-// ======================
-// SLOT JAM TERSEDIA
-// ======================
 const ALL_SLOTS = [
-  "09:00","10:00","11:00",
-  "13:00","14:00","15:00",
-  "16:00","17:00","18:00"
-];
-     
-// ======================
-// CEK SLOT TERISI
-// ======================
+  "09:00",
+  "10:00",
+  "11:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+  "18:00",
+] as const;
+
+type SessionState = {
+  sender: string;
+  step: string | null;
+  layanan: string | null;
+  harga: number | null;
+  tanggal: string | null;
+  jam: string | null;
+};
+
 async function isSlotTaken(tanggal: string, jam: string) {
   const { data } = await supabase
     .from("bookings")
-    .select("*")
+    .select("id")
     .eq("tanggal", tanggal)
     .eq("jam", jam);
 
-  return data && data.length > 0;
+  return Boolean(data && data.length > 0);
 }
 
-// ======================
-// AMBIL SLOT KOSONG
-// ======================
 async function getAvailableSlots(tanggal: string) {
   const { data } = await supabase
     .from("bookings")
     .select("jam")
     .eq("tanggal", tanggal);
 
-  const booked = data?.map(i => i.jam) || [];
-
-  return ALL_SLOTS.filter(jam => !booked.includes(jam));
+  const booked = data?.map((item) => item.jam) || [];
+  return ALL_SLOTS.filter((jam) => !booked.includes(jam));
 }
 
-// ======================
-// MAIN API
-// ======================
-export async function POST(req: Request) {
-  console.log("🔥 VERSION TERBARU AKTIF");
-  console.log("🔥 VERSION TERBARU AKTIF");
-  let message = "";
-  let sender = "";
+function getTodayInJakarta() {
+  const now = new Date();
+  const local = new Date(
+    now.toLocaleString("en-US", {
+      timeZone: "Asia/Jakarta",
+    })
+  );
 
-  try {
-    const body = await req.json();
-    message = body.message?.text || body.message || body.text || "";
-    sender = body.sender || body.from || "";
-  } catch {
-    const text = await req.text();
-    const params = new URLSearchParams(text);
-    message = params.get("message") || params.get("text") || "";
-    sender = params.get("sender") || params.get("from") || "";
-  }
+  local.setHours(0, 0, 0, 0);
+  return local;
+}
 
-  message = message.toLowerCase().trim();
-
-  if (!sender) {
-    return Response.json({ status: "no sender" });
-  }
-
-  const { data: state } = await supabase
+async function loadState(sender: string) {
+  const { data } = await supabase
     .from("user_sessions")
     .select("*")
     .eq("sender", sender)
     .maybeSingle();
 
+  return (data ?? null) as SessionState | null;
+}
+
+async function saveState(payload: Partial<SessionState> & { sender: string }) {
+  await supabase.from("user_sessions").upsert(payload, { onConflict: "sender" });
+}
+
+async function clearState(sender: string) {
+  await supabase.from("user_sessions").delete().eq("sender", sender);
+}
+
+async function sendWhatsappMessage(target: string, message: string) {
+  await fetch("https://api.fonnte.com/send", {
+    method: "POST",
+    headers: {
+      Authorization: process.env.FONNTE_TOKEN!,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      target,
+      message,
+    }),
+  });
+}
+
+export async function POST(req: Request) {
+  let incomingMessage = "";
+  let sender = "";
+
+  try {
+    const body = await req.json();
+    incomingMessage = body.message?.text || body.message || body.text || "";
+    sender = body.sender || body.from || "";
+  } catch {
+    const text = await req.text();
+    const params = new URLSearchParams(text);
+    incomingMessage = params.get("message") || params.get("text") || "";
+    sender = params.get("sender") || params.get("from") || "";
+  }
+
+  const message = incomingMessage.toLowerCase().trim();
+
+  if (!sender) {
+    return Response.json({ status: "no sender" });
+  }
+
+  const templates = await getChatbotTemplates();
+  const state = await loadState(sender);
+  const today = getTodayInJakarta();
   let reply = "";
 
-  // ======================
-  // START
-  // ======================
-  if (message === "halo") {
-    await supabase.from("user_sessions").upsert(
-      {
-        sender,
-        step: "pilih_layanan",
-        layanan: null,
-        harga: null,
-        tanggal: null,
-        jam: null,
-      },
-      { onConflict: "sender" }
-    );
+  if (message === "halo" || message === "menu" || message === "booking") {
+    await saveState({
+      sender,
+      step: "pilih_layanan",
+      layanan: null,
+      harga: null,
+      tanggal: null,
+      jam: null,
+    });
 
-    reply =
-      "Halo 👋 Selamat datang di *Barbershop Premium* 💈\n\n" +
-      "Kami siap bikin kamu tampil lebih percaya diri 😎\n\n" +
-      "✨ *Pilih layanan terbaik:*\n\n" +
-
-      "1️⃣ *Dewasa Premium*\n" +
-      "✂️ Potong + styling rapi\n" +
-      "💰 Rp25.000\n\n" +
-
-      "2️⃣ *Anak-anak*\n" +
-      "👶 Potong santai & nyaman\n" +
-      "💰 Rp20.000\n\n" +
-
-      "Balas dengan *1* atau *2* ya 👇";
-  }
-
-  // ======================
-  // STATE NULL
-  // ======================
-  else if (!state) {
+    reply = renderTemplate(templates.greeting, {
+      service_list: getServiceOptionsText(),
+    });
+  } else if (!state) {
     reply = "Ketik *halo* untuk mulai booking ✂️";
-  }
+  } else if (state.step === "pilih_layanan") {
+    const service = getServiceBySelection(message);
 
-  // ======================
-  // PILIH LAYANAN
-  // ======================
-  else if (state.step === "pilih_layanan") {
-
-    if (message === "1" || message === "2") {
-
-      const layanan = message === "1" ? "Dewasa Premium" : "Anak-anak";
-      const harga = message === "1" ? 25000 : 20000;
-
-      await supabase.from("user_sessions").upsert(
-        {
-          sender,
-          step: "pilih_tanggal",
-          layanan,
-          harga,
-        },
-        { onConflict: "sender" }
-      );
-
-      reply =
-        `Mantap 👍 kamu pilih *${layanan}*\n\n` +
-        `Sekarang pilih tanggal booking ya 📅\n\n` +
-        `Contoh: 2026-04-01`;
-    }
-
-    else {
-      reply = "Ketik *1* atau *2* ya ✂️";
-    }
-  }
-
-  // ======================
-  // PILIH TANGGAL
-  // ======================
-  else if (state.step === "pilih_tanggal") {
-
-    const isTanggalValid = /^\d{4}-\d{2}-\d{2}$/.test(message);
-
-    if (!isTanggalValid) {
-      reply =
-        "❌ Format tanggal salah\n\n" +
-        "Contoh: 2026-04-01";
+    if (!service) {
+      reply = `${templates.invalidOptionMessage}\n\n${getServiceOptionsText()}`;
     } else {
+      await saveState({
+        sender,
+        step: "pilih_tanggal",
+        layanan: service.name,
+        harga: service.price,
+      });
 
-      const slots = await getAvailableSlots(message);
+      reply = renderTemplate(templates.servicePrompt, {
+        layanan: service.name,
+        date_options: getDateOptionsText(today),
+      });
+    }
+  } else if (state.step === "pilih_tanggal") {
+    const selectedDate = getDateBySelection(message, today);
 
-      await supabase.from("user_sessions").upsert(
-        {
-          ...state,
+    if (!selectedDate) {
+      reply = `${templates.invalidOptionMessage}\n\n${getDateOptionsText(today)}`;
+    } else {
+      const slots = await getAvailableSlots(selectedDate.key);
+
+      if (slots.length === 0) {
+        reply =
+          `Maaf, semua jam pada *${selectedDate.label}* sudah penuh.\n\n` +
+          `${getDateOptionsText(today)}\n\n` +
+          "Balas dengan nomor tanggal lain ya 🙌";
+      } else {
+        await saveState({
           sender,
           step: "pilih_jam",
-          tanggal: message,
-        },
-        { onConflict: "sender" }
-      );
+          tanggal: selectedDate.key,
+        });
 
-      reply =
-        `📅 Tanggal dipilih: *${message}*\n\n` +
-        `⏰ *Jam tersedia:*\n` +
-        `${slots.join(", ")}\n\n` +
-        `Ketik jam yang kamu mau ya 👇\n` +
-        `Contoh: 14:00`;
-    }
-  }
-
-  // ======================
-  // PILIH JAM
-  // ======================
-  else if (state.step === "pilih_jam") {
-
-    const isJamValid = /^\d{2}:\d{2}$/.test(message);
-
-    if (!isJamValid) {
-      reply =
-        "❌ Format jam salah\n\n" +
-        "Contoh: 14:00";
-    } else {
-
-      const bentrok = await isSlotTaken(state.tanggal, message);
-
-      if (bentrok) {
-        reply = "❌ Jam sudah dibooking, pilih jam lain ya";
-      } else {
-
-        await supabase.from("user_sessions").upsert(
-          {
-            ...state,
-            sender,
-            step: "konfirmasi",
-            jam: message,
-          },
-          { onConflict: "sender" }
-        );
-
-        reply =
-          `📌 *Konfirmasi Booking*\n\n` +
-          `✂️ Layanan : ${state.layanan}\n` +
-          `📅 Tanggal : ${state.tanggal}\n` +
-          `⏰ Jam : ${message}\n` +
-          `💰 Total : Rp${state.harga}\n\n` +
-          `✅ Ketik *YA* untuk lanjut\n` +
-          `❌ Ketik *BATAL* untuk ulang`;
+        reply = renderTemplate(templates.datePrompt, {
+          tanggal_label: selectedDate.label,
+          slot_options: getSlotOptionsText(slots),
+        });
       }
     }
-  }
+  } else if (state.step === "pilih_jam") {
+    if (!state.tanggal) {
+      await clearState(sender);
+      reply = "Sesi booking kamu sudah kedaluwarsa. Ketik *halo* untuk mulai lagi.";
+    } else {
+      const slots = await getAvailableSlots(state.tanggal);
+      const selectedSlot = getSlotBySelection(message, slots);
 
-  // ======================
-  // KONFIRMASI
-  // ======================
-  else if (state.step === "konfirmasi") {
-
-    if (message === "ya") {
-
-      const bentrok = await isSlotTaken(state.tanggal, state.jam);
-
-      if (bentrok) {
-        reply = "❌ Slot sudah diambil orang lain";
+      if (!selectedSlot) {
+        reply = `${templates.invalidOptionMessage}\n\n${getSlotOptionsText(slots)}`;
+      } else if (await isSlotTaken(state.tanggal, selectedSlot)) {
+        reply =
+          "Jam tersebut baru saja terisi. Pilih jam lain ya 🙏\n\n" +
+          getSlotOptionsText(await getAvailableSlots(state.tanggal));
       } else {
+        const confirmationSummary = renderTemplate(templates.confirmationPrompt, {
+          layanan: state.layanan,
+          tanggal_label: formatBookingDateLabel(state.tanggal),
+          jam: selectedSlot,
+          harga: formatRupiah(state.harga),
+        });
 
+        await saveState({
+          sender,
+          step: "konfirmasi",
+          jam: selectedSlot,
+        });
+
+        reply = renderTemplate(templates.slotPrompt, {
+          jam: selectedSlot,
+          confirmation_summary: confirmationSummary,
+        });
+      }
+    }
+  } else if (state.step === "konfirmasi") {
+    if (message === "ya") {
+      if (!state.tanggal || !state.jam) {
+        await clearState(sender);
+        reply = "Sesi booking kamu sudah kedaluwarsa. Ketik *halo* untuk mulai lagi.";
+      } else if (await isSlotTaken(state.tanggal, state.jam)) {
+        reply = "❌ Slot sudah diambil pelanggan lain. Ketik *halo* untuk mulai pilih ulang ya.";
+      } else {
         await supabase.from("bookings").insert([
           {
             sender,
@@ -244,57 +240,26 @@ export async function POST(req: Request) {
           },
         ]);
 
-        await supabase
-          .from("user_sessions")
-          .delete()
-          .eq("sender", sender);
+        await clearState(sender);
 
-        reply =
-          "✅ *Booking berhasil!*\n\n" +
-          `📅 ${state.tanggal}\n` +
-          `⏰ ${state.jam}\n\n` +
-          "🙏 Mohon datang 10 menit sebelum jadwal\n" +
-          "Sampai ketemu di barbershop! 💈";
+        reply = renderTemplate(templates.successMessage, {
+          layanan: state.layanan,
+          tanggal_label: formatBookingDateLabel(state.tanggal),
+          jam: state.jam,
+        });
       }
-    }
-
-    else if (message === "batal") {
-      await supabase
-        .from("user_sessions")
-        .delete()
-        .eq("sender", sender);
-
-      reply = "❌ Booking dibatalkan\nKetik *halo* untuk mulai lagi";
-    }
-
-    else {
-      reply = "Ketik *YA* atau *BATAL* ya";
+    } else if (message === "batal") {
+      await clearState(sender);
+      reply = templates.cancelMessage;
+    } else {
+      reply = `${templates.invalidOptionMessage}\n\nBalas *YA* untuk konfirmasi atau *BATAL* untuk mengulang.`;
     }
   }
 
-  // ======================
-  // SAFETY
-  // ======================
   if (!reply) {
     reply = "Ketik *halo* untuk mulai booking ✂️";
   }
 
-  // ======================
-  // KIRIM WA
-  // ======================
-  await fetch("https://api.fonnte.com/send", {
-    method: "POST",
-    headers: {
-      Authorization: process.env.FONNTE_TOKEN!,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      target: sender,
-      message: reply,
-    }),
-  });
-
+  await sendWhatsappMessage(sender, reply);
   return Response.json({ status: "ok" });
 }
-
-    
