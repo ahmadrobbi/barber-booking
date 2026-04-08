@@ -64,6 +64,48 @@ export function groupBookingsByDate(data: BookingRow[]) {
   );
 }
 
+export function filterBookingsByMonthYear(
+  data: BookingRow[],
+  month: number | null,
+  year: number | null
+) {
+  return data.filter((item) => {
+    if (!item.tanggal) {
+      return false;
+    }
+
+    const bookingDate = new Date(`${item.tanggal}T00:00:00`);
+    const matchesMonth = month === null || bookingDate.getMonth() + 1 === month;
+    const matchesYear = year === null || bookingDate.getFullYear() === year;
+
+    return matchesMonth && matchesYear;
+  });
+}
+
+export function getAvailableBookingYears(data: BookingRow[]) {
+  return [...new Set(
+    data
+      .map((item) => {
+        if (!item.tanggal) {
+          return null;
+        }
+
+        return new Date(`${item.tanggal}T00:00:00`).getFullYear();
+      })
+      .filter((value): value is number => value !== null)
+  )].sort((a, b) => b - a);
+}
+
+export function formatBookingDate(value: string | null) {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+  }).format(new Date(`${value}T00:00:00`));
+}
+
 export function formatPrice(value: number | null) {
   if (typeof value !== "number") {
     return "-";

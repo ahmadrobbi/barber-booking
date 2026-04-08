@@ -6,22 +6,22 @@ export function DashboardSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-full border-b border-white/10 bg-[#16110d] text-white md:min-h-screen md:w-80 md:border-b-0 md:border-r">
-      <div className="border-b border-white/10 px-6 py-6">
+    <aside className="w-full border-b border-white/10 bg-[#16110d] text-white md:min-h-screen md:w-64 md:border-b-0 md:border-r">
+      <div className="border-b border-white/10 px-5 py-5">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400 text-lg font-black text-stone-950">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-400 text-base font-black text-stone-950">
             BB
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.28em] text-amber-200/70">
               Dashboard
             </p>
-            <h2 className="text-xl font-semibold">Barokah Barbershop</h2>
+            <h2 className="text-lg font-semibold">Barokah Barbershop</h2>
           </div>
         </div>
       </div>
 
-      <div className="px-4 py-5">
+      <div className="px-3 py-5">
         <div>
           <p className="px-3 text-xs uppercase tracking-[0.28em] text-white/35">
             Menu
@@ -36,7 +36,7 @@ export function DashboardSidebar() {
                   : "text-white/75 hover:bg-white/5 hover:text-white"
               }`}
             >
-              <span className={`flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold ${pathname === "/admin" ? "bg-stone-950/10" : "bg-white/5"}`}>
+              <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${pathname === "/admin" ? "bg-stone-950/10" : "bg-white/5"}`}>
                 DB
               </span>
               <span className="font-medium">Dashboard</span>
@@ -59,7 +59,7 @@ export function DashboardSidebar() {
               }`}
             >
               <span
-                className={`flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold ${
+                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
                   pathname === "/admin/settings/webhook" ? "bg-stone-950/10" : "bg-white/5"
                 }`}
               >
