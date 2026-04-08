@@ -35,7 +35,7 @@ export function AdminBookingFilters({
         <select
           name="month"
           defaultValue={selectedMonth.toString()}
-          className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-400"
+          className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 [color-scheme:light] outline-none transition focus:border-amber-400"
         >
           {monthOptions.map((month) => (
             <option key={month.value} value={month.value}>
@@ -50,7 +50,7 @@ export function AdminBookingFilters({
         <select
           name="year"
           defaultValue={selectedYear.toString()}
-          className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-400"
+          className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 [color-scheme:light] outline-none transition focus:border-amber-400"
         >
           {availableYears.map((year) => (
             <option key={year} value={year}>
