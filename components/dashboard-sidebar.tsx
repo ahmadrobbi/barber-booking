@@ -41,6 +41,23 @@ export function DashboardSidebar() {
               </span>
               <span className="font-medium">Dashboard</span>
             </Link>
+            <Link
+              href="/admin/bookings"
+              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+                pathname === "/admin/bookings"
+                  ? "bg-amber-300 text-stone-950"
+                  : "text-white/75 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
+                  pathname === "/admin/bookings" ? "bg-stone-950/10" : "bg-white/5"
+                }`}
+              >
+                BK
+              </span>
+              <span className="font-medium">Daftar Booking</span>
+            </Link>
           </nav>
         </div>
 
