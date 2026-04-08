@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Barlow_Condensed, Cinzel_Decorative } from "next/font/google";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
+import { HomeHeroCarousel } from "@/components/home-hero-carousel";
 
 const menuFont = Barlow_Condensed({
   subsets: ["latin"],
@@ -88,6 +89,39 @@ const outlets = [
   "Kapas, Bojonegoro",
 ] as const;
 
+const heroSlides = [
+  {
+    eyebrow: "Selamat Datang Di Barokah Barbershop",
+    title: "Style Rapi Untuk Pria Yang Mau Tampil Lebih Berkelas",
+    description:
+      "Kami hadirkan pengalaman cukur modern dengan barber berpengalaman, suasana nyaman, dan hasil akhir yang presisi untuk aktivitas harian maupun momen spesial.",
+    image:
+      "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=1800&q=80",
+    accent: "Precision Cut",
+    stats: ["Haircut modern & classic", "Ruang nyaman dan bersih", "Styling akhir lebih rapi"],
+  },
+  {
+    eyebrow: "Perawatan Rambut Pria",
+    title: "Lebih Dari Potong Rambut Ini Tentang Pengalaman Grooming Lengkap",
+    description:
+      "Dari konsultasi model sampai finishing pomade, setiap sesi dirancang supaya pelanggan merasa fresh, percaya diri, dan tetap cocok dengan karakter wajahnya.",
+    image:
+      "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=1800&q=80",
+    accent: "Premium Care",
+    stats: ["Konsultasi style personal", "Shampoo dan vitamin rambut", "Cocok untuk dewasa dan kids"],
+  },
+  {
+    eyebrow: "Booking Lebih Mudah",
+    title: "Masuk Dengan Tampilan Baru Keluar Dengan Kepercayaan Diri Baru",
+    description:
+      "Atur jadwal cukur tanpa ribet lewat booking online atau WhatsApp. Datang sesuai waktu, duduk santai, dan biarkan tim kami merapikan penampilan Anda.",
+    image:
+      "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1800&q=80",
+    accent: "Easy Booking",
+    stats: ["Reservasi cepat", "Minim antre", "Siap untuk agenda penting"],
+  },
+] as const;
+
 const navItems = [
   { href: "#home", label: "Home" },
   { href: "#profil", label: "Profil" },
@@ -134,12 +168,6 @@ export default function Home() {
               >
                 Booking
               </Link>
-              <Link
-                href="/login"
-                className="rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                Login Admin
-              </Link>
             </div>
           </div>
 
@@ -147,15 +175,9 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <Link
                 href="/booking"
-                className="flex-1 rounded-md bg-amber-500 px-4 py-2 text-center text-sm font-semibold text-black transition hover:bg-amber-400"
+                className="w-full rounded-md bg-amber-500 px-4 py-2 text-center text-sm font-semibold text-black transition hover:bg-amber-400"
               >
                 Booking
-              </Link>
-              <Link
-                href="/login"
-                className="flex-1 rounded-md border border-white/15 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                Login Admin
               </Link>
             </div>
 
@@ -170,42 +192,11 @@ export default function Home() {
         </nav>
       </header>
 
-      <section
-        id="home"
-        className="relative min-h-[82vh] bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(9,9,9,0.65), rgba(9,9,9,0.75)), url('https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=1800&q=80')",
-        }}
-      >
-        <div className="mx-auto flex min-h-[82vh] max-w-6xl items-center justify-center px-6 text-center">
-          <div>
-            <p className="text-sm uppercase tracking-[0.28em] text-amber-300/90">
-              Selamat Datang Di Barokah Barbershop
-            </p>
-            <h1 className={`${menuFont.className} mt-4 text-5xl font-bold uppercase md:text-7xl`}>
-              Pilihan Terbaik Untuk Merubah Penampilan Anda
-            </h1>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Link
-                href="/booking"
-                className="rounded-md bg-amber-500 px-6 py-3 font-semibold text-black hover:bg-amber-400"
-              >
-                Form Booking Publik
-              </Link>
-              <a href={waLink} className="rounded-md border border-amber-400/50 px-6 py-3 font-semibold text-amber-200 hover:bg-amber-300/10">
-                Booking via WhatsApp
-              </a>
-              <Link
-                href="/login"
-                className="rounded-md border border-white/40 px-6 py-3 font-semibold text-white hover:bg-white/10"
-              >
-                Login Admin
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HomeHeroCarousel
+        slides={heroSlides}
+        menuFontClassName={menuFont.className}
+        waLink={waLink}
+      />
 
       <section id="profil" className="scroll-mt-24 bg-[#f8f8f8] py-24 text-center text-[#141414]">
         <div className="mx-auto max-w-4xl px-6">
@@ -337,9 +328,18 @@ export default function Home() {
             </ul>
           </section>
         </div>
-        <p className="mt-12 text-center text-sm text-white/50">
-          Copyright © {new Date().getFullYear()} Barokah Barbershop.
-        </p>
+        <div className="mt-12 flex flex-col items-center justify-center gap-3 px-6 text-center sm:flex-row sm:gap-5">
+          <p className="text-sm text-white/50">
+            Copyright © {new Date().getFullYear()} Barokah Barbershop.
+          </p>
+          <span className="hidden h-4 w-px bg-white/15 sm:block" aria-hidden="true" />
+          <Link
+            href="/login"
+            className="text-sm font-medium text-amber-200/80 transition hover:text-amber-300"
+          >
+            Owner Login
+          </Link>
+        </div>
       </footer>
     </main>
   );
