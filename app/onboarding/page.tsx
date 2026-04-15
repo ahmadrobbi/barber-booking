@@ -1,20 +1,23 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
+import { isOnboardingComplete } from "@/lib/industry-config";
+import OnboardingClient from "./onboarding-client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { getAvailableIndustries } from "@/lib/industry-config";
-import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
+export default async function OnboardingPage() {
+  // Check if user is logged in
+  const session = await getSession();
+  if (!session) {
+    redirect("/login");
+  }
 
-type OnboardingStep = "welcome" | "industry" | "business" | "services" | "complete";
+  // Check if onboarding is already complete
+  const onboardingComplete = await isOnboardingComplete();
+  if (onboardingComplete) {
+    redirect("/admin");
+  }
 
-type Service = {
-  code: string;
-  name: string;
-  price: number;
-  description: string;
-};
-
-export default function OnboardingPage() {
+  return <OnboardingClient />;
+}
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("welcome");
   const [selectedIndustry, setSelectedIndustry] = useState<IndustryKey>("barbershop");
@@ -152,6 +155,17 @@ export default function OnboardingPage() {
                 <h3 className="font-semibold text-stone-900 mb-2">Layanan</h3>
                 <p className="text-sm text-stone-600">Konfigurasi layanan yang ditawarkan</p>
               </div>
+            </div>
+            <div className="text-center">
+              <button
+                onClick={handleNext}
+                className="px-8 py-4 bg-amber-500 text-white rounded-2xl font-semibold text-lg hover:bg-amber-600 transition shadow-lg hover:shadow-xl"
+              >
+                🚀 Mulai Setup Bisnis
+              </button>
+              <p className="text-sm text-stone-500 mt-4">
+                Setup hanya butuh 2-3 menit
+              </p>
             </div>
           </div>
         )}
@@ -299,18 +313,20 @@ export default function OnboardingPage() {
               Kembali
             </button>
           )}
-          <button
-            onClick={handleNext}
-            disabled={
-              (currentStep === "business" && !businessName.trim()) ||
-              (currentStep === "services" && services.length === 0) ||
-              isSubmitting
-            }
-            className="ml-auto px-6 py-3 bg-amber-500 text-white rounded-2xl font-semibold hover:bg-amber-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? "Menyimpan..." :
-             currentStep === "services" ? "Selesai Setup" : "Lanjut"}
-          </button>
+          {currentStep !== "welcome" && (
+            <button
+              onClick={handleNext}
+              disabled={
+                (currentStep === "business" && !businessName.trim()) ||
+                (currentStep === "services" && services.length === 0) ||
+                isSubmitting
+              }
+              className="ml-auto px-6 py-3 bg-amber-500 text-white rounded-2xl font-semibold hover:bg-amber-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Menyimpan..." :
+               currentStep === "services" ? "Selesai Setup" : "Lanjut"}
+            </button>
+          )}
         </div>
       </div>
     </div>

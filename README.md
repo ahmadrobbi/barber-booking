@@ -1,5 +1,32 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Variables
+
+Copy `.env.local` and fill in your values:
+
+```bash
+cp .env.local .env.local.example
+```
+
+### Required Environment Variables:
+
+1. **SUPABASE_URL** - Your Supabase project URL
+   - Get from: Supabase Dashboard → Settings → API → Project URL
+
+2. **SUPABASE_SERVICE_ROLE_KEY** - Your Supabase service role key
+   - Get from: Supabase Dashboard → Settings → API → service_role key
+   - ⚠️ **Important**: Never commit this key to version control
+
+3. **FONNTE_TOKEN** - Your Fonnte WhatsApp API token
+   - Get from: Fonnte Dashboard → API Settings
+
+### Setup Steps:
+
+1. Create a new Supabase project at [supabase.com](https://supabase.com)
+2. Run the migrations in `supabase/migrations/` to set up your database
+3. Copy the environment variables to `.env.local`
+4. Start the development server: `npm run dev`
+
 ## Getting Started
 
 First, run the development server:
@@ -15,10 +42,6 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
 

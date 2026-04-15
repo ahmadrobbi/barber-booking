@@ -17,7 +17,7 @@ export default async function AdminLayout({
   // Check if onboarding is complete
   const onboardingComplete = await isOnboardingComplete();
   if (!onboardingComplete) {
-    redirect("/admin/onboarding");
+    redirect("/onboarding");
   }
 
   // Get business name for branding
