@@ -11,7 +11,7 @@ import {
   getSlotOptionsText,
   renderTemplate,
 } from "@/lib/chatbot";
-import { getIndustryConfig } from "@/lib/industry-config";
+import { getIndustryConfig, getIndustryData, getAvailableIndustries } from "@/lib/industry-config";
 import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
 import { getServicesForIndustry, getSlotsForIndustry } from "@/lib/bookings";
 
@@ -63,6 +63,29 @@ async function getAvailableSlots(tanggal: string, industry: IndustryKey = "barbe
   const booked = data?.map((item) => item.jam) || [];
   const allSlots = getSlotsForIndustry(industry);
   return allSlots.filter((jam) => !booked.includes(jam));
+}
+
+function getIndustryOptionsText() {
+  return getAvailableIndustries()
+    .map((item, index) => `${index + 1}. ${item.name} (${item.key})`)
+    .join("\n");
+}
+
+function getIndustryBySelection(message: string) {
+  const selectedIndex = Number(message.trim()) - 1;
+  const industries = getAvailableIndustries();
+
+  if (Number.isInteger(selectedIndex) && selectedIndex >= 0 && selectedIndex < industries.length) {
+    return industries[selectedIndex].key;
+  }
+
+  const normalized = message.trim().toLowerCase();
+  return (
+    industries.find(
+      (industry) =>
+        industry.key === normalized || industry.name.toLowerCase() === normalized
+    )?.key ?? null
+  );
 }
 
 function getTodayInJakarta() {
@@ -135,9 +158,10 @@ export async function POST(req: Request) {
   // Get industry config and determine default industry
   const config = await getIndustryConfig();
   const industry: IndustryKey = state?.industry || config.default;
-  
-  const templates = INDUSTRIES[industry].templates;
+  const industryData = await getIndustryData(industry);
+  const templates = industryData.templates;
   const today = getTodayInJakarta();
+  const industryPrompt = getIndustryOptionsText();
   let reply = "";
 
   if (message === "halo" || message === "menu" || message === "booking") {
@@ -154,6 +178,37 @@ export async function POST(req: Request) {
     reply = renderTemplate(templates.greeting, {
       service_list: getServiceOptionsText(getServicesForIndustry(industry)),
     });
+  } else if (
+    ["industri", "pilih industri", "ganti industri", "ubah industri"].includes(message)
+  ) {
+    await saveState({
+      sender,
+      step: "pilih_industri",
+      industry,
+    });
+
+    reply = `Pilih industri:\n${industryPrompt}\n\nBalas dengan nomor atau nama industri.`;
+  } else if (state?.step === "pilih_industri") {
+    const selectedIndustry = getIndustryBySelection(message);
+
+    if (!selectedIndustry) {
+      reply = `${templates.invalidOptionMessage}\n\nPilih industri:\n${industryPrompt}`;
+    } else {
+      const selectedIndustryData = await getIndustryData(selectedIndustry);
+      await saveState({
+        sender,
+        step: "pilih_layanan",
+        industry: selectedIndustry,
+        layanan: null,
+        harga: null,
+        tanggal: null,
+        jam: null,
+      });
+
+      reply = renderTemplate(selectedIndustryData.templates.greeting, {
+        service_list: getServiceOptionsText(getServicesForIndustry(selectedIndustry)),
+      });
+    }
   } else if (!state) {
     reply = "Ketik *halo* untuk mulai booking ✂️";
   } else if (state.step === "pilih_layanan") {

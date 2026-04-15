@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { loginUser } from "@/app/actions/auth";
 import { AuthForm } from "@/components/auth-form";
+import { getBusinessName } from "@/lib/industry-config";
 
 export default async function LoginPage() {
   const session = await getSession();
@@ -11,18 +12,20 @@ export default async function LoginPage() {
     redirect("/admin");
   }
 
+  const businessName = await getBusinessName();
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.18),_transparent_32%),linear-gradient(180deg,_#1c1917,_#09090b)] px-6 py-10 text-white">
       <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <section className="flex flex-col justify-center">
           <Link href="/" className="w-fit text-sm uppercase tracking-[0.28em] text-amber-300/80">
-            Barokah Barbershop
+            {businessName}
           </Link>
           <h1 className="mt-6 max-w-xl text-4xl font-bold leading-tight md:text-6xl">
-            Login admin untuk memantau seluruh transaksi booking barber.
+            Login admin untuk memantau seluruh transaksi booking.
           </h1>
           <p className="mt-5 max-w-lg text-base leading-7 text-white/70">
-            Halaman ini khusus owner atau admin barbershop. Pelanggan tidak perlu akun dan bisa booking langsung dari form publik.
+            Halaman ini khusus owner atau admin. Pelanggan tidak perlu akun dan bisa booking langsung dari form publik.
           </p>
         </section>
 

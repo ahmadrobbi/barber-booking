@@ -1,6 +1,7 @@
 "use server";
 
 import type { BookingFormState } from "@/lib/booking-form-state";
+import { INDUSTRIES } from "@/lib/industries";
 import { getBookingService, getSlotsForIndustry, type IndustryKey } from "@/lib/bookings";
 import { isIndustryEnabled } from "@/lib/industry-config";
 import { createAdminSupabase } from "@/lib/supabase";
@@ -28,11 +29,18 @@ function isValidPhoneNumber(value: string) {
   return /^[+]?\d{10,20}$/.test(value);
 }
 
+function getIndustryFromFormData(formData: FormData): IndustryKey {
+  const industryValue = normalizeText(formData.get("industry")).toLowerCase();
+  return Object.keys(INDUSTRIES).includes(industryValue)
+    ? (industryValue as IndustryKey)
+    : "barbershop";
+}
+
 export async function createPublicBooking(
   _prevState: BookingFormState | void,
-  formData: FormData,
-  industry: IndustryKey = "barbershop"
+  formData: FormData
 ) {
+  const industry = getIndustryFromFormData(formData);
   // Validate industry is enabled
   const isEnabled = await isIndustryEnabled(industry);
   if (!isEnabled) {

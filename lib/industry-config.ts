@@ -87,20 +87,15 @@ export function getAvailableIndustries(): Array<{ key: IndustryKey; name: string
 export async function getIndustryData(industry: IndustryKey) {
   const config = await getIndustryConfig();
   const baseData = INDUSTRIES[industry];
+  const industryCustomization = config.customization?.[industry];
 
-  // Check if there's custom data in config
-  if (
-    config.customization &&
-    config.customization[industry] &&
-    config.customization[industry].services
-  ) {
-    return {
-      ...baseData,
-      services: config.customization[industry].services,
-    };
-  }
-
-  return baseData;
+  return {
+    ...baseData,
+    services: industryCustomization?.services ?? baseData.services,
+    templates: industryCustomization?.templates
+      ? { ...baseData.templates, ...industryCustomization.templates }
+      : baseData.templates,
+  };
 }
 
 /**
@@ -109,4 +104,80 @@ export async function getIndustryData(industry: IndustryKey) {
 export async function isIndustryEnabled(industry: IndustryKey): Promise<boolean> {
   const config = await getIndustryConfig();
   return config.enabled.includes(industry);
+}
+
+/**
+ * Check if onboarding/setup is complete
+ */
+export async function isOnboardingComplete(): Promise<boolean> {
+  try {
+    const supabase = createAdminSupabase();
+    const { data, error } = await supabase
+      .from("app_settings")
+      .select("value_json")
+      .eq("key", "onboarding_complete")
+      .maybeSingle();
+
+    if (error && error.code !== "PGRST116" && error.code !== "42P01") {
+      console.warn("Error checking onboarding status:", error.message);
+      return false;
+    }
+
+    return data?.value_json === true;
+  } catch (err) {
+    console.warn("Failed to check onboarding status:", err);
+    return false;
+  }
+}
+
+/**
+ * Mark onboarding as complete
+ */
+export async function completeOnboarding(): Promise<void> {
+  try {
+    const supabase = createAdminSupabase();
+    await supabase.from("app_settings").upsert(
+      {
+        key: "onboarding_complete",
+        value_json: true,
+      },
+      { onConflict: "key" }
+    );
+  } catch (err) {
+    console.error("Failed to complete onboarding:", err);
+    throw err;
+  }
+}
+
+/**
+ * Reset onboarding (for testing purposes)
+ */
+export async function resetOnboarding(): Promise<void> {
+  try {
+    const supabase = createAdminSupabase();
+    await supabase.from("app_settings").delete().eq("key", "onboarding_complete");
+    await supabase.from("app_settings").delete().eq("key", "business_name");
+    await supabase.from("app_settings").delete().eq("key", "industry_config");
+  } catch (err) {
+    console.error("Failed to reset onboarding:", err);
+    throw err;
+  }
+}
+
+/**
+ * Get business name from settings
+ */
+export async function getBusinessName(): Promise<string> {
+  try {
+    const supabase = createAdminSupabase();
+    const { data } = await supabase
+      .from("app_settings")
+      .select("value_json")
+      .eq("key", "business_name")
+      .maybeSingle();
+
+    return typeof data?.value_json === "string" ? data.value_json : "Booking Platform";
+  } catch {
+    return "Booking Platform";
+  }
 }

@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { logoutUser } from "@/app/actions/auth";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { requireAdmin } from "@/lib/auth";
+import { isOnboardingComplete, getBusinessName } from "@/lib/industry-config";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +13,15 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }>) {
   const user = await requireAdmin();
+
+  // Check if onboarding is complete
+  const onboardingComplete = await isOnboardingComplete();
+  if (!onboardingComplete) {
+    redirect("/admin/onboarding");
+  }
+
+  // Get business name for branding
+  const businessName = await getBusinessName();
 
   return (
     <div className="min-h-screen bg-[#f5efe7] text-stone-900 md:flex">
@@ -27,7 +38,7 @@ export default async function AdminLayout({
                 <p className="text-xs uppercase tracking-[0.3em] text-stone-500">
                   Internal Space
                 </p>
-                <p className="text-lg font-semibold">Barokah Barbershop</p>
+                <p className="text-lg font-semibold">{businessName}</p>
               </div>
             </Link>
 

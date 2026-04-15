@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { Barlow_Condensed, Cinzel_Decorative } from "next/font/google";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { HomeHeroCarousel } from "@/components/home-hero-carousel";
-import { getIndustryConfig, getAvailableIndustries } from "@/lib/industry-config";
+import { getIndustryConfig, getAvailableIndustries, getBusinessName } from "@/lib/industry-config";
 import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
 
 const menuFont = Barlow_Condensed({
@@ -23,18 +23,24 @@ export default function DynamicLandingPage() {
   const [config, setConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [businessName, setBusinessName] = useState<string>("");
 
   const availableIndustries = getAvailableIndustries();
 
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const cfg = await getIndustryConfig();
+        const [cfg, bizName] = await Promise.all([
+          getIndustryConfig(),
+          getBusinessName()
+        ]);
         setSelectedIndustry(cfg.default);
         setConfig(cfg);
+        setBusinessName(bizName);
       } catch (err) {
         console.error("Failed to load config:", err);
         setConfig({ enabled: ["barbershop"], default: "barbershop" });
+        setBusinessName("Booking Platform");
       } finally {
         setLoading(false);
       }
@@ -78,7 +84,7 @@ export default function DynamicLandingPage() {
                 <strong
                   className={`${logoFont.className} block text-lg leading-tight tracking-[0.04em] md:text-[1.7rem]`}
                 >
-                  {industryData.name}
+                  {businessName || industryData.name}
                 </strong>
                 <span className="block text-[11px] text-white/60 md:text-sm">
                   Official Booking Portal
@@ -110,7 +116,7 @@ export default function DynamicLandingPage() {
               {isDropdownOpen && (
                 <div className="absolute top-full mt-2 w-48 rounded-md bg-black border border-white/10 shadow-lg z-10">
                   <Link
-                    href="/booking"
+                    href={`/booking?industry=${selectedIndustry}`}
                     className="block px-4 py-2 text-sm text-white hover:bg-amber-500 hover:text-black transition"
                     onClick={() => setIsDropdownOpen(false)}
                   >
@@ -141,7 +147,7 @@ export default function DynamicLandingPage() {
               {isDropdownOpen && (
                 <div className="absolute top-full mt-2 w-full rounded-md bg-black border border-white/10 shadow-lg z-10">
                   <Link
-                    href="/booking"
+                    href={`/booking?industry=${selectedIndustry}`}
                     className="block px-4 py-2 text-sm text-white hover:bg-amber-500 hover:text-black transition"
                     onClick={() => setIsDropdownOpen(false)}
                   >

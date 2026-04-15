@@ -1,9 +1,13 @@
 import { requireAdmin } from "@/lib/auth";
+import { getBusinessName, getIndustryConfig } from "@/lib/industry-config";
+import { BusinessSettingsForm } from "@/components/business-settings-form";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
   const user = await requireAdmin();
+  const businessName = await getBusinessName();
+  const config = await getIndustryConfig();
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
@@ -35,6 +39,13 @@ export default async function ProfilePage() {
             <p className="text-sm text-stone-500">Role</p>
             <p className="mt-1 text-lg font-semibold text-stone-900">admin</p>
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm xl:col-span-2">
+        <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Pengaturan Bisnis</p>
+        <div className="mt-6">
+          <BusinessSettingsForm initialBusinessName={businessName} config={config} />
         </div>
       </section>
     </div>
