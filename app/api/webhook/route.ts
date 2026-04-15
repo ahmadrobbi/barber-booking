@@ -11,11 +11,16 @@ import {
   getSlotOptionsText,
   renderTemplate,
 } from "@/lib/chatbot";
+import { getIndustryConfig } from "@/lib/industry-config";
+import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
+import { getServicesForIndustry, getSlotsForIndustry } from "@/lib/bookings";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.SUPABASE_URL ?? "",
+    process.env.SUPABASE_KEY ?? ""
+  );
+}
 
 const ALL_SLOTS = [
   "09:00",
@@ -36,10 +41,11 @@ type SessionState = {
   harga: number | null;
   tanggal: string | null;
   jam: string | null;
+  industry: IndustryKey;
 };
 
 async function isSlotTaken(tanggal: string, jam: string) {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from("bookings")
     .select("id")
     .eq("tanggal", tanggal)
@@ -48,14 +54,15 @@ async function isSlotTaken(tanggal: string, jam: string) {
   return Boolean(data && data.length > 0);
 }
 
-async function getAvailableSlots(tanggal: string) {
-  const { data } = await supabase
+async function getAvailableSlots(tanggal: string, industry: IndustryKey = "barbershop") {
+  const { data } = await getSupabase()
     .from("bookings")
     .select("jam")
     .eq("tanggal", tanggal);
 
   const booked = data?.map((item) => item.jam) || [];
-  return ALL_SLOTS.filter((jam) => !booked.includes(jam));
+  const allSlots = getSlotsForIndustry(industry);
+  return allSlots.filter((jam) => !booked.includes(jam));
 }
 
 function getTodayInJakarta() {
@@ -71,7 +78,7 @@ function getTodayInJakarta() {
 }
 
 async function loadState(sender: string) {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from("user_sessions")
     .select("*")
     .eq("sender", sender)
@@ -81,11 +88,11 @@ async function loadState(sender: string) {
 }
 
 async function saveState(payload: Partial<SessionState> & { sender: string }) {
-  await supabase.from("user_sessions").upsert(payload, { onConflict: "sender" });
+  await getSupabase().from("user_sessions").upsert(payload, { onConflict: "sender" });
 }
 
 async function clearState(sender: string) {
-  await supabase.from("user_sessions").delete().eq("sender", sender);
+  await getSupabase().from("user_sessions").delete().eq("sender", sender);
 }
 
 async function sendWhatsappMessage(target: string, message: string) {
@@ -123,8 +130,13 @@ export async function POST(req: Request) {
     return Response.json({ status: "no sender" });
   }
 
-  const templates = await getChatbotTemplates();
   const state = await loadState(sender);
+  
+  // Get industry config and determine default industry
+  const config = await getIndustryConfig();
+  const industry: IndustryKey = state?.industry || config.default;
+  
+  const templates = INDUSTRIES[industry].templates;
   const today = getTodayInJakarta();
   let reply = "";
 
@@ -136,24 +148,27 @@ export async function POST(req: Request) {
       harga: null,
       tanggal: null,
       jam: null,
+      industry,
     });
 
     reply = renderTemplate(templates.greeting, {
-      service_list: getServiceOptionsText(),
+      service_list: getServiceOptionsText(getServicesForIndustry(industry)),
     });
   } else if (!state) {
     reply = "Ketik *halo* untuk mulai booking ✂️";
   } else if (state.step === "pilih_layanan") {
-    const service = getServiceBySelection(message);
+    const industryServices = getServicesForIndustry(industry);
+    const service = getServiceBySelection(message, industryServices);
 
     if (!service) {
-      reply = `${templates.invalidOptionMessage}\n\n${getServiceOptionsText()}`;
+      reply = `${templates.invalidOptionMessage}\n\n${getServiceOptionsText(industryServices)}`;
     } else {
       await saveState({
         sender,
         step: "pilih_tanggal",
         layanan: service.name,
         harga: service.price,
+        industry,
       });
 
       reply = renderTemplate(templates.servicePrompt, {
@@ -167,7 +182,7 @@ export async function POST(req: Request) {
     if (!selectedDate) {
       reply = `${templates.invalidOptionMessage}\n\n${getDateOptionsText(today)}`;
     } else {
-      const slots = await getAvailableSlots(selectedDate.key);
+      const slots = await getAvailableSlots(selectedDate.key, industry);
 
       if (slots.length === 0) {
         reply =
@@ -179,6 +194,7 @@ export async function POST(req: Request) {
           sender,
           step: "pilih_jam",
           tanggal: selectedDate.key,
+          industry,
         });
 
         reply = renderTemplate(templates.datePrompt, {
@@ -192,7 +208,7 @@ export async function POST(req: Request) {
       await clearState(sender);
       reply = "Sesi booking kamu sudah kedaluwarsa. Ketik *halo* untuk mulai lagi.";
     } else {
-      const slots = await getAvailableSlots(state.tanggal);
+      const slots = await getAvailableSlots(state.tanggal, industry);
       const selectedSlot = getSlotBySelection(message, slots);
 
       if (!selectedSlot) {
@@ -200,7 +216,7 @@ export async function POST(req: Request) {
       } else if (await isSlotTaken(state.tanggal, selectedSlot)) {
         reply =
           "Jam tersebut baru saja terisi. Pilih jam lain ya 🙏\n\n" +
-          getSlotOptionsText(await getAvailableSlots(state.tanggal));
+          getSlotOptionsText(await getAvailableSlots(state.tanggal, industry));
       } else {
         const confirmationSummary = renderTemplate(templates.confirmationPrompt, {
           layanan: state.layanan,
@@ -213,6 +229,7 @@ export async function POST(req: Request) {
           sender,
           step: "konfirmasi",
           jam: selectedSlot,
+          industry,
         });
 
         reply = renderTemplate(templates.slotPrompt, {
@@ -229,7 +246,7 @@ export async function POST(req: Request) {
       } else if (await isSlotTaken(state.tanggal, state.jam)) {
         reply = "❌ Slot sudah diambil pelanggan lain. Ketik *halo* untuk mulai pilih ulang ya.";
       } else {
-        await supabase.from("bookings").insert([
+        await getSupabase().from("bookings").insert([
           {
             sender,
             layanan: state.layanan,
@@ -237,6 +254,7 @@ export async function POST(req: Request) {
             tanggal: state.tanggal,
             jam: state.jam,
             status: "confirmed",
+            industry,
           },
         ]);
 

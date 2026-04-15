@@ -102,23 +102,25 @@ export function getDateOptionsText(baseDate = new Date()) {
     .join("\n");
 }
 
-export function getServiceOptionsText() {
-  return BOOKING_SERVICES.map(
-    (service, index) =>
-      `${index + 1}. *${service.name}*\n   ${service.description}\n   ${formatRupiah(service.price)}`
-  ).join("\n\n");
+export function getServiceOptionsText(services = BOOKING_SERVICES) {
+  return services
+    .map(
+      (service, index) =>
+        `${index + 1}. *${service.name}*\n   ${service.description}\n   ${formatRupiah(service.price)}`
+    )
+    .join("\n\n");
 }
 
-export function getServiceBySelection(message: string) {
+export function getServiceBySelection(message: string, services = BOOKING_SERVICES) {
   const cleaned = message.trim().toLowerCase();
   const selectedIndex = Number(cleaned);
 
-  if (Number.isInteger(selectedIndex) && selectedIndex >= 1 && selectedIndex <= BOOKING_SERVICES.length) {
-    return BOOKING_SERVICES[selectedIndex - 1] ?? null;
+  if (Number.isInteger(selectedIndex) && selectedIndex >= 1 && selectedIndex <= services.length) {
+    return services[selectedIndex - 1] ?? null;
   }
 
   return (
-    BOOKING_SERVICES.find(
+    services.find(
       (service) =>
         service.code.toLowerCase() === cleaned ||
         service.name.toLowerCase() === cleaned

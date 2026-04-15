@@ -1,9 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.SUPABASE_URL ?? "",
+    process.env.SUPABASE_KEY ?? ""
+  );
+}
 
 export async function GET() {
   try {
@@ -15,7 +17,7 @@ export async function GET() {
     console.log("RUN REMINDER:", today);
 
     // ✅ handle error supabase
-    const { data: bookings, error } = await supabase
+    const { data: bookings, error } = await getSupabase()
       .from("bookings")
       .select("*")
       .eq("tanggal", today)
@@ -65,7 +67,7 @@ export async function GET() {
           }
 
           // ✅ update hanya kalau sukses
-          await supabase
+          await getSupabase()
             .from("bookings")
             .update({ reminder_sent: true })
             .eq("id", item.id);

@@ -1,7 +1,8 @@
 "use server";
 
 import type { BookingFormState } from "@/lib/booking-form-state";
-import { ALL_BOOKING_SLOTS, getBookingService } from "@/lib/bookings";
+import { getBookingService, getSlotsForIndustry, type IndustryKey } from "@/lib/bookings";
+import { isIndustryEnabled } from "@/lib/industry-config";
 import { createAdminSupabase } from "@/lib/supabase";
 
 function normalizeText(value: FormDataEntryValue | null) {
@@ -29,13 +30,21 @@ function isValidPhoneNumber(value: string) {
 
 export async function createPublicBooking(
   _prevState: BookingFormState | void,
-  formData: FormData
+  formData: FormData,
+  industry: IndustryKey = "barbershop"
 ) {
+  // Validate industry is enabled
+  const isEnabled = await isIndustryEnabled(industry);
+  if (!isEnabled) {
+    return formatBookingError("Industri booking tidak tersedia.");
+  }
+
   const phoneNumber = normalizePhoneNumber(normalizeText(formData.get("no_hp")));
   const serviceCode = normalizeText(formData.get("service"));
   const tanggal = normalizeText(formData.get("tanggal"));
   const jam = normalizeText(formData.get("jam"));
-  const service = getBookingService(serviceCode);
+  const service = getBookingService(serviceCode, industry);
+  const availableSlots = getSlotsForIndustry(industry);
 
   if (!isValidPhoneNumber(phoneNumber)) {
     return formatBookingError("Nomor WhatsApp harus 10-20 digit angka.");
@@ -49,7 +58,7 @@ export async function createPublicBooking(
     return formatBookingError("Tanggal booking belum valid.");
   }
 
-  if (!ALL_BOOKING_SLOTS.includes(jam as (typeof ALL_BOOKING_SLOTS)[number])) {
+  if (!availableSlots.includes(jam as (typeof availableSlots)[number])) {
     return formatBookingError("Pilih jam booking yang tersedia.");
   }
 
@@ -77,6 +86,7 @@ export async function createPublicBooking(
     tanggal,
     jam,
     status: "pending",
+    industry,  // Tambah kolom industry
   });
 
   if (insertError) {
