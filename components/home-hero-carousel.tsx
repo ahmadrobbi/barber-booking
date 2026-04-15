@@ -46,7 +46,7 @@ export function HomeHeroCarousel({
       <div className="absolute inset-0">
         {slides.map((slide, index) => (
           <div
-            key={slide.title}
+            key={`${slide.title}-${index}`}
             className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out ${
               index === activeIndex
                 ? "scale-100 opacity-100"
@@ -149,7 +149,7 @@ export function HomeHeroCarousel({
             <div className="mt-5 flex gap-2">
               {slides.map((slide, index) => (
                 <button
-                  key={slide.title}
+                  key={`${slide.title}-${index}`}
                   type="button"
                   onClick={() => goToSlide(index)}
                   className={`h-2.5 rounded-full transition-all ${
