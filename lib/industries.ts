@@ -52,7 +52,7 @@ export const INDUSTRIES = {
       "18:00",
     ],
     templates: {
-      greeting: "Halo, selamat datang di Barokah Barbershop! Mau booking potong rambut? Ketik *menu* untuk lihat layanan kami ✂️",
+      greeting: "Halo, selamat datang di Barokah Barbershop! Berikut layanan kami:\n\n{{service_list}}\n\nBalas dengan nomor layanan ya 👇",
       servicePrompt: "Layanan yang tersedia:\n1. Cut & Wash - IDR 30.000\n2. Cut & Wash (KIDS) - IDR 25.000\n3. Hair Color For Men - IDR 100.000\n\nBalas dengan nomor layanan ya!",
       datePrompt: "Pilih tanggal untuk {tanggal_label}:\n1. Hari ini\n2. Besok\n3. Lusa\n\nBalas dengan nomor tanggal.",
       slotPrompt: "Jam tersedia untuk {tanggal_label}:\n{slot_options}\n\n{confirmation_summary}\n\nBalas *YA* untuk konfirmasi atau *BATAL* untuk ulang.",
@@ -133,7 +133,7 @@ export const INDUSTRIES = {
       "16:00",
     ],
     templates: {
-      greeting: "Halo, selamat datang di Klinik Sehat! Mau daftar konsultasi? Ketik *menu* untuk lihat layanan kami 🏥",
+      greeting: "Halo, selamat datang di Klinik Sehat! Berikut layanan kami:\n\n{{service_list}}\n\nBalas dengan nomor layanan ya 👇",
       servicePrompt: "Layanan yang tersedia:\n1. Pemeriksaan Umum - IDR 50.000\n2. Pemeriksaan Gigi - IDR 75.000\n3. Tes Laboratorium - IDR 100.000\n\nBalas dengan nomor layanan ya!",
       datePrompt: "Pilih tanggal untuk {tanggal_label}:\n1. Hari ini\n2. Besok\n3. Lusa\n\nBalas dengan nomor tanggal.",
       slotPrompt: "Jam tersedia untuk {tanggal_label}:\n{slot_options}\n\n{confirmation_summary}\n\nBalas *YA* untuk konfirmasi atau *BATAL* untuk ulang.",
