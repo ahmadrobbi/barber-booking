@@ -131,10 +131,67 @@ const navItems = [
   { href: "#franchise", label: "Franchise" },
 ] as const;
 
+function BookingDropdown({
+  bookingLinks,
+  className,
+  panelClassName,
+  summaryClassName,
+}: {
+  bookingLinks: readonly {
+    href: string;
+    label: string;
+    isExternal: boolean;
+  }[];
+  className: string;
+  panelClassName: string;
+  summaryClassName: string;
+}) {
+  return (
+    <details className={`group relative ${className}`}>
+      <summary
+        className={`inline-flex list-none items-center justify-center rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-amber-400 cursor-pointer ${summaryClassName}`}
+      >
+        <span>Booking</span>
+      </summary>
+
+      <div
+        role="menu"
+        className={`absolute top-full mt-3 overflow-hidden rounded-2xl border border-amber-200/15 bg-[#17120d]/98 shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur ${panelClassName}`}
+      >
+        {bookingLinks.map((item) =>
+          item.isExternal ? (
+            <a
+              key={item.label}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full px-4 py-3 text-left text-sm font-semibold text-white/90 transition hover:bg-amber-500 hover:text-black"
+            >
+              {item.label}
+            </a>
+          ) : (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="block w-full px-4 py-3 text-left text-sm font-semibold text-white/90 transition hover:bg-amber-500 hover:text-black"
+            >
+              {item.label}
+            </Link>
+          )
+        )}
+      </div>
+    </details>
+  );
+}
+
 export default function Home() {
   const phone = "6287749105273";
   const message = encodeURIComponent("Halo, saya mau booking cukur rambut.");
   const waLink = `https://wa.me/${phone}?text=${message}`;
+  const bookingLinks = [
+    { href: "/booking", label: "Booking Sekarang", isExternal: false },
+    { href: waLink, label: "Booking via WhatsApp", isExternal: true },
+  ] as const;
 
   return (
     <main className="bg-[#111111] text-white font-sans">
@@ -143,7 +200,7 @@ export default function Home() {
           <div className="flex items-center justify-between gap-4 lg:gap-8">
             <a href="#home" className="flex shrink-0 items-center gap-3 pr-4">
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-300/60 bg-amber-400/20 text-sm font-bold text-amber-200">
-              BB
+                BB
               </span>
               <span>
                 <strong className={`${logoFont.className} block text-lg leading-tight tracking-[0.04em] md:text-[1.7rem]`}>
@@ -162,24 +219,22 @@ export default function Home() {
             </div>
 
             <div className="hidden shrink-0 items-center gap-2 lg:flex">
-              <Link
-                href="/booking"
-                className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-400"
-              >
-                Booking
-              </Link>
+              <BookingDropdown
+                bookingLinks={bookingLinks}
+                className=""
+                panelClassName="right-0 z-[60] w-60"
+                summaryClassName=""
+              />
             </div>
           </div>
 
           <div className="mt-4 space-y-3 lg:hidden">
-            <div className="flex items-center gap-2">
-              <Link
-                href="/booking"
-                className="w-full rounded-md bg-amber-500 px-4 py-2 text-center text-sm font-semibold text-black transition hover:bg-amber-400"
-              >
-                Booking
-              </Link>
-            </div>
+            <BookingDropdown
+              bookingLinks={bookingLinks}
+              className="block w-full"
+              panelClassName="left-0 z-[60] w-full"
+              summaryClassName="flex w-full"
+            />
 
             <div className={`${menuFont.className} flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-white/10 pt-3 text-base tracking-wide`}>
               {navItems.map((item) => (
