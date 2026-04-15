@@ -7,7 +7,7 @@ import type { IndustryConfig } from "@/lib/industry-config";
 
 export default function IndustrySettings() {
   const [config, setConfig] = useState<IndustryConfig | null>(null);
-  const [customization, setCustomization] = useState<IndustryConfig["customization"]>({});
+  const [customization, setCustomization] = useState<Partial<Record<IndustryKey, { templates?: Record<string, string>; services?: Array<{ code: string; name: string; price: number; description: string; }>; }>>>({});
   const [selectedIndustry, setSelectedIndustry] = useState<IndustryKey>("barbershop");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +21,7 @@ export default function IndustrySettings() {
         const cfg = await getIndustryConfig();
         setConfig(cfg);
         setSelectedIndustry(cfg.default);
-        setCustomization(cfg.customization ?? {});
+        setCustomization(cfg.customization || {});
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load config");
       } finally {
@@ -103,9 +103,15 @@ export default function IndustrySettings() {
     try {
       setError(null);
       setSuccess(false);
+      
+      // Filter out undefined customization entries
+      const filteredCustomization = Object.fromEntries(
+        Object.entries(customization).filter(([_, value]) => value !== undefined)
+      ) as Record<IndustryKey, { templates?: Record<string, string>; services?: Array<{ code: string; name: string; price: number; description: string; }>; }>;
+      
       await saveIndustryConfig({
         ...config,
-        customization,
+        customization: Object.keys(filteredCustomization).length > 0 ? filteredCustomization : undefined,
       });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);

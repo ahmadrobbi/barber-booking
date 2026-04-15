@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { completeOnboarding, saveIndustryConfig, type IndustryKey } from "@/lib/industry-config";
+import { completeOnboarding, saveIndustryConfig, type IndustryKey, type IndustryConfig } from "@/lib/industry-config";
 import { createAdminSupabase } from "@/lib/supabase";
 
 type Service = {
@@ -56,14 +56,14 @@ export async function POST(request: NextRequest) {
     );
 
     // Save industry config with custom services
-    const industryConfig = {
+    const industryConfig: IndustryConfig = {
       enabled: [data.industry],
       default: data.industry,
       customization: {
         [data.industry]: {
           services: data.services,
         },
-      },
+      } as IndustryConfig["customization"],
     };
 
     await saveIndustryConfig(industryConfig);
