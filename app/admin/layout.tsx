@@ -25,7 +25,7 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-[#f5efe7] text-stone-900 md:flex">
-      <DashboardSidebar />
+      <DashboardSidebar businessName={businessName} />
 
       <div className="flex min-h-screen flex-1 flex-col">
         <header className="border-b border-stone-200 bg-white/80 px-5 py-4 backdrop-blur md:px-8">

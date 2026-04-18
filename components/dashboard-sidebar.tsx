@@ -2,7 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-export function DashboardSidebar() {
+
+type DashboardSidebarProps = {
+  businessName: string;
+};
+
+function getInitials(name: string) {
+  return (
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "DB"
+  );
+}
+
+export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -10,13 +28,13 @@ export function DashboardSidebar() {
       <div className="border-b border-white/10 px-5 py-5">
         <div className="flex items-center gap-4">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-400 text-base font-black text-stone-950">
-            BB
+            {getInitials(businessName)}
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.28em] text-amber-200/70">
               Dashboard
             </p>
-            <h2 className="text-lg font-semibold">Barokah Barbershop</h2>
+            <h2 className="text-lg font-semibold">{businessName}</h2>
           </div>
         </div>
       </div>
