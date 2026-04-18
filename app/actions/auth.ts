@@ -91,7 +91,6 @@ export async function registerUser(
         no_hp,
         password_hash,
         role: "admin",
-        industry,
         created_at: new Date().toISOString(),
       })
       .select("*")
