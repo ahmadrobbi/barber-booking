@@ -49,7 +49,7 @@ export async function getUserProfile(): Promise<UserProfile | null> {
   const { data, error } = await supabase
     .from("user_profiles")
     .select("*")
-    .eq("user_id", session.id)
+    .eq("user_id", session.userId)
     .single();
 
   if (error && error.code !== "PGRST116") {
@@ -68,7 +68,7 @@ export async function createOrUpdateUserProfile(profile: Partial<UserProfile>): 
   const { data, error } = await supabase
     .from("user_profiles")
     .upsert({
-      user_id: session.id,
+      user_id: session.userId,
       ...profile,
     })
     .select("*")
@@ -91,7 +91,7 @@ export async function getUserTransactions(limit = 50): Promise<UserTransaction[]
   const { data, error } = await supabase
     .from("user_transactions")
     .select("*")
-    .eq("user_id", session.id)
+    .eq("user_id", session.userId)
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -111,7 +111,7 @@ export async function createUserTransaction(transaction: Omit<UserTransaction, "
   const { data, error } = await supabase
     .from("user_transactions")
     .insert({
-      user_id: session.id,
+      user_id: session.userId,
       ...transaction,
     })
     .select("*")
@@ -134,7 +134,7 @@ export async function getUserLandingPage(): Promise<UserLandingPage | null> {
   const { data, error } = await supabase
     .from("user_landing_pages")
     .select("*")
-    .eq("user_id", session.id)
+    .eq("user_id", session.userId)
     .single();
 
   if (error && error.code !== "PGRST116") {
@@ -153,7 +153,7 @@ export async function createOrUpdateUserLandingPage(landingPage: Partial<UserLan
   const { data, error } = await supabase
     .from("user_landing_pages")
     .upsert({
-      user_id: session.id,
+      user_id: session.userId,
       ...landingPage,
     })
     .select("*")
@@ -176,7 +176,7 @@ export async function getCurrentUser() {
   const { data, error } = await supabase
     .from("dashboard_users")
     .select("id, name, email, no_hp, role, created_at")
-    .eq("id", session.id)
+    .eq("id", session.userId)
     .single();
 
   if (error) {
@@ -195,7 +195,7 @@ export async function updateCurrentUser(updates: { name?: string; email?: string
   const { data, error } = await supabase
     .from("dashboard_users")
     .update(updates)
-    .eq("id", session.id)
+    .eq("id", session.userId)
     .select("id, name, email, no_hp, role, created_at")
     .single();
 

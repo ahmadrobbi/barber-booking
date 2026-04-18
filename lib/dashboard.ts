@@ -23,7 +23,7 @@ export async function getAllBookings() {
   const { data, error } = await supabase
     .from("bookings")
     .select("id, sender, layanan, harga, jam, status, tanggal, user_id")
-    .eq("user_id", session.id)
+    .eq("user_id", session.userId)
     .not("tanggal", "is", null)
     .order("tanggal", { ascending: false })
     .order("jam", { ascending: true });
@@ -46,7 +46,7 @@ export async function getBookingsBySender(sender: string) {
   const { data, error } = await supabase
     .from("bookings")
     .select("id, sender, layanan, harga, jam, status, tanggal, user_id")
-    .eq("user_id", session.id)
+    .eq("user_id", session.userId)
     .eq("sender", sender)
     .order("tanggal", { ascending: false })
     .order("jam", { ascending: true });
