@@ -39,6 +39,7 @@ export async function registerUser(
 ) {
   const name = normalizeText(formData.get("name"));
   const email = normalizeText(formData.get("email")).toLowerCase();
+  const no_hp = normalizeText(formData.get("no_hp"));
   const password = normalizeText(formData.get("password"));
 
   if (!name || name.length < 2) {
@@ -47,6 +48,10 @@ export async function registerUser(
 
   if (!validateEmail(email)) {
     return formatAuthError("Format email belum valid.");
+  }
+
+  if (!no_hp || no_hp.length < 8) {
+    return formatAuthError("No HP wajib diisi dan minimal 8 digit.");
   }
 
   if (!password || password.length < 6) {
@@ -77,6 +82,7 @@ export async function registerUser(
       .insert({
         name,
         email,
+        no_hp,
         password_hash,
         role: "admin",
         created_at: new Date().toISOString(),
