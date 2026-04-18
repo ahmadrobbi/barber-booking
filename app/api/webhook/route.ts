@@ -310,6 +310,7 @@ export async function POST(req: Request) {
             jam: state.jam,
             status: "confirmed",
             industry,
+            user_id: null, // Public booking, will be assigned later via admin
           },
         ]);
 

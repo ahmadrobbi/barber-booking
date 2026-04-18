@@ -94,7 +94,8 @@ export async function createPublicBooking(
     tanggal,
     jam,
     status: "pending",
-    industry,  // Tambah kolom industry
+    industry,
+    user_id: null, // Public booking, will be assigned later via admin
   });
 
   if (insertError) {

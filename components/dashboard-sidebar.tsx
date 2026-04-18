@@ -58,6 +58,23 @@ export function DashboardSidebar() {
               </span>
               <span className="font-medium">Daftar Booking</span>
             </Link>
+            <Link
+              href="/admin/transactions"
+              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+                pathname === "/admin/transactions"
+                  ? "bg-amber-300 text-stone-950"
+                  : "text-white/75 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
+                  pathname === "/admin/transactions" ? "bg-stone-950/10" : "bg-white/5"
+                }`}
+              >
+                TX
+              </span>
+              <span className="font-medium">Transaksi</span>
+            </Link>
           </nav>
         </div>
 
@@ -67,6 +84,57 @@ export function DashboardSidebar() {
           </p>
 
           <nav className="mt-4 space-y-2">
+            <Link
+              href="/admin/profile"
+              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+                pathname === "/admin/profile"
+                  ? "bg-amber-300 text-stone-950"
+                  : "text-white/75 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
+                  pathname === "/admin/profile" ? "bg-stone-950/10" : "bg-white/5"
+                }`}
+              >
+                PR
+              </span>
+              <span className="font-medium">Profile</span>
+            </Link>
+            <Link
+              href="/admin/landing"
+              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+                pathname === "/admin/landing"
+                  ? "bg-amber-300 text-stone-950"
+                  : "text-white/75 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
+                  pathname === "/admin/landing" ? "bg-stone-950/10" : "bg-white/5"
+                }`}
+              >
+                LP
+              </span>
+              <span className="font-medium">Landing Page</span>
+            </Link>
+            <Link
+              href="/admin/bookings/assign"
+              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+                pathname === "/admin/bookings/assign"
+                  ? "bg-amber-300 text-stone-950"
+                  : "text-white/75 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
+                  pathname === "/admin/bookings/assign" ? "bg-stone-950/10" : "bg-white/5"
+                }`}
+              >
+                AS
+              </span>
+              <span className="font-medium">Assign Booking</span>
+            </Link>
             <Link
               href="/admin/settings/webhook"
               className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${

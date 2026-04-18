@@ -1,4 +1,5 @@
 import { createAdminSupabase } from "@/lib/supabase";
+import { getSession } from "@/lib/auth";
 
 export type BookingRow = {
   id: number;
@@ -8,14 +9,21 @@ export type BookingRow = {
   jam: string | null;
   status: string | null;
   tanggal: string | null;
+  user_id?: string;
 };
 
 export async function getAllBookings() {
   const supabase = createAdminSupabase();
+  const session = await getSession();
+
+  if (!session) {
+    return [];
+  }
 
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, sender, layanan, harga, jam, status, tanggal")
+    .select("id, sender, layanan, harga, jam, status, tanggal, user_id")
+    .eq("user_id", session.id)
     .not("tanggal", "is", null)
     .order("tanggal", { ascending: false })
     .order("jam", { ascending: true });
@@ -29,10 +37,16 @@ export async function getAllBookings() {
 
 export async function getBookingsBySender(sender: string) {
   const supabase = createAdminSupabase();
+  const session = await getSession();
+
+  if (!session) {
+    return [];
+  }
 
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, sender, layanan, harga, jam, status, tanggal")
+    .select("id, sender, layanan, harga, jam, status, tanggal, user_id")
+    .eq("user_id", session.id)
     .eq("sender", sender)
     .order("tanggal", { ascending: false })
     .order("jam", { ascending: true });
