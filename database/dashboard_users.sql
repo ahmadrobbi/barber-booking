@@ -6,6 +6,7 @@ create table if not exists public.dashboard_users (
   email text not null unique,
   no_hp varchar(20) not null,
   role varchar(20) not null default 'member',
+  industry varchar(50) default 'barbershop',
   password_hash text not null,
   created_at timestamptz not null default now()
 );
@@ -19,5 +20,11 @@ alter table public.dashboard_users
 alter table public.dashboard_users
   add column if not exists role varchar(20) not null default 'member';
 
+alter table public.dashboard_users
+  add column if not exists industry varchar(50) default 'barbershop';
+
 create unique index if not exists dashboard_users_email_idx
   on public.dashboard_users (email);
+
+create index if not exists dashboard_users_industry_idx
+  on public.dashboard_users (industry);
