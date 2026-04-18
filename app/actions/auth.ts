@@ -95,8 +95,12 @@ export async function registerUser(
       return formatAuthError(mapSupabaseAuthError(error.message, error.code));
     }
 
-    // Create session and redirect to onboarding
-    await createSession(data.id);
+    // Create session dan redirect ke onboarding
+    await createSession({
+      id: data.id,
+      email: data.email,
+      name: data.name,
+    });
     redirect("/onboarding");
 
   } catch (error) {
