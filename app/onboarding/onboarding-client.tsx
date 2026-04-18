@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getAvailableIndustries } from "@/lib/industry-config";
 import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
 
-type OnboardingStep = "welcome" | "industry" | "business" | "services" | "complete";
+type OnboardingStep = "welcome" | "industry" | "business" | "services" | "confirm" | "complete";
 
 type Service = {
   code: string;
@@ -29,13 +29,15 @@ export default function OnboardingClient() {
     if (currentStep === "welcome") setCurrentStep("industry");
     else if (currentStep === "industry") setCurrentStep("business");
     else if (currentStep === "business") setCurrentStep("services");
-    else if (currentStep === "services") handleComplete();
+    else if (currentStep === "services") setCurrentStep("confirm");
+    else if (currentStep === "confirm") handleComplete();
   };
 
   const handleBack = () => {
     if (currentStep === "industry") setCurrentStep("welcome");
     else if (currentStep === "business") setCurrentStep("industry");
     else if (currentStep === "services") setCurrentStep("business");
+    else if (currentStep === "confirm") setCurrentStep("services");
   };
 
   const handleComplete = async () => {
@@ -108,14 +110,16 @@ export default function OnboardingClient() {
             <span className={currentStep === "industry" ? "text-amber-600 font-medium" : ""}>Pilih Industri</span>
             <span className={currentStep === "business" ? "text-amber-600 font-medium" : ""}>Info Bisnis</span>
             <span className={currentStep === "services" ? "text-amber-600 font-medium" : ""}>Layanan</span>
+            <span className={currentStep === "confirm" ? "text-amber-600 font-medium" : ""}>Konfirmasi</span>
           </div>
           <div className="w-full bg-stone-200 rounded-full h-2">
             <div
               className="bg-amber-500 h-2 rounded-full transition-all duration-300"
               style={{
-                width: currentStep === "welcome" ? "25%" :
-                       currentStep === "industry" ? "50%" :
-                       currentStep === "business" ? "75%" : "100%"
+                width: currentStep === "welcome" ? "20%" :
+                       currentStep === "industry" ? "40%" :
+                       currentStep === "business" ? "60%" :
+                       currentStep === "services" ? "80%" : "100%"
               }}
             ></div>
           </div>
@@ -302,6 +306,42 @@ export default function OnboardingClient() {
           </div>
         )}
 
+        {/* Confirm Step */}
+        {currentStep === "confirm" && (
+          <div className="bg-white rounded-3xl p-8 shadow-lg">
+            <h2 className="text-2xl font-bold text-stone-900 mb-6">Konfirmasi Setup Bisnis</h2>
+            <div className="space-y-6">
+              <div className="bg-stone-50 rounded-2xl p-6">
+                <h3 className="font-semibold text-stone-900 mb-2">Industri Bisnis</h3>
+                <p className="text-stone-600">{industries.find(i => i.key === selectedIndustry)?.name}</p>
+              </div>
+              <div className="bg-stone-50 rounded-2xl p-6">
+                <h3 className="font-semibold text-stone-900 mb-2">Nama Bisnis</h3>
+                <p className="text-stone-600">{businessName}</p>
+              </div>
+              <div className="bg-stone-50 rounded-2xl p-6">
+                <h3 className="font-semibold text-stone-900 mb-2">Layanan ({services.length})</h3>
+                <div className="space-y-2">
+                  {services.map((service, index) => (
+                    <div key={index} className="flex justify-between items-center py-2 border-b border-stone-200 last:border-b-0">
+                      <div>
+                        <p className="font-medium text-stone-900">{service.name}</p>
+                        <p className="text-sm text-stone-600">{service.description}</p>
+                      </div>
+                      <p className="font-semibold text-amber-600">Rp {service.price.toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="mt-8 p-4 bg-amber-50 rounded-2xl border border-amber-200">
+              <p className="text-sm text-amber-800">
+                ⚠️ Pastikan semua informasi sudah benar. Anda masih bisa mengubah pengaturan ini di dashboard admin setelah setup selesai.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Navigation */}
         <div className="flex justify-between mt-8">
           {currentStep !== "welcome" && (
@@ -323,7 +363,8 @@ export default function OnboardingClient() {
               className="ml-auto px-6 py-3 bg-amber-500 text-white rounded-2xl font-semibold hover:bg-amber-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Menyimpan..." :
-               currentStep === "services" ? "Selesai Setup" : "Lanjut"}
+               currentStep === "confirm" ? "Selesai Setup" :
+               currentStep === "services" ? "Lanjut ke Konfirmasi" : "Lanjut"}
             </button>
           )}
         </div>

@@ -60,6 +60,7 @@ export const INDUSTRIES = {
       successMessage: "✅ Booking berhasil!\nLayanan: {{layanan}}\nTanggal: {{tanggal_label}}\nJam: {{jam}}\n\nTerima kasih sudah booking di Barokah Barbershop! Kami tunggu kedatangan Anda 🙌",
       cancelMessage: "Booking dibatalkan. Ketik *halo* untuk mulai lagi ya!",
       invalidOptionMessage: "Pilihan tidak valid. Silakan coba lagi.",
+      reminder: "⏰ *Reminder Booking*\n\nHalo 👋\nJangan lupa booking kamu hari ini:\n\n✂️ {{layanan}}\n📅 {{tanggal}}\n⏰ {{jam}}\n\nDatang 10 menit lebih awal ya 🙌",
     },
     ui: {
       primaryColor: "#f59e0b", // amber-500
@@ -141,6 +142,7 @@ export const INDUSTRIES = {
       successMessage: "✅ Booking berhasil!\nLayanan: {{layanan}}\nTanggal: {{tanggal_label}}\nJam: {{jam}}\n\nTerima kasih sudah booking di Klinik Sehat! Kami tunggu kedatangan Anda 🙌",
       cancelMessage: "Booking dibatalkan. Ketik *halo* untuk mulai lagi ya!",
       invalidOptionMessage: "Pilihan tidak valid. Silakan coba lagi.",
+      reminder: "⏰ *Reminder Booking*\n\nHalo 👋\nJangan lupa booking kamu hari ini:\n\n🏥 {{layanan}}\n📅 {{tanggal}}\n⏰ {{jam}}\n\nDatang 10 menit lebih awal ya 🙌",
     },
     ui: {
       primaryColor: "#3b82f6", // blue-500

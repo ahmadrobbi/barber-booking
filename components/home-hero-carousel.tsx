@@ -83,16 +83,16 @@ export function HomeHeroCarousel({
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                href="/booking"
+                href="/register"
                 className="rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-black transition hover:bg-amber-400"
               >
-                Booking Sekarang
+                Coba Platform Gratis
               </Link>
               <a
                 href={waLink}
                 className="rounded-full border border-white/25 bg-black/15 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                Booking via WhatsApp
+                Demo via WhatsApp
               </a>
             </div>
 

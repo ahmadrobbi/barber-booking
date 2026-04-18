@@ -37,7 +37,7 @@ export function AuthForm({ action, mode }: AuthFormProps) {
       {isRegister ? (
         <>
           <div>
-            <label htmlFor="name" className="mb-2 block text-sm font-medium text-white/80">
+            <label htmlFor="name" className="mb-2 block text-sm font-medium text-slate-700">
               Nama Lengkap
             </label>
             <input
@@ -45,13 +45,13 @@ export function AuthForm({ action, mode }: AuthFormProps) {
               name="name"
               type="text"
               placeholder="Masukkan nama lengkap"
-              className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-amber-300"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-300 focus:bg-white"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="no_hp" className="mb-2 block text-sm font-medium text-white/80">
+            <label htmlFor="no_hp" className="mb-2 block text-sm font-medium text-slate-700">
               No. HP / WhatsApp
             </label>
             <input
@@ -61,7 +61,7 @@ export function AuthForm({ action, mode }: AuthFormProps) {
               inputMode="tel"
               placeholder="Contoh: 081234567890"
               maxLength={20}
-              className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-amber-300"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-300 focus:bg-white"
               required
             />
           </div>
@@ -69,7 +69,7 @@ export function AuthForm({ action, mode }: AuthFormProps) {
       ) : null}
 
       <div>
-        <label htmlFor="email" className="mb-2 block text-sm font-medium text-white/80">
+        <label htmlFor="email" className="mb-2 block text-sm font-medium text-slate-700">
           Email
         </label>
         <input
@@ -77,13 +77,13 @@ export function AuthForm({ action, mode }: AuthFormProps) {
           name="email"
           type="email"
           placeholder="nama@email.com"
-          className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-amber-300"
+          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-300 focus:bg-white"
           required
         />
       </div>
 
       <div>
-        <label htmlFor="password" className="mb-2 block text-sm font-medium text-white/80">
+        <label htmlFor="password" className="mb-2 block text-sm font-medium text-slate-700">
           Password
         </label>
         <input
@@ -91,7 +91,7 @@ export function AuthForm({ action, mode }: AuthFormProps) {
           name="password"
           type="password"
           placeholder={isRegister ? "Minimal 6 karakter" : "Masukkan password"}
-          className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-amber-300"
+          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-300 focus:bg-white"
           required
         />
       </div>

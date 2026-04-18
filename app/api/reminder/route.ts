@@ -1,4 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
+import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
+import { renderTemplate } from "@/lib/chatbot";
 
 function getSupabase() {
   return createClient(
@@ -19,7 +21,7 @@ export async function GET() {
     // ✅ handle error supabase
     const { data: bookings, error } = await getSupabase()
       .from("bookings")
-      .select("*")
+      .select("id, sender, layanan, tanggal, jam, industry")
       .eq("tanggal", today)
       .eq("status", "confirmed")
       .eq("reminder_sent", false);
@@ -40,6 +42,16 @@ export async function GET() {
     await Promise.all(
       bookings.map(async (item) => {
         try {
+          const industry = (item.industry as IndustryKey) || "barbershop";
+          const industryData = INDUSTRIES[industry];
+          const reminderTemplate = industryData?.templates?.reminder || "⏰ *Reminder Booking*\n\nHalo 👋\nJangan lupa booking kamu hari ini:\n\n{{layanan}}\n{{tanggal}}\n{{jam}}\n\nDatang 10 menit lebih awal ya 🙌";
+
+          const message = renderTemplate(reminderTemplate, {
+            layanan: item.layanan,
+            tanggal: item.tanggal,
+            jam: item.jam,
+          });
+
           const res = await fetch("https://api.fonnte.com/send", {
             method: "POST",
             headers: {
@@ -48,14 +60,7 @@ export async function GET() {
             },
             body: JSON.stringify({
               target: item.sender,
-              message:
-                `⏰ *Reminder Booking*\n\n` +
-                `Halo 👋\n` +
-                `Jangan lupa booking kamu hari ini:\n\n` +
-                `✂️ ${item.layanan}\n` +
-                `📅 ${item.tanggal}\n` +
-                `⏰ ${item.jam}\n\n` +
-                `Datang 10 menit lebih awal ya 🙌`,
+              message,
             }),
           });
 
