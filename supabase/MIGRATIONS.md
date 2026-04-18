@@ -24,6 +24,7 @@ supabase db push
 
 1. Open **SQL Editor** in Supabase Dashboard
 2. Run each migration file in order:
+   - `20260408090000_create_dashboard_users.sql`
    - `20260408120000_add_no_hp_to_dashboard_users.sql`
    - `20260408133000_add_role_to_dashboard_users.sql`
    - `20260408233000_create_app_settings.sql`
@@ -58,6 +59,7 @@ WHERE table_schema = 'public'
 
 | File | Purpose |
 |------|---------|
+| `20260408090000_create_dashboard_users.sql` | Create base dashboard users table |
 | `20260408120000_add_no_hp_to_dashboard_users.sql` | Add WhatsApp number field |
 | `20260408133000_add_role_to_dashboard_users.sql` | Add user role (admin/member) |
 | `20260408233000_create_app_settings.sql` | Create app configuration table |

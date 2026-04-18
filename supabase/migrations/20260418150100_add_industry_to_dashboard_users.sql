@@ -7,10 +7,26 @@ ALTER TABLE IF EXISTS public.dashboard_users
 ADD COLUMN IF NOT EXISTS industry VARCHAR(50) DEFAULT 'barbershop';
 
 -- Add comment to document the column
-COMMENT ON COLUMN public.dashboard_users.industry IS 'Industry type: barbershop, clinic, fnb, therapy, etc.';
+DO $$
+BEGIN
+  IF to_regclass('public.dashboard_users') IS NOT NULL THEN
+    EXECUTE $sql$
+      COMMENT ON COLUMN public.dashboard_users.industry IS 'Industry type: barbershop, clinic, fnb, therapy, etc.'
+    $sql$;
+  END IF;
+END
+$$;
 
 -- Create index on industry for faster queries and foreign key relationships
-CREATE INDEX IF NOT EXISTS dashboard_users_industry_idx ON public.dashboard_users(industry);
+DO $$
+BEGIN
+  IF to_regclass('public.dashboard_users') IS NOT NULL THEN
+    EXECUTE $sql$
+      CREATE INDEX IF NOT EXISTS dashboard_users_industry_idx ON public.dashboard_users(industry)
+    $sql$;
+  END IF;
+END
+$$;
 
 -- Verify column was added
 SELECT column_name, data_type, column_default
