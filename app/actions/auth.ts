@@ -87,7 +87,7 @@ export async function registerUser(
         role: "admin",
         created_at: new Date().toISOString(),
       })
-      .select()
+      .select("*")
       .single();
 
     if (error) {
