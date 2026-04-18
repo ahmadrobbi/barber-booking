@@ -168,3 +168,14 @@ export const INDUSTRIES = {
 };
 
 export type IndustryKey = keyof typeof INDUSTRIES;
+
+/**
+ * Get list of all available industries
+ * Pure function - can be used from client or server
+ */
+export function getAvailableIndustries(): Array<{ key: IndustryKey; name: string }> {
+  return Object.entries(INDUSTRIES).map(([key, data]) => ({
+    key: key as IndustryKey,
+    name: data.name,
+  }));
+}

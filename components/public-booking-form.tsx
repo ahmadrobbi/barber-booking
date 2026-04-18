@@ -5,7 +5,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { createPublicBooking } from "@/app/actions/public-booking";
 import { initialBookingFormState } from "@/lib/booking-form-state";
-import { getAvailableIndustries } from "@/lib/industry-config";
+import { getAvailableIndustries } from "@/lib/industries";
 import {
   getServicesForIndustry,
   getSlotsForIndustry,

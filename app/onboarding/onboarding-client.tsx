@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAvailableIndustries } from "@/lib/industry-config";
-import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
+import { getAvailableIndustries, INDUSTRIES, type IndustryKey } from "@/lib/industries";
 
 type OnboardingStep = "welcome" | "industry" | "business" | "services" | "confirm" | "complete";
 

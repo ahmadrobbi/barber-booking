@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { registerUser } from "@/app/actions/auth";
-import { getAvailableIndustries } from "@/lib/industry-config";
-import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
+import { getAvailableIndustries, INDUSTRIES, type IndustryKey } from "@/lib/industries";
 import type { AuthFormState } from "@/lib/auth-form-state";
 
 type Step = "account" | "industry" | "business" | "confirm";

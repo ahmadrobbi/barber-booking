@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAvailableIndustries, getIndustryConfig, saveIndustryConfig } from "@/lib/industry-config";
-import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
+import { getAvailableIndustries, INDUSTRIES, type IndustryKey } from "@/lib/industries";
+import { fetchIndustryConfig, saveIndustryConfigAction } from "@/app/actions/industry-settings";
 import type { IndustryConfig } from "@/lib/industry-config";
 
 export default function IndustrySettings() {
@@ -18,7 +18,7 @@ export default function IndustrySettings() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const cfg = await getIndustryConfig();
+        const cfg = await fetchIndustryConfig();
         setConfig(cfg);
         setSelectedIndustry(cfg.default);
         setCustomization(cfg.customization || {});
@@ -109,7 +109,7 @@ export default function IndustrySettings() {
         Object.entries(customization).filter(([_, value]) => value !== undefined)
       ) as Record<IndustryKey, { templates?: Record<string, string>; services?: Array<{ code: string; name: string; price: number; description: string; }>; }>;
       
-      await saveIndustryConfig({
+      await saveIndustryConfigAction({
         ...config,
         customization: Object.keys(filteredCustomization).length > 0 ? filteredCustomization : undefined,
       });
@@ -117,6 +117,8 @@ export default function IndustrySettings() {
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save config");
+    }
+  };
     }
   };
 

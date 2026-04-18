@@ -5,8 +5,9 @@ import { useState, useEffect } from "react";
 import { Barlow_Condensed, Cinzel_Decorative } from "next/font/google";
 import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { HomeHeroCarousel } from "@/components/home-hero-carousel";
-import { getIndustryConfig, getAvailableIndustries, getBusinessName } from "@/lib/industry-config";
-import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
+import { fetchLandingPageConfig } from "@/app/actions/landing-page-config";
+import { getAvailableIndustries, INDUSTRIES, type IndustryKey } from "@/lib/industries";
+import type { IndustryConfig } from "@/lib/industry-config";
 
 const menuFont = Barlow_Condensed({
   subsets: ["latin"],
@@ -20,7 +21,7 @@ const logoFont = Cinzel_Decorative({
 
 export default function DynamicLandingPage() {
   const [selectedIndustry, setSelectedIndustry] = useState<IndustryKey>("barbershop");
-  const [config, setConfig] = useState<any>(null);
+  const [config, setConfig] = useState<IndustryConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [businessName, setBusinessName] = useState<string>("");
@@ -38,16 +39,13 @@ export default function DynamicLandingPage() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const [cfg, bizName] = await Promise.all([
-          getIndustryConfig(),
-          getBusinessName()
-        ]);
+        const { config: cfg, businessName: bizName } = await fetchLandingPageConfig();
         setSelectedIndustry(cfg.default);
         setConfig(cfg);
         setBusinessName(bizName);
       } catch (err) {
         console.error("Failed to load config:", err);
-        setConfig({ enabled: ["barbershop"], default: "barbershop" });
+        setConfig({ enabled: ["barbershop", "clinic"], default: "barbershop" });
         setBusinessName("Booking Platform");
       } finally {
         setLoading(false);

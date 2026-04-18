@@ -1,3 +1,5 @@
+"use server";
+
 import { createAdminSupabase } from "./supabase";
 import { getSession } from "./auth";
 import { INDUSTRIES, type IndustryKey } from "./industries";
@@ -70,16 +72,6 @@ export async function saveIndustryConfig(config: IndustryConfig): Promise<void> 
     console.error("Failed to save industry config:", err);
     throw err;
   }
-}
-
-/**
- * Get list of all available industries
- */
-export function getAvailableIndustries(): Array<{ key: IndustryKey; name: string }> {
-  return Object.entries(INDUSTRIES).map(([key, data]) => ({
-    key: key as IndustryKey,
-    name: data.name,
-  }));
 }
 
 /**
