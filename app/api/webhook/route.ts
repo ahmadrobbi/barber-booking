@@ -11,8 +11,8 @@ import {
   getSlotOptionsText,
   renderTemplate,
 } from "@/lib/chatbot";
-import { getIndustryConfig, getIndustryData, getAvailableIndustries } from "@/lib/industry-config";
-import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
+import { getIndustryConfig, getIndustryData } from "@/lib/industry-config";
+import { INDUSTRIES, type IndustryKey, getAvailableIndustries } from "@/lib/industries";
 import { getServicesForIndustry, getSlotsForIndustry } from "@/lib/bookings";
 
 function getSupabase() {
