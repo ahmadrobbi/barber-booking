@@ -29,6 +29,7 @@ supabase db push
    - `20260408233000_create_app_settings.sql`
    - `20260415_add_industry_column.sql`
    - `20260418_phase1_multi_user_schema.sql`
+   - `20260418160000_add_industry_to_dashboard_users_fix.sql`
 
 ## 🔧 Quick Fix: Apply All Migrations at Once
 
@@ -60,6 +61,7 @@ WHERE table_schema = 'public'
 | `20260408233000_create_app_settings.sql` | Create app configuration table |
 | `20260415_add_industry_column.sql` | Add industry field to bookings |
 | `20260418_phase1_multi_user_schema.sql` | Multi-user dashboard tables and dashboard user industry |
+| `20260418160000_add_industry_to_dashboard_users_fix.sql` | Ensure `dashboard_users.industry` exists and refresh schema cache |
 
 ## ✅ Verification
 
