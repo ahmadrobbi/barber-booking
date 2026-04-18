@@ -97,18 +97,18 @@ export function AuthForm({ action, mode }: AuthFormProps) {
       </div>
 
       {state?.message ? (
-        <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {state.message}
         </p>
       ) : null}
 
       <SubmitButton mode={mode} />
 
-      <p className="text-center text-sm text-white/60">
-        {isRegister ? "Sudah punya akun?" : "Akses dashboard hanya untuk admin."}{" "}
+      <p className="text-center text-sm text-slate-600">
+        {isRegister ? "Sudah punya akun?" : "Akses dashboard hanya untuk admin."} {" "}
         <Link
           href="/login"
-          className="font-medium text-amber-300 transition hover:text-amber-200"
+          className="font-medium text-amber-600 transition hover:text-amber-500"
         >
           {isRegister ? "Login di sini" : "Login admin"}
         </Link>
