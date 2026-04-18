@@ -1,9 +1,33 @@
 -- Phase 1: Multi-User Dashboard Schema Updates
+
+-- Add industry column to dashboard_users for multi-industry support
+ALTER TABLE IF EXISTS public.dashboard_users
+ADD COLUMN IF NOT EXISTS industry VARCHAR(50) DEFAULT 'barbershop';
+
+DO $$
+BEGIN
+  IF to_regclass('public.dashboard_users') IS NOT NULL THEN
+    EXECUTE $sql$
+      COMMENT ON COLUMN public.dashboard_users.industry IS 'Industry type: barbershop, clinic, fnb, therapy, etc.'
+    $sql$;
+  END IF;
+END
+$$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.dashboard_users') IS NOT NULL THEN
+    EXECUTE $sql$
+      CREATE INDEX IF NOT EXISTS dashboard_users_industry_idx ON public.dashboard_users(industry)
+    $sql$;
+  END IF;
+END
+$$;
+
 -- Add user_id column to bookings table for user isolation
 ALTER TABLE IF EXISTS public.bookings
 ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES public.dashboard_users(id);
 
--- Create index for better performance
 DO $$
 BEGIN
   IF to_regclass('public.bookings') IS NOT NULL THEN
@@ -40,13 +64,13 @@ ADD COLUMN IF NOT EXISTS business_hours JSONB DEFAULT '{}';
 CREATE TABLE IF NOT EXISTS public.user_transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES public.dashboard_users(id) ON DELETE CASCADE,
-  type VARCHAR(50) NOT NULL, -- 'subscription', 'payment', 'refund', 'commission'
+  type VARCHAR(50) NOT NULL,
   amount DECIMAL(10,2) NOT NULL,
   currency VARCHAR(3) DEFAULT 'IDR',
-  status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'completed', 'failed', 'cancelled'
+  status VARCHAR(20) DEFAULT 'pending',
   payment_method VARCHAR(50),
   description TEXT,
-  reference_id VARCHAR(255), -- external payment reference
+  reference_id VARCHAR(255),
   metadata JSONB DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

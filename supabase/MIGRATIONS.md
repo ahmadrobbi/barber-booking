@@ -24,15 +24,11 @@ supabase db push
 
 1. Open **SQL Editor** in Supabase Dashboard
 2. Run each migration file in order:
-   - `20260408090000_create_dashboard_users.sql`
    - `20260408120000_add_no_hp_to_dashboard_users.sql`
    - `20260408133000_add_role_to_dashboard_users.sql`
    - `20260408233000_create_app_settings.sql`
    - `20260415_add_industry_column.sql`
-   - `20260418150100_add_industry_to_dashboard_users.sql`
-   - `20260418150200_create_user_profiles.sql`
-   - `20260418150300_add_user_id_to_bookings.sql`
-   - `20260418150400_phase1_multi_user_schema.sql`
+   - `20260418_phase1_multi_user_schema.sql`
 
 ## 🔧 Quick Fix: Apply All Migrations at Once
 
@@ -59,15 +55,11 @@ WHERE table_schema = 'public'
 
 | File | Purpose |
 |------|---------|
-| `20260408090000_create_dashboard_users.sql` | Create base dashboard users table |
 | `20260408120000_add_no_hp_to_dashboard_users.sql` | Add WhatsApp number field |
 | `20260408133000_add_role_to_dashboard_users.sql` | Add user role (admin/member) |
 | `20260408233000_create_app_settings.sql` | Create app configuration table |
 | `20260415_add_industry_column.sql` | Add industry field to bookings |
-| `20260418150100_add_industry_to_dashboard_users.sql` | **Add industry to users** ⚠️ |
-| `20260418150200_create_user_profiles.sql` | Create profile table for each dashboard user |
-| `20260418150300_add_user_id_to_bookings.sql` | Add user ownership to bookings |
-| `20260418150400_phase1_multi_user_schema.sql` | Multi-user dashboard tables |
+| `20260418_phase1_multi_user_schema.sql` | Multi-user dashboard tables and dashboard user industry |
 
 ## ✅ Verification
 
