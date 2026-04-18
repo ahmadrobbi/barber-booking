@@ -119,8 +119,6 @@ export default function IndustrySettings() {
       setError(err instanceof Error ? err.message : "Failed to save config");
     }
   };
-    }
-  };
 
   if (loading) {
     return <div className="p-4">Loading industry settings...</div>;
