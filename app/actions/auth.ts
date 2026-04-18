@@ -67,13 +67,17 @@ export async function registerUser(
       return formatAuthError("Email sudah terdaftar. Silakan login.");
     }
 
+    // Hash password
+    const { hashPassword } = await import("@/lib/auth");
+    const password_hash = await hashPassword(password);
+
     // Create new user
     const { data, error } = await supabase
       .from("dashboard_users")
       .insert({
         name,
         email,
-        password, // Note: In production, this should be hashed
+        password_hash,
         role: "admin",
         created_at: new Date().toISOString(),
       })
