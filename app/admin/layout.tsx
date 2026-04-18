@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { logoutUser } from "@/app/actions/auth";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { requireAdmin } from "@/lib/auth";
-import { isOnboardingComplete, getBusinessName } from "@/lib/industry-config";
+import { isOnboardingComplete, getCurrentUserBusinessName } from "@/lib/industry-config";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +20,8 @@ export default async function AdminLayout({
     redirect("/onboarding");
   }
 
-  // Get business name for branding
-  const businessName = await getBusinessName();
+  // Get current user's business name for branding
+  const businessName = await getCurrentUserBusinessName();
 
   return (
     <div className="min-h-screen bg-[#f5efe7] text-stone-900 md:flex">
@@ -32,7 +32,13 @@ export default async function AdminLayout({
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <Link href="/admin" className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-900 text-sm font-black text-amber-300">
-                BB
+                {businessName
+                  .split(" ")
+                  .slice(0, 2)
+                  .map((word) => word[0])
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2) || "DB"}
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-stone-500">

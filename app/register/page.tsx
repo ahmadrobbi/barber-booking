@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { registerUser } from "@/app/actions/auth";
-import { AuthForm } from "@/components/auth-form";
+import { RegistrationWizard } from "@/components/registration-wizard";
 import { getBusinessName } from "@/lib/industry-config";
 
 export default async function RegisterPage() {
@@ -47,10 +46,10 @@ export default async function RegisterPage() {
           <p className="text-sm uppercase tracking-[0.2em] text-blue-600 font-medium">Mulai Gratis</p>
           <h2 className="mt-3 text-3xl font-semibold text-slate-900">Buat Akun Baru</h2>
           <p className="mt-2 text-sm text-slate-600">
-            Isi data bisnis Anda dan mulai setup platform booking.
+            Isi data bisnis Anda dan setup selesai dalam 4 langkah.
           </p>
           <div className="mt-8">
-            <AuthForm action={registerUser} mode="register" />
+            <RegistrationWizard />
           </div>
           <div className="mt-6 text-center">
             <p className="text-sm text-slate-600">

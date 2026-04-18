@@ -1,4 +1,5 @@
 import { createAdminSupabase } from "./supabase";
+import { getSession } from "./auth";
 import { INDUSTRIES, type IndustryKey } from "./industries";
 
 export type { IndustryKey } from "./industries";
@@ -165,7 +166,7 @@ export async function resetOnboarding(): Promise<void> {
 }
 
 /**
- * Get business name from settings
+ * Get business name from settings (for public pages)
  */
 export async function getBusinessName(): Promise<string> {
   try {
@@ -179,5 +180,32 @@ export async function getBusinessName(): Promise<string> {
     return typeof data?.value_json === "string" ? data.value_json : "Booking Platform";
   } catch {
     return "Booking Platform";
+  }
+}
+
+/**
+ * Get current user's business name from their profile
+ */
+export async function getCurrentUserBusinessName(): Promise<string> {
+  try {
+    const session = await getSession();
+    if (!session) return "Booking Platform";
+
+    const supabase = createAdminSupabase();
+    const { data, error } = await supabase
+      .from("user_profiles")
+      .select("business_name")
+      .eq("user_id", session.userId)
+      .maybeSingle();
+
+    if (error) {
+      console.warn("Error fetching user business name:", error.message);
+      return "Dashboard";
+    }
+
+    return data?.business_name || "Dashboard";
+  } catch (err) {
+    console.warn("Failed to fetch user business name:", err);
+    return "Dashboard";
   }
 }

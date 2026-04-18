@@ -41,6 +41,8 @@ export async function registerUser(
   const email = normalizeText(formData.get("email")).toLowerCase();
   const no_hp = normalizeText(formData.get("no_hp"));
   const password = normalizeText(formData.get("password"));
+  const industry = normalizeText(formData.get("industry")) || "barbershop";
+  const business_name = normalizeText(formData.get("business_name"));
 
   if (!name || name.length < 2) {
     return formatAuthError("Nama minimal 2 karakter.");
@@ -56,6 +58,10 @@ export async function registerUser(
 
   if (!password || password.length < 6) {
     return formatAuthError("Password minimal 6 karakter.");
+  }
+
+  if (!business_name || business_name.length < 2) {
+    return formatAuthError("Nama bisnis minimal 2 karakter.");
   }
 
   try {
@@ -85,6 +91,7 @@ export async function registerUser(
         no_hp,
         password_hash,
         role: "admin",
+        industry,
         created_at: new Date().toISOString(),
       })
       .select("*")
@@ -95,13 +102,26 @@ export async function registerUser(
       return formatAuthError(mapSupabaseAuthError(error.message, error.code));
     }
 
-    // Create session dan redirect ke onboarding
+    // Create user profile with business details
+    const { error: profileError } = await supabase.from("user_profiles").insert({
+      user_id: data.id,
+      business_name,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    if (profileError) {
+      console.error("Error creating user profile:", profileError);
+      // Don't fail registration if profile creation fails, just log it
+    }
+
+    // Create session dan redirect ke dashboard
     await createSession({
       id: data.id,
       email: data.email,
       name: data.name,
     });
-    redirect("/onboarding");
+    redirect("/admin");
 
   } catch (error) {
     console.error("Register error:", error);
