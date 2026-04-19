@@ -14,10 +14,14 @@ const scrypt = promisify(scryptCallback);
 const SESSION_COOKIE_NAME = "bb_dashboard_session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
 
-export type DashboardSession = {
-  userId: string;
-  email: string;
-  name: string;
+export async function checkAdminAccess(): Promise<boolean> {
+  try {
+    await requireAdmin();
+    return true;
+  } catch {
+    return false;
+  }
+}
   expiresAt: number;
 };
 

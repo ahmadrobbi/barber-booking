@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getAllTransactions, UserTransaction, SUBSCRIPTION_PLANS, createSubscriptionTransaction } from "@/lib/transactions";
-import { requireAdmin } from "@/lib/auth";
 
 export default function SubscriptionsPage() {
   const [transactions, setTransactions] = useState<UserTransaction[]>([]);
@@ -14,7 +13,6 @@ export default function SubscriptionsPage() {
   useEffect(() => {
     const loadSubscriptions = async () => {
       try {
-        await requireAdmin();
         const allTransactions = await getAllTransactions();
         const subscriptionTransactions = allTransactions.filter(t => t.type === "subscription");
         setTransactions(subscriptionTransactions);
