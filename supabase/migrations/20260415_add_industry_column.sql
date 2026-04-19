@@ -15,7 +15,7 @@ BEGIN
   END IF;
 END
 $$;
-
+   
 -- Add industry column to user_sessions table
 ALTER TABLE IF EXISTS public.user_sessions
 ADD COLUMN IF NOT EXISTS industry VARCHAR(50) DEFAULT 'barbershop';
