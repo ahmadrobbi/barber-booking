@@ -22,6 +22,11 @@ export async function checkAdminAccess(): Promise<boolean> {
     return false;
   }
 }
+
+export type DashboardSession = {
+  userId: string;
+  email: string;
+  name: string;
   expiresAt: number;
 };
 

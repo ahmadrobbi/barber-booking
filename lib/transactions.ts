@@ -15,14 +15,15 @@ export type UserTransaction = {
   updated_at?: string;
 };
 
+export type TransactionFilters = {
+  status?: string;
+  type?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  search?: string;
+};
+
 export async function getAllTransactions(
-  filters?: {
-    status?: string;
-    type?: string;
-    dateFrom?: string;
-    dateTo?: string;
-    search?: string;
-  },
   limit = 100
 ): Promise<UserTransaction[]> {
   const supabase = createAdminSupabase();
@@ -77,6 +78,9 @@ export async function createTransaction(
     return null;
   }
 
+  return data;
+}
+
 export async function updateTransactionStatus(
   transactionId: string,
   status: string,
@@ -114,6 +118,9 @@ export async function updateTransactionStatus(
     console.error("Error updating transaction status:", error);
     return false;
   }
+
+  return true;
+}
 
 export type SubscriptionPlan = {
   id: string;
@@ -208,4 +215,49 @@ export async function getUserActiveSubscription(userId: string): Promise<UserTra
   }
 
   return data?.[0] || null;
+}
+
+export async function exportTransactionsToCSV(filters?: TransactionFilters): Promise<string> {
+  const transactions = await getAllTransactions(filters);
+
+  if (transactions.length === 0) {
+    return "";
+  }
+
+  // CSV header
+  const headers = [
+    "ID",
+    "User ID",
+    "Type",
+    "Amount",
+    "Currency",
+    "Status",
+    "Payment Method",
+    "Description",
+    "Reference ID",
+    "Created At",
+    "Updated At"
+  ];
+
+  // CSV rows
+  const rows = transactions.map(transaction => [
+    transaction.id,
+    transaction.user_id,
+    transaction.type,
+    transaction.amount.toString(),
+    transaction.currency,
+    transaction.status,
+    transaction.payment_method || "",
+    transaction.description || "",
+    transaction.reference_id || "",
+    transaction.created_at,
+    transaction.updated_at
+  ]);
+
+  // Combine headers and rows
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(field => `"${field}"`).join(","))
+    .join("\n");
+
+  return csvContent;
 }
