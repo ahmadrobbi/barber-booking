@@ -28,14 +28,14 @@ export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
                 type="text"
                 defaultValue={initialLandingPage?.subdomain || ""}
                 placeholder="namabisnis"
-                className="flex-1 rounded-l-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-amber-300 focus:bg-white"
+                className="flex-1 rounded-l-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white"
               />
               <span className="inline-flex items-center px-3 rounded-r-xl border border-l-0 border-stone-200 bg-stone-100 text-stone-600 text-sm">
-                .antrianpro.com
+                .antriflow.com
               </span>
             </div>
             <p className="text-xs text-stone-500 mt-1">
-              URL landing page: https://namabisnis.antrianpro.com
+              URL landing page: https://namabisnis.antriflow.com
             </p>
           </div>
 
@@ -49,7 +49,7 @@ export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
               type="text"
               defaultValue={initialLandingPage?.custom_domain || ""}
               placeholder="booking.namabisnis.com"
-              className="w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-amber-300 focus:bg-white"
+              className="w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white"
             />
             <p className="text-xs text-stone-500 mt-1">
               Domain kustom Anda sendiri
@@ -70,7 +70,7 @@ export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
               id="template"
               name="template"
               defaultValue={initialLandingPage?.template || "default"}
-              className="w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-900 outline-none transition focus:border-amber-300 focus:bg-white"
+              className="w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white"
             >
               <option value="default">Default - Modern</option>
               <option value="minimal">Minimal - Clean</option>
@@ -89,7 +89,7 @@ export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
                 name="is_active"
                 type="checkbox"
                 defaultChecked={initialLandingPage?.is_active ?? true}
-                className="h-4 w-4 text-amber-400 focus:ring-amber-300 border-stone-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-300 border-stone-300 rounded"
               />
               <label htmlFor="is_active" className="text-sm text-stone-700">
                 Aktifkan landing page
@@ -109,13 +109,13 @@ export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
           <p className="text-sm text-stone-600 mb-2">URL Landing Page Anda:</p>
           <div className="flex items-center space-x-2">
             <span className="text-sm font-mono text-stone-900 bg-white px-3 py-1 rounded border">
-              https://{initialLandingPage?.subdomain || "namabisnis"}.antrianpro.com
+              https://{initialLandingPage?.subdomain || "namabisnis"}.antriflow.com
             </span>
             <button
               type="button"
-              className="text-xs text-amber-600 hover:text-amber-500 underline"
+              className="text-xs text-blue-600 hover:text-blue-500 underline"
               onClick={() => {
-                const url = `https://${initialLandingPage?.subdomain || "namabisnis"}.antrianpro.com`;
+                const url = `https://${initialLandingPage?.subdomain || "namabisnis"}.antriflow.com`;
                 navigator.clipboard.writeText(url);
               }}
             >
@@ -129,7 +129,7 @@ export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
               </span>
               <button
                 type="button"
-                className="text-xs text-amber-600 hover:text-amber-500 underline"
+                className="text-xs text-blue-600 hover:text-blue-500 underline"
                 onClick={() => {
                   navigator.clipboard.writeText(`https://${initialLandingPage.custom_domain}`);
                 }}
@@ -152,7 +152,7 @@ export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
       <div className="flex justify-end">
         <button
           type="submit"
-          className="rounded-xl bg-amber-400 px-6 py-3 font-semibold text-black transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-70"
+          className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
         >
           Simpan Perubahan
         </button>

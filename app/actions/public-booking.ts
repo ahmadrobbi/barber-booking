@@ -5,6 +5,7 @@ import { INDUSTRIES } from "@/lib/industries";
 import { getBookingService, getSlotsForIndustry, type IndustryKey } from "@/lib/bookings";
 import { isIndustryEnabled } from "@/lib/industry-config";
 import { createAdminSupabase } from "@/lib/supabase";
+import { createTransaction } from "@/lib/transactions";
 
 function normalizeText(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";
@@ -87,19 +88,43 @@ export async function createPublicBooking(
     return formatBookingError("Slot tersebut sudah terisi. Silakan pilih jam lain.");
   }
 
-  const { error: insertError } = await supabase.from("bookings").insert({
-    sender: phoneNumber,
-    layanan: service.name,
-    harga: service.price,
-    tanggal,
-    jam,
+  const { data: bookingRecord, error: insertError } = await supabase
+    .from("bookings")
+    .insert({
+      sender: phoneNumber,
+      layanan: service.name,
+      harga: service.price,
+      tanggal,
+      jam,
+      status: "pending",
+      industry,
+      user_id: null, // Public booking, will be assigned later via admin
+    })
+    .select("id")
+    .single();
+
+  if (insertError || !bookingRecord) {
+    return formatBookingError(insertError?.message || "Gagal membuat booking.");
+  }
+
+  const transaction = await createTransaction({
+    user_id: null,
+    type: "payment",
+    amount: service.price,
+    currency: "IDR",
     status: "pending",
-    industry,
-    user_id: null, // Public booking, will be assigned later via admin
+    payment_method: "whatsapp",
+    description: `Booking ${service.name} pada ${tanggal} ${jam}`,
+    reference_id: `booking-${bookingRecord.id}`,
+    metadata: {
+      booking_id: bookingRecord.id,
+      industry,
+      sender: phoneNumber,
+    },
   });
 
-  if (insertError) {
-    return formatBookingError(insertError.message);
+  if (!transaction) {
+    console.error("Booking was created but transaction record failed for booking", bookingRecord.id);
   }
 
   return {

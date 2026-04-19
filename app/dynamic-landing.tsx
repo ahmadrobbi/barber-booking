@@ -23,8 +23,8 @@ export default function DynamicLandingPage() {
   const [selectedIndustry, setSelectedIndustry] = useState<IndustryKey>("barbershop");
   const [config, setConfig] = useState<IndustryConfig | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [businessName, setBusinessName] = useState<string>("");
+  const platformBrand = "AntriFlow";
+  const platformTagline = "Platform Booking Universal";
 
   const availableIndustries = getAvailableIndustries();
 
@@ -39,14 +39,12 @@ export default function DynamicLandingPage() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const { config: cfg, businessName: bizName } = await fetchLandingPageConfig();
+        const { config: cfg } = await fetchLandingPageConfig();
         setSelectedIndustry(cfg.default);
         setConfig(cfg);
-        setBusinessName(bizName);
       } catch (err) {
         console.error("Failed to load config:", err);
         setConfig({ enabled: ["barbershop", "clinic"], default: "barbershop" });
-        setBusinessName("Booking Platform");
       } finally {
         setLoading(false);
       }
@@ -89,10 +87,10 @@ export default function DynamicLandingPage() {
                 <strong
                   className={`${logoFont.className} block text-xl leading-tight tracking-wide md:text-2xl text-slate-900`}
                 >
-                  {businessName || "AntrianPro"}
+                  {platformBrand}
                 </strong>
                 <span className="block text-xs text-slate-600 md:text-sm">
-                  Universal Booking Platform
+                  {platformTagline}
                 </span>
               </span>
             </a>
@@ -111,64 +109,36 @@ export default function DynamicLandingPage() {
               ))}
             </div>
 
-            <div className="hidden shrink-0 items-center gap-2 lg:flex relative">
-              <div
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-3 text-sm font-semibold text-white transition hover:from-blue-600 hover:to-indigo-700 cursor-pointer shadow-lg"
+            <div className="hidden shrink-0 items-center gap-3 lg:flex">
+              <Link
+                href="/login"
+                className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-blue-300 hover:text-blue-600"
               >
-                Start Booking
-              </div>
-              {isDropdownOpen && (
-                <div className="absolute top-full mt-2 w-56 rounded-lg bg-white border border-slate-200 shadow-xl z-10">
-                  <Link
-                    href={`/booking?industry=${selectedIndustry}`}
-                    className="block px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition rounded-t-lg"
-                    onClick={() => setIsDropdownOpen(false)}
-                  >
-                    📱 Book Online
-                  </Link>
-                  <a
-                    href={waLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition rounded-b-lg"
-                    onClick={() => setIsDropdownOpen(false)}
-                  >
-                    💬 Book via WhatsApp
-                  </a>
-                </div>
-              )}
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:from-blue-600 hover:to-indigo-700 shadow-lg"
+              >
+                Register
+              </Link>
             </div>
           </div>
 
           <div className="mt-4 space-y-3 lg:hidden">
-            <div className="flex items-center gap-2 relative">
-              <div
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:from-blue-600 hover:to-indigo-700 cursor-pointer shadow-lg"
+            <div className="grid gap-3">
+              <Link
+                href="/login"
+                className="rounded-lg border border-slate-300 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 transition hover:border-blue-300 hover:text-blue-600"
               >
-                Start Booking
-              </div>
-              {isDropdownOpen && (
-                <div className="absolute top-full mt-2 w-full rounded-lg bg-white border border-slate-200 shadow-xl z-10">
-                  <Link
-                    href={`/booking?industry=${selectedIndustry}`}
-                    className="block px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition rounded-t-lg"
-                    onClick={() => setIsDropdownOpen(false)}
-                  >
-                    📱 Book Online
-                  </Link>
-                  <a
-                    href={waLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition rounded-b-lg"
-                    onClick={() => setIsDropdownOpen(false)}
-                  >
-                    💬 Book via WhatsApp
-                  </a>
-                </div>
-              )}
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:from-blue-600 hover:to-indigo-700"
+              >
+                Register
+              </Link>
             </div>
 
             <div
@@ -195,7 +165,7 @@ export default function DynamicLandingPage() {
             title: "Mudahkan Booking untuk Semua Bisnis",
             description: "Dari barbershop hingga klinik, restoran, spa, dan workshop. Satu platform untuk semua kebutuhan booking antrian dengan integrasi WhatsApp seamless.",
             image: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1800&q=80",
-            accent: "AntrianPro",
+            accent: "AntriFlow",
             stats: ["95% Pengguna WhatsApp", "Multi-Industri Support", "Dashboard Real-Time"],
           },
           {
@@ -341,7 +311,7 @@ export default function DynamicLandingPage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
             <h2 className={`${menuFont.className} text-4xl font-bold md:text-5xl text-slate-900 uppercase`}>
-              Mengapa Pilih AntrianPro?
+              Mengapa Pilih AntriFlow?
             </h2>
             <p className="mt-4 text-lg text-slate-600">
               Platform booking terdepan dengan fitur lengkap untuk bisnis modern
@@ -411,7 +381,7 @@ export default function DynamicLandingPage() {
           <section>
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <span className="text-2xl">📅</span>
-              AntrianPro
+              AntriFlow
             </h3>
             <p className="text-sm text-slate-300 leading-relaxed mb-4">
               Platform booking antrian universal untuk bisnis modern di Indonesia. Mudahkan pelanggan dengan integrasi WhatsApp seamless.
@@ -453,7 +423,7 @@ export default function DynamicLandingPage() {
         <div className="mt-12 border-t border-slate-700 pt-8 px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-slate-400">
-              © {new Date().getFullYear()} AntrianPro. Platform Booking Universal untuk Bisnis Indonesia.
+              © {new Date().getFullYear()} AntriFlow. Platform Booking Universal untuk Bisnis Indonesia.
             </p>
             <div className="flex gap-6 text-sm text-slate-400">
               <a href="/privacy" className="hover:text-white transition">Privacy Policy</a>

@@ -21,7 +21,7 @@ function SubmitButton({ mode }: { mode: "login" | "register" }) {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-xl bg-amber-400 px-4 py-3 font-semibold text-black transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-70"
+      className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
     >
       {pending ? "Memproses..." : mode === "login" ? "Login Dashboard" : "Buat Akun"}
     </button>
@@ -45,7 +45,7 @@ export function AuthForm({ action, mode }: AuthFormProps) {
               name="name"
               type="text"
               placeholder="Masukkan nama lengkap"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-300 focus:bg-white"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white"
               required
             />
           </div>
@@ -61,7 +61,7 @@ export function AuthForm({ action, mode }: AuthFormProps) {
               inputMode="tel"
               placeholder="Contoh: 081234567890"
               maxLength={20}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-300 focus:bg-white"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white"
               required
             />
           </div>
@@ -77,7 +77,7 @@ export function AuthForm({ action, mode }: AuthFormProps) {
           name="email"
           type="email"
           placeholder="nama@email.com"
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-300 focus:bg-white"
+          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white"
           required
         />
       </div>
@@ -91,7 +91,7 @@ export function AuthForm({ action, mode }: AuthFormProps) {
           name="password"
           type="password"
           placeholder={isRegister ? "Minimal 6 karakter" : "Masukkan password"}
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-300 focus:bg-white"
+          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white"
           required
         />
       </div>
@@ -108,7 +108,7 @@ export function AuthForm({ action, mode }: AuthFormProps) {
         {isRegister ? "Sudah punya akun?" : "Akses dashboard hanya untuk admin."} {" "}
         <Link
           href="/login"
-          className="font-medium text-amber-600 transition hover:text-amber-500"
+          className="font-medium text-blue-600 transition hover:text-blue-500"
         >
           {isRegister ? "Login di sini" : "Login admin"}
         </Link>

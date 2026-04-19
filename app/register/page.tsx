@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { RegistrationWizard } from "@/components/registration-wizard";
-import { getBusinessName } from "@/lib/industry-config";
 
 export default async function RegisterPage() {
   const session = await getSession();
@@ -11,14 +10,14 @@ export default async function RegisterPage() {
     redirect("/admin");
   }
 
-  const businessName = await getBusinessName();
+  const brandName = "AntriFlow";
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 px-6 py-10">
       <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <section className="flex flex-col justify-center">
           <Link href="/" className="w-fit text-sm uppercase tracking-[0.28em] text-blue-600 font-medium">
-            {businessName || "AntrianPro"}
+            {brandName}
           </Link>
           <h1 className="mt-6 max-w-xl text-4xl font-bold leading-tight md:text-6xl text-slate-900">
             Mulai Bisnis Anda dengan Platform Booking Modern
