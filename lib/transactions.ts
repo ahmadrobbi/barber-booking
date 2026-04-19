@@ -24,6 +24,7 @@ export type TransactionFilters = {
 };
 
 export async function getAllTransactions(
+  filters?: TransactionFilters,
   limit = 100
 ): Promise<UserTransaction[]> {
   const supabase = createAdminSupabase();
