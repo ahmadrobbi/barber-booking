@@ -1,27 +1,23 @@
-import { createClient } from "@supabase/supabase-js";
-import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
 import { renderTemplate } from "@/lib/chatbot";
+import { createAdminSupabase } from "@/lib/supabase";
+import {
+  resolveWhatsappContextFromBooking,
+  sendWhatsappMessage,
+} from "@/lib/whatsapp-channels";
 
 function getSupabase() {
-  return createClient(
-    process.env.SUPABASE_URL ?? "",
-    process.env.SUPABASE_KEY ?? ""
-  );
+  return createAdminSupabase();
 }
 
 export async function GET() {
   try {
-    // ✅ FIX timezone WIB
     const today = new Date().toLocaleDateString("en-CA", {
       timeZone: "Asia/Jakarta",
     });
 
-    console.log("RUN REMINDER:", today);
-
-    // ✅ handle error supabase
     const { data: bookings, error } = await getSupabase()
       .from("bookings")
-      .select("id, sender, layanan, tanggal, jam, industry")
+      .select("id, sender, layanan, tanggal, jam, industry, user_id, channel_id")
       .eq("tanggal", today)
       .eq("status", "confirmed")
       .eq("reminder_sent", false);
@@ -32,59 +28,62 @@ export async function GET() {
     }
 
     if (!bookings || bookings.length === 0) {
-      console.log("NO BOOKINGS");
       return Response.json({ status: "no data" });
     }
 
-    console.log("BOOKINGS:", bookings.length);
-
-    // ✅ kirim paralel (lebih cepat)
-    await Promise.all(
+    const results = await Promise.all(
       bookings.map(async (item) => {
         try {
-          const industry = (item.industry as IndustryKey) || "barbershop";
-          const industryData = INDUSTRIES[industry];
-          const reminderTemplate = industryData?.templates?.reminder || "⏰ *Reminder Booking*\n\nHalo 👋\nJangan lupa booking kamu hari ini:\n\n{{layanan}}\n{{tanggal}}\n{{jam}}\n\nDatang 10 menit lebih awal ya 🙌";
+          const context = await resolveWhatsappContextFromBooking(item);
 
-          const message = renderTemplate(reminderTemplate, {
+          if (!item.sender || !context.token) {
+            return {
+              id: item.id,
+              status: "skipped",
+              reason: "missing sender or token",
+            };
+          }
+
+          const message = renderTemplate(context.templates.reminder, {
             layanan: item.layanan,
             tanggal: item.tanggal,
             jam: item.jam,
           });
 
-          const res = await fetch("https://api.fonnte.com/send", {
-            method: "POST",
-            headers: {
-              Authorization: process.env.FONNTE_TOKEN!,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              target: item.sender,
-              message,
-            }),
+          await sendWhatsappMessage({
+            target: item.sender,
+            message,
+            token: context.token,
           });
 
-          const result = await res.json();
-
-          if (!res.ok) {
-            console.error("FONNTE ERROR:", result);
-            return;
-          }
-
-          // ✅ update hanya kalau sukses
           await getSupabase()
             .from("bookings")
             .update({ reminder_sent: true })
             .eq("id", item.id);
 
+          return {
+            id: item.id,
+            status: "sent",
+            channelId: context.channelId,
+            userId: context.userId,
+          };
         } catch (err) {
           console.error("SEND ERROR:", err);
+          return {
+            id: item.id,
+            status: "failed",
+          };
         }
       })
     );
 
-    return Response.json({ status: "done" });
-
+    return Response.json({
+      status: "done",
+      total: bookings.length,
+      sent: results.filter((item) => item.status === "sent").length,
+      skipped: results.filter((item) => item.status === "skipped").length,
+      failed: results.filter((item) => item.status === "failed").length,
+    });
   } catch (err) {
     console.error("GLOBAL ERROR:", err);
     return Response.json({ error: "internal error" }, { status: 500 });

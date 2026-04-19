@@ -32,6 +32,7 @@ export async function saveChatbotTemplates(formData: FormData) {
     invalidOptionMessage:
       normalizeText(formData.get("invalidOptionMessage")) ||
       DEFAULT_CHATBOT_TEMPLATES.invalidOptionMessage,
+    reminder: normalizeText(formData.get("reminder")) || DEFAULT_CHATBOT_TEMPLATES.reminder,
   };
 
   const supabase = createAdminSupabase();

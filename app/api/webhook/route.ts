@@ -1,8 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
 import {
   formatBookingDateLabel,
   formatRupiah,
-  getChatbotTemplates,
   getDateBySelection,
   getDateOptionsText,
   getServiceBySelection,
@@ -11,31 +9,19 @@ import {
   getSlotOptionsText,
   renderTemplate,
 } from "@/lib/chatbot";
-import { getIndustryConfig, getIndustryData } from "@/lib/industry-config";
 import { INDUSTRIES, type IndustryKey, getAvailableIndustries } from "@/lib/industries";
 import { getServicesForIndustry, getSlotsForIndustry } from "@/lib/bookings";
-
-function getSupabase() {
-  return createClient(
-    process.env.SUPABASE_URL ?? "",
-    process.env.SUPABASE_KEY ?? ""
-  );
-}
-
-const ALL_SLOTS = [
-  "09:00",
-  "10:00",
-  "11:00",
-  "13:00",
-  "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
-  "18:00",
-] as const;
+import { createAdminSupabase } from "@/lib/supabase";
+import {
+  resolveWhatsappRuntimeContext,
+  sendWhatsappMessage,
+  type WhatsappRuntimeContext,
+} from "@/lib/whatsapp-channels";
 
 type SessionState = {
   sender: string;
+  channel_id: string | null;
+  user_id: string | null;
   step: string | null;
   layanan: string | null;
   harga: number | null;
@@ -44,21 +30,49 @@ type SessionState = {
   industry: IndustryKey;
 };
 
-async function isSlotTaken(tanggal: string, jam: string) {
-  const { data } = await getSupabase()
-    .from("bookings")
-    .select("id")
+type BookingScope = {
+  userId: string | null;
+  channelId: string | null;
+};
+
+type ParsedWebhookPayload = {
+  incomingMessage: string;
+  sender: string;
+  device: string | null;
+};
+
+function getSupabase() {
+  return createAdminSupabase();
+}
+
+function buildScopedBookingQuery(scope: BookingScope) {
+  const query = getSupabase().from("bookings").select("id, jam");
+
+  if (scope.userId) {
+    return query.eq("user_id", scope.userId);
+  }
+
+  if (scope.channelId) {
+    return query.eq("channel_id", scope.channelId);
+  }
+
+  return query.is("user_id", null).is("channel_id", null);
+}
+
+async function isSlotTaken(tanggal: string, jam: string, scope: BookingScope) {
+  const { data } = await buildScopedBookingQuery(scope)
     .eq("tanggal", tanggal)
     .eq("jam", jam);
 
   return Boolean(data && data.length > 0);
 }
 
-async function getAvailableSlots(tanggal: string, industry: IndustryKey = "barbershop") {
-  const { data } = await getSupabase()
-    .from("bookings")
-    .select("jam")
-    .eq("tanggal", tanggal);
+async function getAvailableSlots(
+  tanggal: string,
+  industry: IndustryKey,
+  scope: BookingScope
+) {
+  const { data } = await buildScopedBookingQuery(scope).eq("tanggal", tanggal);
 
   const booked = data?.map((item) => item.jam) || [];
   const allSlots = getSlotsForIndustry(industry);
@@ -100,73 +114,116 @@ function getTodayInJakarta() {
   return local;
 }
 
-async function loadState(sender: string) {
-  const { data } = await getSupabase()
+async function loadState(sender: string, channelId: string | null) {
+  let query = getSupabase()
     .from("user_sessions")
     .select("*")
-    .eq("sender", sender)
-    .maybeSingle();
+    .eq("sender", sender);
 
+  query = channelId ? query.eq("channel_id", channelId) : query.is("channel_id", null);
+
+  const { data } = await query.maybeSingle();
   return (data ?? null) as SessionState | null;
 }
 
-async function saveState(payload: Partial<SessionState> & { sender: string }) {
-  await getSupabase().from("user_sessions").upsert(payload, { onConflict: "sender" });
+async function saveState(payload: Partial<SessionState> & { sender: string; channel_id: string | null }) {
+  const normalizedPayload = {
+    ...payload,
+    user_id: payload.user_id ?? null,
+  };
+
+  if (!payload.channel_id) {
+    const existing = await getSupabase()
+      .from("user_sessions")
+      .select("sender")
+      .eq("sender", payload.sender)
+      .is("channel_id", null)
+      .maybeSingle();
+
+    if (existing.data) {
+      await getSupabase()
+        .from("user_sessions")
+        .update(normalizedPayload)
+        .eq("sender", payload.sender)
+        .is("channel_id", null);
+      return;
+    }
+
+    await getSupabase().from("user_sessions").insert(normalizedPayload);
+    return;
+  }
+
+  await getSupabase()
+    .from("user_sessions")
+    .upsert(normalizedPayload, { onConflict: "sender,channel_id" });
 }
 
-async function clearState(sender: string) {
-  await getSupabase().from("user_sessions").delete().eq("sender", sender);
+async function clearState(sender: string, channelId: string | null) {
+  let query = getSupabase().from("user_sessions").delete().eq("sender", sender);
+  query = channelId ? query.eq("channel_id", channelId) : query.is("channel_id", null);
+  await query;
 }
 
-async function sendWhatsappMessage(target: string, message: string) {
-  await fetch("https://api.fonnte.com/send", {
-    method: "POST",
-    headers: {
-      Authorization: process.env.FONNTE_TOKEN!,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      target,
-      message,
-    }),
-  });
-}
-
-export async function POST(req: Request) {
-  let incomingMessage = "";
-  let sender = "";
-
+async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> {
   try {
     const body = await req.json();
-    incomingMessage = body.message?.text || body.message || body.text || "";
-    sender = body.sender || body.from || "";
+    return {
+      incomingMessage: body.message?.text || body.message || body.text || "",
+      sender: body.sender || body.from || "",
+      device: body.device || body.number || body.device_number || null,
+    };
   } catch {
     const text = await req.text();
     const params = new URLSearchParams(text);
-    incomingMessage = params.get("message") || params.get("text") || "";
-    sender = params.get("sender") || params.get("from") || "";
+    return {
+      incomingMessage: params.get("message") || params.get("text") || "",
+      sender: params.get("sender") || params.get("from") || "",
+      device: params.get("device") || params.get("number") || params.get("device_number"),
+    };
   }
+}
 
-  const message = incomingMessage.toLowerCase().trim();
+function getRuntimeScope(context: WhatsappRuntimeContext): BookingScope {
+  return {
+    userId: context.userId,
+    channelId: context.channelId,
+  };
+}
+
+export async function POST(req: Request) {
+  const { incomingMessage, sender, device } = await parseWebhookPayload(req);
+  const context = await resolveWhatsappRuntimeContext(device);
 
   if (!sender) {
     return Response.json({ status: "no sender" });
   }
 
-  const state = await loadState(sender);
-  
-  // Get industry config and determine default industry
-  const config = await getIndustryConfig();
-  const industry: IndustryKey = state?.industry || config.default;
-  const industryData = await getIndustryData(industry);
-  const templates = industryData.templates;
+  if (!context.token) {
+    return Response.json({ status: "missing token" }, { status: 500 });
+  }
+
+  if (device && !context.channel && !process.env.FONNTE_TOKEN) {
+    return Response.json({ status: "unknown device" }, { status: 404 });
+  }
+
+  const message = incomingMessage.toLowerCase().trim();
+  const state = await loadState(sender, context.channelId);
+  const industry: IndustryKey = state?.industry || context.industry;
+  const templates = {
+    ...context.templates,
+    ...INDUSTRIES[industry].templates,
+    ...(context.channel?.template_overrides ?? {}),
+  };
   const today = getTodayInJakarta();
   const industryPrompt = getIndustryOptionsText();
+  const scope = getRuntimeScope(context);
   let reply = "";
 
   if (message === "halo" || message === "menu" || message === "booking") {
     await saveState({
       sender,
+      channel_id: context.channelId,
+      user_id: context.userId,
       step: "pilih_layanan",
       layanan: null,
       harga: null,
@@ -183,6 +240,8 @@ export async function POST(req: Request) {
   ) {
     await saveState({
       sender,
+      channel_id: context.channelId,
+      user_id: context.userId,
       step: "pilih_industri",
       industry,
     });
@@ -194,9 +253,16 @@ export async function POST(req: Request) {
     if (!selectedIndustry) {
       reply = `${templates.invalidOptionMessage}\n\nPilih industri:\n${industryPrompt}`;
     } else {
-      const selectedIndustryData = await getIndustryData(selectedIndustry);
+      const selectedTemplates = {
+        ...context.templates,
+        ...INDUSTRIES[selectedIndustry].templates,
+        ...(context.channel?.template_overrides ?? {}),
+      };
+
       await saveState({
         sender,
+        channel_id: context.channelId,
+        user_id: context.userId,
         step: "pilih_layanan",
         industry: selectedIndustry,
         layanan: null,
@@ -205,7 +271,7 @@ export async function POST(req: Request) {
         jam: null,
       });
 
-      reply = renderTemplate(selectedIndustryData.templates.greeting, {
+      reply = renderTemplate(selectedTemplates.greeting, {
         service_list: getServiceOptionsText(getServicesForIndustry(selectedIndustry)),
       });
     }
@@ -220,6 +286,8 @@ export async function POST(req: Request) {
     } else {
       await saveState({
         sender,
+        channel_id: context.channelId,
+        user_id: context.userId,
         step: "pilih_tanggal",
         layanan: service.name,
         harga: service.price,
@@ -237,7 +305,7 @@ export async function POST(req: Request) {
     if (!selectedDate) {
       reply = `${templates.invalidOptionMessage}\n\n${getDateOptionsText(today)}`;
     } else {
-      const slots = await getAvailableSlots(selectedDate.key, industry);
+      const slots = await getAvailableSlots(selectedDate.key, industry, scope);
 
       if (slots.length === 0) {
         reply =
@@ -247,6 +315,8 @@ export async function POST(req: Request) {
       } else {
         await saveState({
           sender,
+          channel_id: context.channelId,
+          user_id: context.userId,
           step: "pilih_jam",
           tanggal: selectedDate.key,
           industry,
@@ -260,18 +330,18 @@ export async function POST(req: Request) {
     }
   } else if (state.step === "pilih_jam") {
     if (!state.tanggal) {
-      await clearState(sender);
+      await clearState(sender, context.channelId);
       reply = "Sesi booking kamu sudah kedaluwarsa. Ketik *halo* untuk mulai lagi.";
     } else {
-      const slots = await getAvailableSlots(state.tanggal, industry);
+      const slots = await getAvailableSlots(state.tanggal, industry, scope);
       const selectedSlot = getSlotBySelection(message, slots);
 
       if (!selectedSlot) {
         reply = `${templates.invalidOptionMessage}\n\n${getSlotOptionsText(slots)}`;
-      } else if (await isSlotTaken(state.tanggal, selectedSlot)) {
+      } else if (await isSlotTaken(state.tanggal, selectedSlot, scope)) {
         reply =
           "Jam tersebut baru saja terisi. Pilih jam lain ya 🙏\n\n" +
-          getSlotOptionsText(await getAvailableSlots(state.tanggal, industry));
+          getSlotOptionsText(await getAvailableSlots(state.tanggal, industry, scope));
       } else {
         const confirmationSummary = renderTemplate(templates.confirmationPrompt, {
           layanan: state.layanan,
@@ -282,6 +352,8 @@ export async function POST(req: Request) {
 
         await saveState({
           sender,
+          channel_id: context.channelId,
+          user_id: context.userId,
           step: "konfirmasi",
           jam: selectedSlot,
           industry,
@@ -296,9 +368,9 @@ export async function POST(req: Request) {
   } else if (state.step === "konfirmasi") {
     if (message === "ya") {
       if (!state.tanggal || !state.jam) {
-        await clearState(sender);
+        await clearState(sender, context.channelId);
         reply = "Sesi booking kamu sudah kedaluwarsa. Ketik *halo* untuk mulai lagi.";
-      } else if (await isSlotTaken(state.tanggal, state.jam)) {
+      } else if (await isSlotTaken(state.tanggal, state.jam, scope)) {
         reply = "❌ Slot sudah diambil pelanggan lain. Ketik *halo* untuk mulai pilih ulang ya.";
       } else {
         await getSupabase().from("bookings").insert([
@@ -310,11 +382,12 @@ export async function POST(req: Request) {
             jam: state.jam,
             status: "confirmed",
             industry,
-            user_id: null, // Public booking, will be assigned later via admin
+            user_id: context.userId,
+            channel_id: context.channelId,
           },
         ]);
 
-        await clearState(sender);
+        await clearState(sender, context.channelId);
 
         reply = renderTemplate(templates.successMessage, {
           layanan: state.layanan,
@@ -323,7 +396,7 @@ export async function POST(req: Request) {
         });
       }
     } else if (message === "batal") {
-      await clearState(sender);
+      await clearState(sender, context.channelId);
       reply = templates.cancelMessage;
     } else {
       reply = `${templates.invalidOptionMessage}\n\nBalas *YA* untuk konfirmasi atau *BATAL* untuk mengulang.`;
@@ -334,6 +407,16 @@ export async function POST(req: Request) {
     reply = "Ketik *halo* untuk mulai booking ✂️";
   }
 
-  await sendWhatsappMessage(sender, reply);
-  return Response.json({ status: "ok" });
+  await sendWhatsappMessage({
+    target: sender,
+    message: reply,
+    token: context.token,
+  });
+
+  return Response.json({
+    status: "ok",
+    channelId: context.channelId,
+    userId: context.userId,
+    legacy: context.isLegacyFallback,
+  });
 }

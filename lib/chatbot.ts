@@ -12,6 +12,7 @@ export type ChatbotTemplates = {
   successMessage: string;
   cancelMessage: string;
   invalidOptionMessage: string;
+  reminder: string;
 };
 
 export const DEFAULT_CHATBOT_TEMPLATES: ChatbotTemplates = {
@@ -31,9 +32,13 @@ export const DEFAULT_CHATBOT_TEMPLATES: ChatbotTemplates = {
     "❌ Booking dibatalkan.\nKetik *halo* untuk mulai lagi kapan saja.",
   invalidOptionMessage:
     "Pilihan belum sesuai. Balas dengan nomor yang tersedia ya 🙌",
+  reminder:
+    "⏰ *Reminder Booking*\n\nHalo 👋\nJangan lupa booking kamu hari ini:\n\n{{layanan}}\n{{tanggal}}\n{{jam}}\n\nDatang 10 menit lebih awal ya 🙌",
 };
 
-export async function getChatbotTemplates() {
+export type ChatbotTemplateOverrides = Partial<ChatbotTemplates>;
+
+export async function getGlobalChatbotTemplates() {
   const supabase = createAdminSupabase();
   const { data, error } = await supabase
     .from("app_settings")
@@ -54,6 +59,22 @@ export async function getChatbotTemplates() {
     ...DEFAULT_CHATBOT_TEMPLATES,
     ...stored,
   };
+}
+
+export async function getChatbotTemplates() {
+  return getGlobalChatbotTemplates();
+}
+
+export function mergeChatbotTemplates(
+  ...templateSets: Array<ChatbotTemplateOverrides | null | undefined>
+) {
+  return templateSets.reduce<ChatbotTemplates>(
+    (merged, item) => ({
+      ...merged,
+      ...(item ?? {}),
+    }),
+    { ...DEFAULT_CHATBOT_TEMPLATES }
+  );
 }
 
 export function renderTemplate(
