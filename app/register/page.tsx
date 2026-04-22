@@ -20,23 +20,23 @@ export default async function RegisterPage() {
             {brandName}
           </Link>
           <h1 className="mt-6 max-w-xl text-4xl font-bold leading-tight md:text-6xl text-slate-900">
-            Mulai Bisnis Anda dengan Platform Booking Modern
+            Jalankan Booking Barbershop dari Nomor WhatsApp Anda Sendiri
           </h1>
           <p className="mt-5 max-w-lg text-base leading-7 text-slate-600">
-            Daftar gratis dan dapatkan akses penuh ke platform booking universal. Setup dalam 5 menit dan mulai terima booking hari ini.
+            Daftar, sambungkan nomor WhatsApp bisnis, lalu mulai terima booking publik dengan reminder otomatis. Fokus MVP kami saat ini untuk barbershop.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <div className="flex items-center gap-2 text-sm text-slate-600">
               <span className="text-green-500">✓</span>
-              Gratis 14 hari trial
+              Nomor WA milik bisnis sendiri
             </div>
             <div className="flex items-center gap-2 text-sm text-slate-600">
               <span className="text-green-500">✓</span>
-              Setup tanpa coding
+              Setup singkat tanpa coding
             </div>
             <div className="flex items-center gap-2 text-sm text-slate-600">
               <span className="text-green-500">✓</span>
-              WhatsApp integration
+              Booking link publik + reminder WA
             </div>
           </div>
         </section>
@@ -45,7 +45,7 @@ export default async function RegisterPage() {
           <p className="text-sm uppercase tracking-[0.2em] text-blue-600 font-medium">Mulai Gratis</p>
           <h2 className="mt-3 text-3xl font-semibold text-slate-900">Buat Akun Baru</h2>
           <p className="mt-2 text-sm text-slate-600">
-            Isi data bisnis Anda dan setup selesai dalam 4 langkah.
+            Isi data barbershop Anda dan selesaikan onboarding inti dalam 4 langkah.
           </p>
           <div className="mt-8">
             <RegistrationWizard />

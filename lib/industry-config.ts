@@ -50,7 +50,7 @@ export async function getIndustryConfig(): Promise<IndustryConfig> {
 
   // Default config
   return {
-    enabled: ["barbershop", "clinic"],
+    enabled: ["barbershop"],
     default: "barbershop",
   };
 }
@@ -169,9 +169,9 @@ export async function getBusinessName(): Promise<string> {
       .eq("key", "business_name")
       .maybeSingle();
 
-    return typeof data?.value_json === "string" ? data.value_json : "Booking Platform";
+    return typeof data?.value_json === "string" ? data.value_json : "AntriFlow";
   } catch {
-    return "Booking Platform";
+    return "AntriFlow";
   }
 }
 
@@ -181,7 +181,7 @@ export async function getBusinessName(): Promise<string> {
 export async function getCurrentUserBusinessName(): Promise<string> {
   try {
     const session = await getSession();
-    if (!session) return "Booking Platform";
+    if (!session) return "AntriFlow";
 
     const supabase = createAdminSupabase();
     const { data, error } = await supabase

@@ -9,7 +9,7 @@ import {
   getSlotOptionsText,
   renderTemplate,
 } from "@/lib/chatbot";
-import { INDUSTRIES, type IndustryKey, getAvailableIndustries } from "@/lib/industries";
+import { type IndustryKey, getAvailableIndustries } from "@/lib/industries";
 import { isBookingSlotConflict } from "@/lib/booking-conflicts";
 import { getServicesForUser } from "@/lib/bookings";
 import { getAvailableSlotsForDate, isSlotAvailable } from "@/lib/scheduling";
@@ -227,11 +227,7 @@ export async function POST(req: Request) {
   const message = incomingMessage.toLowerCase().trim();
   const state = await loadState(sender, context.channelId);
   const industry: IndustryKey = state?.industry || context.industry;
-  const templates = {
-    ...context.templates,
-    ...INDUSTRIES[industry].templates,
-    ...(context.channel?.template_overrides ?? {}),
-  };
+  const templates = context.templates;
   const tenantServices = await getServicesForUser(context.userId, industry);
   const today = getTodayInJakarta();
   const industryPrompt = getIndustryOptionsText();
@@ -254,6 +250,7 @@ export async function POST(req: Request) {
     });
 
     reply = renderTemplate(templates.greeting, {
+      business_name: context.businessName,
       service_list: getServiceOptionsText(tenantServices),
     });
   } else if (
@@ -274,11 +271,7 @@ export async function POST(req: Request) {
     if (!selectedIndustry) {
       reply = `${templates.invalidOptionMessage}\n\nPilih industri:\n${industryPrompt}`;
     } else {
-      const selectedTemplates = {
-        ...context.templates,
-        ...INDUSTRIES[selectedIndustry].templates,
-        ...(context.channel?.template_overrides ?? {}),
-      };
+      const selectedTemplates = context.templates;
 
       await saveState({
         sender,
@@ -293,6 +286,7 @@ export async function POST(req: Request) {
       });
 
       reply = renderTemplate(selectedTemplates.greeting, {
+        business_name: context.businessName,
         service_list: getServiceOptionsText(
           await getServicesForUser(context.userId, selectedIndustry)
         ),
@@ -318,6 +312,7 @@ export async function POST(req: Request) {
       });
 
       reply = renderTemplate(templates.servicePrompt, {
+        business_name: context.businessName,
         layanan: service.name,
         date_options: getDateOptionsText(today),
       });
@@ -351,6 +346,7 @@ export async function POST(req: Request) {
         });
 
         reply = renderTemplate(templates.datePrompt, {
+          business_name: context.businessName,
           tanggal_label: selectedDate.label,
           slot_options: getSlotOptionsText(slots),
         });
@@ -382,6 +378,7 @@ export async function POST(req: Request) {
           );
       } else {
         const confirmationSummary = renderTemplate(templates.confirmationPrompt, {
+          business_name: context.businessName,
           layanan: state.layanan,
           tanggal_label: formatBookingDateLabel(state.tanggal),
           jam: selectedSlot,
@@ -398,6 +395,7 @@ export async function POST(req: Request) {
         });
 
         reply = renderTemplate(templates.slotPrompt, {
+          business_name: context.businessName,
           jam: selectedSlot,
           confirmation_summary: confirmationSummary,
         });
@@ -460,6 +458,7 @@ export async function POST(req: Request) {
         await clearState(sender, context.channelId);
 
         reply = renderTemplate(templates.successMessage, {
+          business_name: context.businessName,
           layanan: state.layanan,
           tanggal_label: formatBookingDateLabel(state.tanggal),
           jam: state.jam,

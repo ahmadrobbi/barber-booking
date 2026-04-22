@@ -1,13 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { Barlow_Condensed, Cinzel_Decorative } from "next/font/google";
-import { GalleryLightbox } from "@/components/gallery-lightbox";
 import { HomeHeroCarousel } from "@/components/home-hero-carousel";
-import { fetchLandingPageConfig } from "@/app/actions/landing-page-config";
-import { getAvailableIndustries, INDUSTRIES, type IndustryKey } from "@/lib/industries";
-import type { IndustryConfig } from "@/lib/industry-config";
 
 const menuFont = Barlow_Condensed({
   subsets: ["latin"],
@@ -20,56 +15,16 @@ const logoFont = Cinzel_Decorative({
 });
 
 export default function DynamicLandingPage() {
-  const [selectedIndustry, setSelectedIndustry] = useState<IndustryKey>("barbershop");
-  const [config, setConfig] = useState<IndustryConfig | null>(null);
-  const [loading, setLoading] = useState(true);
   const platformBrand = "AntriFlow";
-  const platformTagline = "Platform Booking Universal";
-
-  const availableIndustries = getAvailableIndustries();
-
-  const formatRupiah = (price: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
-  useEffect(() => {
-    const loadConfig = async () => {
-      try {
-        const { config: cfg } = await fetchLandingPageConfig();
-        setSelectedIndustry(cfg.default);
-        setConfig(cfg);
-      } catch (err) {
-        console.error("Failed to load config:", err);
-        setConfig({ enabled: ["barbershop", "clinic"], default: "barbershop" });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadConfig();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#111111] text-white">
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
-  const industryData = INDUSTRIES[selectedIndustry];
+  const platformTagline = "WhatsApp Booking untuk Barbershop";
   const phone = "6287749105273";
   const message = encodeURIComponent("Halo, saya mau booking.");
   const waLink = `https://wa.me/${phone}?text=${message}`;
 
   const navItems = [
     { href: "#home", label: "Home" },
-    { href: "#platform", label: "Platform" },
-    { href: "#industries", label: "Industries" },
+    { href: "#platform", label: "Produk" },
+    { href: "#industries", label: "Use Case" },
     { href: "#features", label: "Features" },
     { href: "#contact", label: "Contact" },
   ] as const;
@@ -161,28 +116,28 @@ export default function DynamicLandingPage() {
       <HomeHeroCarousel
         slides={[
           {
-            eyebrow: "🚀 Platform Booking Universal",
-            title: "Mudahkan Booking untuk Semua Bisnis",
-            description: "Dari barbershop hingga klinik, restoran, spa, dan workshop. Satu platform untuk semua kebutuhan booking antrian dengan integrasi WhatsApp seamless.",
-            image: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1800&q=80",
+            eyebrow: "Nomor WA Anda Sendiri",
+            title: "Terima Booking Barbershop Tanpa Ganti Channel",
+            description: "AntriFlow membantu owner barbershop menerima booking dari nomor WhatsApp bisnis yang sudah dipakai sehari-hari, lengkap dengan landing page publik dan reminder otomatis.",
+            image: "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=1800&q=80",
             accent: "AntriFlow",
-            stats: ["95% Pengguna WhatsApp", "Multi-Industri Support", "Dashboard Real-Time"],
+            stats: ["Nomor WA Sendiri", "Landing Page Publik", "Reminder Otomatis"],
           },
           {
-            eyebrow: "💼 Untuk Semua Jenis Bisnis",
-            title: "Template Customizable Siap Pakai",
-            description: "Pilih industri Anda, sesuaikan template, dan mulai terima booking dalam hitungan menit. Tidak perlu coding atau setup rumit.",
-            image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1800&q=80",
-            accent: "Mudah Digunakan",
-            stats: ["Setup 5 Menit", "Template Ready", "Support 24/7"],
+            eyebrow: "Setup Ringkas",
+            title: "Owner Bisa Go-Live dalam Beberapa Langkah",
+            description: "Daftar akun, isi profil bisnis, atur layanan dan durasi, sambungkan device WhatsApp, lalu bagikan link booking `/b/[slug]` ke pelanggan Anda.",
+            image: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=1800&q=80",
+            accent: "Cepat Jalan",
+            stats: ["Onboarding Ringkas", "Durasi Layanan", "Jam Operasional"],
           },
           {
-            eyebrow: "📊 Analytics & Insights",
-            title: "Pantau Performa Bisnis Anda",
-            description: "Dashboard real-time untuk tracking booking, revenue, dan customer behavior. Optimalkan bisnis dengan data-driven insights.",
-            image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1800&q=80",
-            accent: "Smart Analytics",
-            stats: ["Real-Time Data", "Revenue Tracking", "Customer Insights"],
+            eyebrow: "Flow Harian yang Rapi",
+            title: "Booking Masuk, Dikonfirmasi, Diingatkan",
+            description: "Pelanggan bisa booking dari form publik atau chat WhatsApp. Owner mengelola status booking dari dashboard, lalu sistem mengirim notifikasi dan reminder dasar secara otomatis.",
+            image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1800&q=80",
+            accent: "Siap Dipakai",
+            stats: ["Status Booking", "Konfirmasi WA", "Anti Bentrok Slot"],
           },
         ]}
         menuFontClassName={menuFont.className}
@@ -196,26 +151,26 @@ export default function DynamicLandingPage() {
             🚀
           </div>
           <h2 className={`${menuFont.className} mt-8 text-4xl font-bold uppercase md:text-5xl text-slate-900`}>
-            Platform Booking Universal
+            Booking Barbershop yang Lebih Ringkas
           </h2>
           <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-slate-600">
-            Kami menyediakan solusi booking antrian terdepan untuk berbagai jenis bisnis di Indonesia. Dari barbershop hingga klinik kesehatan, restoran, spa, dan workshop—semua terintegrasi dengan WhatsApp untuk pengalaman booking yang effortless.
+            Fokus MVP ini sederhana: owner barbershop tidak perlu pindah channel atau mengajari pelanggan pakai aplikasi baru. Semua tetap berjalan lewat WhatsApp bisnis mereka sendiri dan link booking publik yang mudah dibagikan.
           </p>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 p-8 shadow-lg border border-blue-200">
               <div className="text-4xl mb-4">📱</div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">WhatsApp Integration</h3>
-              <p className="text-slate-600 leading-relaxed">95% pengguna Indonesia aktif di WhatsApp. Booking jadi lebih mudah, familiar, dan tanpa friction dengan chatbot otomatis.</p>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Nomor WA Milik Sendiri</h3>
+              <p className="text-slate-600 leading-relaxed">Setiap owner bisa mendaftarkan nomor bisnisnya sendiri sebagai bot, jadi relasi dengan pelanggan tetap melekat ke brand mereka.</p>
             </div>
             <div className="rounded-2xl bg-gradient-to-br from-green-50 to-green-100 p-8 shadow-lg border border-green-200">
-              <div className="text-4xl mb-4">🏢</div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Multi-Industri Support</h3>
-              <p className="text-slate-600 leading-relaxed">Template yang dapat disesuaikan untuk barbershop, klinik, F&B, terapi, workshop, dan industri lainnya. Tambah industri baru dalam hitungan menit.</p>
+              <div className="text-4xl mb-4">🔗</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Link Booking per Tenant</h3>
+              <p className="text-slate-600 leading-relaxed">Setiap bisnis punya slug publik sendiri sehingga halaman booking, layanan, jadwal, dan reminder tidak tercampur dengan tenant lain.</p>
             </div>
             <div className="rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 p-8 shadow-lg border border-purple-200">
-              <div className="text-4xl mb-4">📊</div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Dashboard Analytics</h3>
-              <p className="text-slate-600 leading-relaxed">Monitor booking, revenue, customer behavior, dan performa bisnis secara real-time dengan analytics yang powerful.</p>
+              <div className="text-4xl mb-4">🔔</div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Reminder dan Status Dasar</h3>
+              <p className="text-slate-600 leading-relaxed">Owner bisa mengonfirmasi atau membatalkan booking dari dashboard, lalu pelanggan mendapat pesan WhatsApp yang jelas dan tepat waktu.</p>
             </div>
           </div>
         </div>
@@ -226,51 +181,51 @@ export default function DynamicLandingPage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-12">
             <h2 className={`${menuFont.className} text-4xl font-bold md:text-5xl text-slate-900 uppercase`}>
-              Industri yang Didukung
+              Cocok untuk Operasional Barbershop
             </h2>
             <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
-              Platform kami dirancang untuk berbagai jenis bisnis di Indonesia. Pilih industri Anda dan mulai terima booking hari ini.
+              Halaman depan ini tidak lagi menjanjikan semua industri. Kita fokus pada masalah yang paling sering dirasakan owner barbershop saat mengatur booking manual lewat chat.
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-12">
             {[
               {
-                name: "Barbershop & Salon",
+                name: "Chat Masuk Tidak Berantakan",
                 icon: "✂️",
-                description: "Potong rambut, styling, dan perawatan pria/wanita",
+                description: "Pelanggan tetap chat lewat WhatsApp, tetapi alurnya diarahkan ke pilihan layanan, tanggal, dan jam yang terstruktur.",
                 color: "from-blue-500 to-blue-600",
               },
               {
-                name: "Klinik & Kesehatan",
-                icon: "🏥",
-                description: "Pendaftaran pasien, konsultasi dokter, tes lab",
+                name: "Slot Mengikuti Jam Operasional",
+                icon: "🕒",
+                description: "Pilihan jam otomatis menyesuaikan business hours dan durasi layanan, bukan sekadar slot statis tanpa aturan.",
                 color: "from-green-500 to-green-600",
               },
               {
-                name: "Restoran & F&B",
-                icon: "🍽️",
-                description: "Reservasi meja, pesan makanan, event catering",
+                name: "Layanan Bisa Diatur Owner",
+                icon: "🧾",
+                description: "Owner dapat mengubah nama layanan, harga, dan durasi dari dashboard tanpa sentuh database manual.",
                 color: "from-orange-500 to-orange-600",
               },
               {
-                name: "Spa & Terapi",
-                icon: "🧘",
-                description: "Booking treatment, massage, wellness services",
+                name: "Status Booking Lebih Jelas",
+                icon: "✅",
+                description: "Booking punya status `pending`, `confirmed`, `completed`, dan `cancelled` agar operasional harian lebih mudah dipantau.",
                 color: "from-purple-500 to-purple-600",
               },
               {
-                name: "Workshop & Kursus",
-                icon: "🎓",
-                description: "Pendaftaran peserta, jadwal kelas, sertifikasi",
+                name: "Owner Tetap Pegang Nomor Sendiri",
+                icon: "📲",
+                description: "Bot berjalan di nomor bisnis owner, jadi pelanggan tetap menghubungi channel yang memang sudah mereka kenal.",
                 color: "from-indigo-500 to-indigo-600",
               },
               {
-                name: "Lainnya",
-                icon: "🏢",
-                description: "Konsultasi bisnis, servis kendaraan, dll.",
+                name: "Siap Divalidasi ke Pasar",
+                icon: "🚀",
+                description: "Scope MVP dijaga tetap sempit supaya cepat diuji ke owner barbershop sungguhan sebelum menambah kompleksitas lain.",
                 color: "from-gray-500 to-gray-600",
               },
-            ].map((industry, index) => (
+            ].map((industry) => (
               <div
                 key={industry.name}
                 className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 hover:border-blue-300"
@@ -284,22 +239,22 @@ export default function DynamicLandingPage() {
                 <p className="text-slate-600 leading-relaxed mb-6">
                   {industry.description}
                 </p>
-                <button
-                  onClick={() => setSelectedIndustry(industry.name.toLowerCase().includes('barber') ? 'barbershop' : industry.name.toLowerCase().includes('klinik') ? 'clinic' : 'barbershop')}
-                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl"
+                <Link
+                  href="/register"
+                  className="inline-flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-3 font-semibold text-white transition-all hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl"
                 >
-                  Coba Sekarang
-                </button>
+                  Mulai Setup
+                </Link>
               </div>
             ))}
           </div>
           <div className="text-center">
-            <p className="text-slate-600 mb-6">Belum menemukan industri Anda? Template custom tersedia!</p>
+            <p className="text-slate-600 mb-6">Jika alur ini cocok dengan operasional barbershop Anda, MVP sudah siap diuji ke pelanggan pertama.</p>
             <Link
               href="/register"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-8 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl"
             >
-              Daftar Gratis
+              Daftar dan Sambungkan Nomor WA
               <span className="text-lg">🚀</span>
             </Link>
           </div>
@@ -314,7 +269,7 @@ export default function DynamicLandingPage() {
               Mengapa Pilih AntriFlow?
             </h2>
             <p className="mt-4 text-lg text-slate-600">
-              Platform booking terdepan dengan fitur lengkap untuk bisnis modern
+              Fitur inti yang memang dibutuhkan untuk validasi MVP harian
             </p>
           </div>
           <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
@@ -324,7 +279,7 @@ export default function DynamicLandingPage() {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">WhatsApp Integration</h3>
               <p className="text-slate-600 leading-relaxed">
-                95% pengguna Indonesia aktif di WhatsApp. Booking jadi lebih mudah dan familiar dengan chatbot otomatis 24/7.
+                Pelanggan tetap memakai WhatsApp yang sudah familiar, sementara owner tidak perlu memindahkan mereka ke aplikasi baru.
               </p>
             </div>
             <div className="text-center">
@@ -333,25 +288,25 @@ export default function DynamicLandingPage() {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Setup Cepat</h3>
               <p className="text-slate-600 leading-relaxed">
-                Mulai dalam 5 menit. Pilih template industri, sesuaikan, dan langsung terima booking tanpa coding.
+                Owner tinggal mengisi profil bisnis, slug landing page, layanan, dan channel WhatsApp untuk mulai menerima booking.
               </p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-r from-purple-100 to-purple-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">📊</span>
+                <span className="text-4xl">📅</span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Dashboard Analytics</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Slot Lebih Akurat</h3>
               <p className="text-slate-600 leading-relaxed">
-                Pantau performa bisnis dengan real-time analytics. Track booking, revenue, dan customer insights.
+                Slot publik dan chatbot sekarang menghitung durasi layanan dan jam operasional agar booking tidak mudah bentrok.
               </p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-r from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-4xl">🔧</span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Customizable</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Layanan Fleksibel</h3>
               <p className="text-slate-600 leading-relaxed">
-                Sesuaikan template dengan branding bisnis Anda. Tambah layanan, ubah harga, dan personalize pesan.
+                Owner bisa menambah, mengubah, atau menonaktifkan layanan sendiri beserta harga dan durasinya dari dashboard.
               </p>
             </div>
             <div className="text-center">
@@ -360,23 +315,23 @@ export default function DynamicLandingPage() {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Reminder Otomatis</h3>
               <p className="text-slate-600 leading-relaxed">
-                Kirim reminder otomatis via WhatsApp untuk mengurangi no-show dan tingkatkan kepuasan pelanggan.
+                Reminder dan notifikasi status dasar membantu owner menjaga pelanggan tetap mendapat kepastian sebelum jadwal.
               </p>
             </div>
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-r from-teal-100 to-teal-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">💰</span>
+                <span className="text-4xl">🛡️</span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Harga Terjangkau</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Tenant-Aware dari Dasar</h3>
               <p className="text-slate-600 leading-relaxed">
-                Mulai dari Rp 50.000/bulan per outlet. Freemium untuk bisnis kecil, enterprise untuk skala besar.
+                Booking publik, channel WhatsApp, layanan, dan reminder sudah dipisahkan per owner agar flow MVP lebih aman untuk production.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      <footer className="bg-gradient-to-r from-slate-900 to-slate-800 py-16 text-white">
+      <footer id="contact" className="bg-gradient-to-r from-slate-900 to-slate-800 py-16 text-white">
         <div className="mx-auto grid max-w-6xl gap-8 px-6 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <section>
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -384,7 +339,7 @@ export default function DynamicLandingPage() {
               AntriFlow
             </h3>
             <p className="text-sm text-slate-300 leading-relaxed mb-4">
-              Platform booking antrian universal untuk bisnis modern di Indonesia. Mudahkan pelanggan dengan integrasi WhatsApp seamless.
+              MVP booking barbershop yang membantu owner memakai nomor WhatsApp bisnis sendiri untuk menerima booking dan mengirim reminder otomatis.
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-slate-400 hover:text-white transition">📘 Facebook</a>
@@ -395,19 +350,19 @@ export default function DynamicLandingPage() {
           <section>
             <h3 className="text-xl font-bold text-white mb-4">Platform</h3>
             <ul className="space-y-2 text-sm text-slate-300">
-              <li><a href="#platform" className="hover:text-white transition">Tentang Kami</a></li>
-              <li><a href="#industries" className="hover:text-white transition">Industri</a></li>
+              <li><a href="#platform" className="hover:text-white transition">Produk</a></li>
+              <li><a href="#industries" className="hover:text-white transition">Use Case</a></li>
               <li><a href="#features" className="hover:text-white transition">Fitur</a></li>
-              <li><a href="/pricing" className="hover:text-white transition">Harga</a></li>
+              <li><a href="/register" className="hover:text-white transition">Mulai</a></li>
             </ul>
           </section>
           <section>
             <h3 className="text-xl font-bold text-white mb-4">Dukungan</h3>
             <ul className="space-y-2 text-sm text-slate-300">
-              <li><a href="/help" className="hover:text-white transition">Bantuan</a></li>
-              <li><a href="/docs" className="hover:text-white transition">Dokumentasi</a></li>
-              <li><a href="/contact" className="hover:text-white transition">Kontak</a></li>
-              <li><a href="/status" className="hover:text-white transition">Status Sistem</a></li>
+              <li><a href={waLink} className="hover:text-white transition">Hubungi WhatsApp</a></li>
+              <li><a href="/register" className="hover:text-white transition">Buat Akun</a></li>
+              <li><a href="/login" className="hover:text-white transition">Login Owner</a></li>
+              <li><a href="#contact" className="hover:text-white transition">Kontak</a></li>
             </ul>
           </section>
           <section>
@@ -415,15 +370,15 @@ export default function DynamicLandingPage() {
             <ul className="space-y-2 text-sm text-slate-300">
               <li><a href="/login" className="hover:text-white transition">Login Admin</a></li>
               <li><a href="/register" className="hover:text-white transition">Daftar Gratis</a></li>
-              <li><a href="/enterprise" className="hover:text-white transition">Enterprise</a></li>
-              <li><a href="/partners" className="hover:text-white transition">Partnership</a></li>
+              <li><a href="#platform" className="hover:text-white transition">Cara Kerja</a></li>
+              <li><a href="#features" className="hover:text-white transition">Fitur Inti</a></li>
             </ul>
           </section>
         </div>
         <div className="mt-12 border-t border-slate-700 pt-8 px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-slate-400">
-              © {new Date().getFullYear()} AntriFlow. Platform Booking Universal untuk Bisnis Indonesia.
+              © {new Date().getFullYear()} AntriFlow. MVP booking barbershop berbasis WhatsApp.
             </p>
             <div className="flex gap-6 text-sm text-slate-400">
               <a href="/privacy" className="hover:text-white transition">Privacy Policy</a>

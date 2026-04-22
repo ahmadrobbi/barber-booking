@@ -19,8 +19,8 @@ export async function fetchLandingPageConfig(): Promise<{
   } catch (error) {
     console.error("Error fetching landing page config:", error);
     return {
-      config: { enabled: ["barbershop", "clinic"], default: "barbershop" },
-      businessName: "Booking Platform",
+      config: { enabled: ["barbershop"], default: "barbershop" },
+      businessName: "AntriFlow",
     };
   }
 }

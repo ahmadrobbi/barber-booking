@@ -266,8 +266,8 @@ export function RegistrationWizard() {
                 type="text"
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="Contoh: Barokah Barbershop"
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Contoh: Urban Fade Studio"
+                className="w-full rounded-lg border-2 border-slate-400 bg-white px-4 py-2 text-slate-900 caret-slate-900 placeholder-slate-500 transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 hover:border-slate-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-300"
                 disabled={isSubmitting}
               />
               <p className="text-xs text-slate-500 mt-2">
@@ -307,7 +307,7 @@ export function RegistrationWizard() {
             </div>
 
             <p className="text-xs text-slate-500">
-              Anda dapat mengubah informasi ini di halaman profile nanti. Klik "Daftar" untuk melanjutkan.
+              Anda dapat mengubah informasi ini di halaman profile nanti. Klik &quot;Daftar&quot; untuk melanjutkan.
             </p>
           </div>
         )}

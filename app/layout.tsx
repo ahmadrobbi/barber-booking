@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Barokah Barbershop",
-  description: "Official website Barokah Barbershop.",
+  title: "AntriFlow | WhatsApp Booking untuk Barbershop",
+  description:
+    "MVP booking barbershop dengan nomor WhatsApp milik bisnis sendiri, landing page publik, dan reminder otomatis.",
 };
 
 export default function RootLayout({

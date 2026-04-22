@@ -28,6 +28,7 @@ export type WhatsappRuntimeContext = {
   channelId: string | null;
   userId: string | null;
   deviceNumber: string | null;
+  businessName: string;
   industry: IndustryKey;
   token: string | null;
   templates: ReturnType<typeof mergeChatbotTemplates>;
@@ -91,6 +92,32 @@ async function getChannelByQuery(column: "id" | "device_number", value: string) 
   } catch (error) {
     console.warn(`Failed to load WhatsApp channel by ${column}:`, error);
     return null;
+  }
+}
+
+async function getBusinessNameByUserId(userId: string | null | undefined) {
+  if (!userId) {
+    return "Barbershop Kami";
+  }
+
+  try {
+    const supabase = createAdminSupabase();
+    const { data, error } = await supabase
+      .from("user_profiles")
+      .select("business_name")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error && error.code !== "PGRST116" && error.code !== "42P01") {
+      throw new Error(error.message);
+    }
+
+    return typeof data?.business_name === "string" && data.business_name.trim()
+      ? data.business_name.trim()
+      : "Barbershop Kami";
+  } catch (error) {
+    console.warn("Failed to load business name by user:", error);
+    return "Barbershop Kami";
   }
 }
 
@@ -179,12 +206,14 @@ export async function resolveWhatsappRuntimeContext(
   const channel = await getWhatsappChannelByDevice(deviceNumber);
   const industry = channel?.industry ?? config.default;
   const industryTemplates = INDUSTRIES[industry]?.templates;
+  const businessName = await getBusinessNameByUserId(channel?.user_id);
 
   return {
     channel,
     channelId: channel?.id ?? null,
     userId: channel?.user_id ?? null,
     deviceNumber: sanitizeDeviceNumber(deviceNumber),
+    businessName,
     industry,
     token: channel?.fonnte_device_token ?? null,
     templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),
@@ -207,12 +236,15 @@ export async function resolveWhatsappContextFromBooking(booking: {
     (typeof booking.industry === "string" ? (booking.industry as IndustryKey) : null) ??
     config.default;
   const industryTemplates = INDUSTRIES[industry]?.templates;
+  const resolvedUserId = channel?.user_id ?? booking.user_id ?? null;
+  const businessName = await getBusinessNameByUserId(resolvedUserId);
 
   return {
     channel,
     channelId: channel?.id ?? booking.channel_id ?? null,
-    userId: channel?.user_id ?? null,
+    userId: resolvedUserId,
     deviceNumber: channel?.device_number ?? null,
+    businessName,
     industry,
     token: channel?.fonnte_device_token ?? null,
     templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),

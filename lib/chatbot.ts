@@ -17,7 +17,7 @@ export type ChatbotTemplates = {
 
 export const DEFAULT_CHATBOT_TEMPLATES: ChatbotTemplates = {
   greeting:
-    "Halo 👋 Selamat datang di *Barokah Barbershop* 💈\n\nKami siap bantu booking kamu dengan cepat dan rapi.\n\n{{service_list}}\nBalas dengan nomor layanan ya 👇",
+    "Halo 👋 Selamat datang di *{{business_name}}* 💈\n\nKami siap bantu booking kamu dengan cepat dan rapi.\n\n{{service_list}}\nBalas dengan nomor layanan ya 👇",
   servicePrompt:
     "Mantap 👍 kamu pilih *{{layanan}}*.\n\nSekarang pilih tanggal booking ya 📅\n\n{{date_options}}\nBalas dengan nomor tanggal yang kamu mau.",
   datePrompt:
@@ -27,7 +27,7 @@ export const DEFAULT_CHATBOT_TEMPLATES: ChatbotTemplates = {
   confirmationPrompt:
     "📌 *Konfirmasi Booking*\n\n✂️ Layanan: {{layanan}}\n📅 Tanggal: {{tanggal_label}}\n⏰ Jam: {{jam}}\n💰 Total: {{harga}}",
   successMessage:
-    "✅ *Booking berhasil!*\n\n✂️ {{layanan}}\n📅 {{tanggal_label}}\n⏰ {{jam}}\n\n🙏 Mohon datang 10 menit sebelum jadwal.\nSampai ketemu di barbershop! 💈",
+    "✅ *Booking berhasil!*\n\n✂️ {{layanan}}\n📅 {{tanggal_label}}\n⏰ {{jam}}\n\n🙏 Mohon datang 10 menit sebelum jadwal.\nSampai ketemu di {{business_name}}! 💈",
   cancelMessage:
     "❌ Booking dibatalkan.\nKetik *halo* untuk mulai lagi kapan saja.",
   invalidOptionMessage:

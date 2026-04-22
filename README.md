@@ -1,77 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AntriFlow MVP
+
+AntriFlow adalah MVP booking `barbershop` yang berfokus pada satu hasil utama: owner bisa memakai `nomor WhatsApp bisnis sendiri` sebagai bot untuk menerima booking, mengelola jadwal, dan mengirim reminder otomatis.
+
+## Fokus Produk Saat Ini
+
+- Owner mendaftar dan login ke dashboard
+- Owner mengatur profil bisnis, slug landing page, dan layanan
+- Owner mendaftarkan nomor WhatsApp miliknya sendiri sebagai channel bot
+- Customer booking lewat chat WhatsApp atau halaman publik `/b/[slug]`
+- Owner mengonfirmasi booking dari dashboard
+- Sistem mengirim reminder otomatis dan notifikasi status dasar
 
 ## Environment Variables
 
-Copy `.env.local` and fill in your values:
+Isi environment berikut sebelum menjalankan aplikasi:
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `AUTH_SECRET` atau `SESSION_SECRET`
+- `NEXT_PUBLIC_APP_URL`
+
+Catatan:
+- `FONNTE_TOKEN` bukan lagi sumber utama untuk flow tenant-aware. Token utama disimpan per channel di `whatsapp_channels.fonnte_device_token`.
+- Jika `AUTH_SECRET` tidak diisi, aplikasi akan fallback ke variabel lain yang kurang ideal. Untuk production, selalu isi `AUTH_SECRET`.
+
+## Jalankan Lokal
 
 ```bash
-cp .env.local .env.local.example
-```
-
-### Required Environment Variables:
-
-1. **SUPABASE_URL** - Your Supabase project URL
-   - Get from: Supabase Dashboard → Settings → API → Project URL
-
-2. **SUPABASE_SERVICE_ROLE_KEY** - Your Supabase service role key
-   - Get from: Supabase Dashboard → Settings → API → service_role key
-   - ⚠️ **Important**: Never commit this key to version control
-
-3. **FONNTE_TOKEN** - Your Fonnte WhatsApp API token
-   - Get from: Fonnte Dashboard → API Settings
-
-### Setup Steps:
-
-1. Create a new Supabase project at [supabase.com](https://supabase.com)
-2. Run the migrations in `supabase/migrations/` to set up your database
-3. Copy the environment variables to `.env.local`
-4. Start the development server: `npm run dev`
-
-## Getting Started
-
-First, run the development server:
-
-```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Lalu buka `http://localhost:3000`.
 
-## Learn More
+## Database dan Migration
 
-To learn more about Next.js, take a look at the following resources:
+Jalankan migration di folder `supabase/migrations/`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Migration yang penting untuk MVP tenant-aware saat ini:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `20260419103000_add_whatsapp_channels.sql`
+- `20260421110000_mvp_barbershop_foundation.sql`
+- `20260422103000_add_duration_to_bookings.sql`
 
-## Deploy on Vercel
+## Checklist Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Checklist deploy dan smoke test MVP ada di [docs/MVP_DEPLOY_CHECKLIST.md](/Users/robbi-kaspin/Documents/barber_booking/barber-booking/docs/MVP_DEPLOY_CHECKLIST.md:1).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## CI Migration
 
-## Supabase migrations
+Repo ini punya workflow `.github/workflows/supabase-db-push.yml` untuk mendorong migration ke Supabase.
 
-This repo now includes an incremental migration in `supabase/migrations/` and a GitHub Actions workflow in `.github/workflows/supabase-db-push.yml`.
-
-To enable automatic migration on every push to `main`, add these GitHub repository secrets:
+Secrets yang dibutuhkan:
 
 - `SUPABASE_ACCESS_TOKEN`
 - `SUPABASE_DB_PASSWORD`
 - `SUPABASE_PROJECT_REF`
-
-The workflow will:
-
-1. Install the Supabase CLI
-2. Link the repository to your Supabase project
-3. Run `supabase db push` so unapplied migrations are executed remotely
-
-The included migration for `dashboard_users` is idempotent, so it safely adds `no_hp` only if the column does not already exist.

@@ -128,9 +128,9 @@ export default function OnboardingClient() {
         {currentStep === "welcome" && (
           <div className="bg-white rounded-3xl p-8 shadow-lg">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-stone-900 mb-4">Selamat Datang di Booking Platform</h1>
+              <h1 className="text-3xl font-bold text-stone-900 mb-4">Selamat Datang di Setup MVP</h1>
               <p className="text-stone-600 leading-relaxed">
-                Platform booking universal untuk berbagai jenis bisnis. Kami akan membantu Anda setup dalam beberapa langkah sederhana.
+                Kita fokus ke MVP barbershop dulu: sambungkan nomor WhatsApp bisnis Anda, atur layanan, lalu mulai terima booking dengan alur yang rapi.
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -139,21 +139,21 @@ export default function OnboardingClient() {
                   <span className="text-amber-600 font-bold">1</span>
                 </div>
                 <h3 className="font-semibold text-stone-900 mb-2">Pilih Industri</h3>
-                <p className="text-sm text-stone-600">Tentukan jenis bisnis Anda</p>
+                <p className="text-sm text-stone-600">Barbershop jadi fokus utama MVP saat ini</p>
               </div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <span className="text-amber-600 font-bold">2</span>
                 </div>
                 <h3 className="font-semibold text-stone-900 mb-2">Info Bisnis</h3>
-                <p className="text-sm text-stone-600">Nama dan branding bisnis</p>
+                <p className="text-sm text-stone-600">Nama usaha dan jam operasional</p>
               </div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <span className="text-amber-600 font-bold">3</span>
                 </div>
                 <h3 className="font-semibold text-stone-900 mb-2">Layanan</h3>
-                <p className="text-sm text-stone-600">Konfigurasi layanan yang ditawarkan</p>
+                <p className="text-sm text-stone-600">Layanan dan durasi booking</p>
               </div>
             </div>
             <div className="text-center">
@@ -161,10 +161,10 @@ export default function OnboardingClient() {
                 onClick={handleNext}
                 className="px-8 py-4 bg-amber-500 text-white rounded-2xl font-semibold text-lg hover:bg-amber-600 transition shadow-lg hover:shadow-xl"
               >
-                🚀 Mulai Setup Bisnis
+                Mulai Setup Barbershop
               </button>
               <p className="text-sm text-stone-500 mt-4">
-                Setup hanya butuh 2-3 menit
+                Setup inti hanya butuh beberapa menit
               </p>
             </div>
           </div>
