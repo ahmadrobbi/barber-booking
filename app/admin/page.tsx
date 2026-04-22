@@ -34,8 +34,10 @@ export default async function AdminPage({
   const total = filteredBookings.length;
   const confirmed = filteredBookings.filter((booking) => booking.status === "confirmed").length;
   const pending = filteredBookings.filter((booking) => booking.status === "pending").length;
+  const completed = filteredBookings.filter((booking) => booking.status === "completed").length;
+  const cancelled = filteredBookings.filter((booking) => booking.status === "cancelled").length;
   const omzet = filteredBookings
-    .filter((booking) => booking.status === "confirmed")
+    .filter((booking) => booking.status === "confirmed" || booking.status === "completed")
     .reduce((sum, booking) => sum + (booking.harga ?? 0), 0);
 
   return (
@@ -58,7 +60,7 @@ export default async function AdminPage({
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <article className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
           <p className="text-sm text-stone-500">Total Booking Bulan Ini</p>
           <p className="mt-3 text-4xl font-semibold">{total}</p>
@@ -71,9 +73,16 @@ export default async function AdminPage({
           <p className="text-sm text-stone-500">Pending</p>
           <p className="mt-3 text-4xl font-semibold text-amber-600">{pending}</p>
         </article>
+        <article className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-stone-500">Completed</p>
+          <p className="mt-3 text-4xl font-semibold text-sky-600">{completed}</p>
+        </article>
         <article className="rounded-[1.75rem] border border-stone-200 bg-[#fff8ef] p-5 shadow-sm">
-          <p className="text-sm text-stone-500">Omzet Confirmed</p>
+          <p className="text-sm text-stone-500">Omzet Realized</p>
           <p className="mt-3 text-4xl font-semibold">{formatPrice(omzet)}</p>
+          <p className="mt-2 text-xs uppercase tracking-[0.18em] text-stone-400">
+            {cancelled} cancelled
+          </p>
         </article>
       </section>
 
@@ -104,11 +113,7 @@ export default async function AdminPage({
                       <p className="mt-1 text-sm text-stone-500">{item.sender ?? "-"}</p>
                     </div>
                     <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${
-                        item.status === "confirmed"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-amber-100 text-amber-700"
-                      }`}
+                      className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${getStatusBadgeClass(item.status)}`}
                     >
                       {item.status ?? "-"}
                     </span>
@@ -163,4 +168,18 @@ export default async function AdminPage({
       </section>
     </div>
   );
+}
+
+function getStatusBadgeClass(status: string | null) {
+  switch (status) {
+    case "confirmed":
+      return "bg-emerald-100 text-emerald-700";
+    case "completed":
+      return "bg-sky-100 text-sky-700";
+    case "cancelled":
+      return "bg-red-100 text-red-700";
+    case "pending":
+    default:
+      return "bg-amber-100 text-amber-700";
+  }
 }

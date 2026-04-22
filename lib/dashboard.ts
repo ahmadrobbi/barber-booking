@@ -7,7 +7,7 @@ export type BookingRow = {
   layanan: string | null;
   harga: number | null;
   jam: string | null;
-  status: string | null;
+  status: "pending" | "confirmed" | "completed" | "cancelled" | string | null;
   tanggal: string | null;
   user_id?: string;
 };

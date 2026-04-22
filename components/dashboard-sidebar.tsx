@@ -137,23 +137,6 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
               <span className="font-medium">Landing Page</span>
             </Link>
             <Link
-              href="/admin/bookings/assign"
-              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
-                pathname === "/admin/bookings/assign"
-                  ? "bg-amber-300 text-stone-950"
-                  : "text-white/75 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <span
-                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
-                  pathname === "/admin/bookings/assign" ? "bg-stone-950/10" : "bg-white/5"
-                }`}
-              >
-                AS
-              </span>
-              <span className="font-medium">Assign Booking</span>
-            </Link>
-            <Link
               href="/admin/settings/webhook"
               className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/settings/webhook"
@@ -169,6 +152,23 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
                 FN
               </span>
               <span className="font-medium">Webhook Fonnte</span>
+            </Link>
+            <Link
+              href="/admin/settings/services"
+              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+                pathname === "/admin/settings/services"
+                  ? "bg-amber-300 text-stone-950"
+                  : "text-white/75 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
+                  pathname === "/admin/settings/services" ? "bg-stone-950/10" : "bg-white/5"
+                }`}
+              >
+                SV
+              </span>
+              <span className="font-medium">Layanan</span>
             </Link>
           </nav>
         </div>

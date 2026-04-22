@@ -98,11 +98,7 @@ export function AdminBookingCalendar({
                           {booking.jam ?? "-"}
                         </p>
                         <span
-                          className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${
-                            booking.status === "confirmed"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-amber-100 text-amber-700"
-                          }`}
+                          className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${getStatusBadgeClass(booking.status)}`}
                         >
                           {booking.status ?? "-"}
                         </span>
@@ -165,11 +161,7 @@ export function AdminBookingCalendar({
                             {booking.jam ?? "-"}
                           </p>
                           <span
-                            className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${
-                              booking.status === "confirmed"
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-amber-100 text-amber-700"
-                            }`}
+                            className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${getStatusBadgeClass(booking.status)}`}
                           >
                             {booking.status ?? "-"}
                           </span>
@@ -188,4 +180,18 @@ export function AdminBookingCalendar({
       </div>
     </section>
   );
+}
+
+function getStatusBadgeClass(status: string | null) {
+  switch (status) {
+    case "confirmed":
+      return "bg-emerald-100 text-emerald-700";
+    case "completed":
+      return "bg-sky-100 text-sky-700";
+    case "cancelled":
+      return "bg-red-100 text-red-700";
+    case "pending":
+    default:
+      return "bg-amber-100 text-amber-700";
+  }
 }

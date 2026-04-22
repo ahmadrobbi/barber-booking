@@ -10,6 +10,9 @@ type LandingPageFormProps = {
 
 export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
   const [state, action] = useActionState(updateLandingPage, { message: "" });
+  const publicBookingPath = initialLandingPage?.subdomain
+    ? `/b/${initialLandingPage.subdomain}`
+    : "/b/namabisnis";
 
   return (
     <form action={action} className="space-y-6">
@@ -35,7 +38,7 @@ export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
               </span>
             </div>
             <p className="text-xs text-stone-500 mt-1">
-              URL landing page: https://namabisnis.antriflow.com
+              Public booking path: /b/namabisnis
             </p>
           </div>
 
@@ -109,14 +112,13 @@ export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
           <p className="text-sm text-stone-600 mb-2">URL Landing Page Anda:</p>
           <div className="flex items-center space-x-2">
             <span className="text-sm font-mono text-stone-900 bg-white px-3 py-1 rounded border">
-              https://{initialLandingPage?.subdomain || "namabisnis"}.antriflow.com
+              {publicBookingPath}
             </span>
             <button
               type="button"
               className="text-xs text-blue-600 hover:text-blue-500 underline"
               onClick={() => {
-                const url = `https://${initialLandingPage?.subdomain || "namabisnis"}.antriflow.com`;
-                navigator.clipboard.writeText(url);
+                navigator.clipboard.writeText(publicBookingPath);
               }}
             >
               Copy

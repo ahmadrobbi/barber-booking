@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { updateCurrentUser, createOrUpdateUserProfile } from "@/lib/user";
+import { normalizeBusinessHours, WEEKDAY_KEYS } from "@/lib/scheduling";
 
 function normalizeText(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";
@@ -24,6 +25,16 @@ export async function updateUserProfile(
   const logo_url = normalizeText(formData.get("logo_url"));
   const instagram = normalizeText(formData.get("instagram"));
   const facebook = normalizeText(formData.get("facebook"));
+  const businessHoursInput = Object.fromEntries(
+    WEEKDAY_KEYS.map((day) => [
+      day,
+      {
+        enabled: formData.get(`business_hours_${day}_enabled`) === "on",
+        open: normalizeText(formData.get(`business_hours_${day}_open`)) || "09:00",
+        close: normalizeText(formData.get(`business_hours_${day}_close`)) || "18:00",
+      },
+    ])
+  );
 
   // Validation
   if (!name || name.length < 2) {
@@ -55,12 +66,13 @@ export async function updateUserProfile(
     if (instagram) social_media.instagram = instagram;
     if (facebook) social_media.facebook = facebook;
 
-    const profileData: any = {
-      business_name: business_name || null,
-      business_description: business_description || null,
-      website_url: website_url || null,
-      logo_url: logo_url || null,
-      social_media: Object.keys(social_media).length > 0 ? social_media : null,
+    const profileData = {
+      business_name: business_name || undefined,
+      business_description: business_description || undefined,
+      website_url: website_url || undefined,
+      logo_url: logo_url || undefined,
+      social_media: Object.keys(social_media).length > 0 ? social_media : undefined,
+      business_hours: normalizeBusinessHours(businessHoursInput),
     };
 
     const updatedProfile = await createOrUpdateUserProfile(profileData);

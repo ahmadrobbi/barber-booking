@@ -57,7 +57,8 @@ export default async function WebhookSettingsPage() {
         <h1 className="mt-3 text-3xl font-semibold">Webhook Fonnte</h1>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-stone-600">
           Gunakan halaman ini untuk menghubungkan banyak device Fonnte ke akun user ini. Webhook tetap satu endpoint,
-          lalu sistem akan merutekan pesan berdasarkan `device` yang dikirim Fonnte.
+          lalu sistem akan merutekan pesan berdasarkan `device` yang dikirim Fonnte dan memverifikasi `webhook secret`
+          bila secret diisi pada channel.
         </p>
 
         <div className="mt-6 space-y-4">
@@ -273,13 +274,14 @@ export default async function WebhookSettingsPage() {
           <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Checklist</p>
           <div className="mt-5 space-y-4 text-sm leading-7 text-stone-700">
             <p>1. Tempel <strong>Webhook URL</strong> di dashboard Fonnte pada pengaturan callback/webhook.</p>
-            <p>2. Isi <strong>device number</strong> dan <strong>token</strong> untuk setiap nomor bot yang ingin dipakai user ini.</p>
-            <p>3. Jika domain berubah, halaman ini akan membantu kamu melihat endpoint baru yang harus dipasang ulang di Fonnte.</p>
-            <p>4. Endpoint reminder bisa dipakai untuk pengecekan manual bila kamu ingin menguji pengiriman pengingat di luar cron.</p>
+            <p>2. Isi <strong>device number</strong>, <strong>token</strong>, dan bila perlu <strong>webhook secret</strong> untuk setiap nomor bot yang ingin dipakai user ini.</p>
+            <p>3. Jika channel memiliki secret, kirim secret yang sama dari provider lewat header, query string, atau body webhook.</p>
+            <p>4. Jika domain berubah, halaman ini akan membantu kamu melihat endpoint baru yang harus dipasang ulang di Fonnte.</p>
+            <p>5. Endpoint reminder bisa dipakai untuk pengecekan manual bila kamu ingin menguji pengiriman pengingat di luar cron.</p>
           </div>
 
           <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            Status fallback token global saat render: <strong>{process.env.FONNTE_TOKEN ? "tersedia" : "belum terpasang"}</strong>
+            Status token global saat render: <strong>{process.env.FONNTE_TOKEN ? "tersedia" : "belum terpasang"}</strong>. Untuk flow tenant-aware, balasan chat dan reminder sekarang mengandalkan token per channel.
           </div>
         </section>
 
@@ -292,7 +294,7 @@ export default async function WebhookSettingsPage() {
             <strong> {"{{date_options}}"}</strong>, <strong>{"{{tanggal_label}}"}</strong>,
             <strong> {"{{slot_options}}"}</strong>, <strong>{"{{jam}}"}</strong>,
             <strong> {"{{harga}}"}</strong>, dan <strong>{"{{confirmation_summary}}"}</strong>.
-            Template ini sekarang berfungsi sebagai fallback global jika channel tidak punya override sendiri.
+            Template ini sekarang berfungsi sebagai fallback konten, bukan fallback routing channel.
           </p>
 
           <form action={saveChatbotTemplates} className="mt-6 space-y-4">

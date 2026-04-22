@@ -10,7 +10,9 @@ import {
   renderTemplate,
 } from "@/lib/chatbot";
 import { INDUSTRIES, type IndustryKey, getAvailableIndustries } from "@/lib/industries";
-import { getServicesForIndustry, getSlotsForIndustry } from "@/lib/bookings";
+import { isBookingSlotConflict } from "@/lib/booking-conflicts";
+import { getServicesForUser } from "@/lib/bookings";
+import { getAvailableSlotsForDate, isSlotAvailable } from "@/lib/scheduling";
 import { createAdminSupabase } from "@/lib/supabase";
 import {
   resolveWhatsappRuntimeContext,
@@ -39,44 +41,26 @@ type ParsedWebhookPayload = {
   incomingMessage: string;
   sender: string;
   device: string | null;
+  webhookSecret: string | null;
 };
 
 function getSupabase() {
   return createAdminSupabase();
 }
 
-function buildScopedBookingQuery(scope: BookingScope) {
-  const query = getSupabase().from("bookings").select("id, jam");
-
-  if (scope.userId) {
-    return query.eq("user_id", scope.userId);
-  }
-
-  if (scope.channelId) {
-    return query.eq("channel_id", scope.channelId);
-  }
-
-  return query.is("user_id", null).is("channel_id", null);
-}
-
-async function isSlotTaken(tanggal: string, jam: string, scope: BookingScope) {
-  const { data } = await buildScopedBookingQuery(scope)
-    .eq("tanggal", tanggal)
-    .eq("jam", jam);
-
-  return Boolean(data && data.length > 0);
-}
-
 async function getAvailableSlots(
   tanggal: string,
   industry: IndustryKey,
-  scope: BookingScope
+  scope: BookingScope,
+  durationMinutes: number
 ) {
-  const { data } = await buildScopedBookingQuery(scope).eq("tanggal", tanggal);
-
-  const booked = data?.map((item) => item.jam) || [];
-  const allSlots = getSlotsForIndustry(industry);
-  return allSlots.filter((jam) => !booked.includes(jam));
+  return getAvailableSlotsForDate({
+    date: tanggal,
+    industry,
+    durationMinutes,
+    userId: scope.userId,
+    channelId: scope.channelId,
+  });
 }
 
 function getIndustryOptionsText() {
@@ -165,12 +149,21 @@ async function clearState(sender: string, channelId: string | null) {
 }
 
 async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> {
+  const url = new URL(req.url);
+
   try {
     const body = await req.json();
     return {
       incomingMessage: body.message?.text || body.message || body.text || "",
       sender: body.sender || body.from || "",
       device: body.device || body.number || body.device_number || null,
+      webhookSecret:
+        body.webhook_secret ||
+        body.secret ||
+        req.headers.get("x-webhook-secret") ||
+        req.headers.get("x-fonnte-secret") ||
+        url.searchParams.get("secret") ||
+        null,
     };
   } catch {
     const text = await req.text();
@@ -179,8 +172,25 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
       incomingMessage: params.get("message") || params.get("text") || "",
       sender: params.get("sender") || params.get("from") || "",
       device: params.get("device") || params.get("number") || params.get("device_number"),
+      webhookSecret:
+        params.get("webhook_secret") ||
+        params.get("secret") ||
+        req.headers.get("x-webhook-secret") ||
+        req.headers.get("x-fonnte-secret") ||
+        url.searchParams.get("secret") ||
+        null,
     };
   }
+}
+
+function isValidWebhookSecret(context: WhatsappRuntimeContext, providedSecret: string | null) {
+  const expectedSecret = context.channel?.webhook_secret?.trim();
+
+  if (!expectedSecret) {
+    return true;
+  }
+
+  return expectedSecret === (providedSecret?.trim() ?? "");
 }
 
 function getRuntimeScope(context: WhatsappRuntimeContext): BookingScope {
@@ -191,19 +201,27 @@ function getRuntimeScope(context: WhatsappRuntimeContext): BookingScope {
 }
 
 export async function POST(req: Request) {
-  const { incomingMessage, sender, device } = await parseWebhookPayload(req);
+  const { incomingMessage, sender, device, webhookSecret } = await parseWebhookPayload(req);
   const context = await resolveWhatsappRuntimeContext(device);
+
+  if (!device) {
+    return Response.json({ status: "missing device" }, { status: 400 });
+  }
+
+  if (!context.channel) {
+    return Response.json({ status: "unknown device" }, { status: 404 });
+  }
 
   if (!sender) {
     return Response.json({ status: "no sender" });
   }
 
-  if (!context.token) {
-    return Response.json({ status: "missing token" }, { status: 500 });
+  if (!isValidWebhookSecret(context, webhookSecret)) {
+    return Response.json({ status: "invalid secret" }, { status: 403 });
   }
 
-  if (device && !context.channel && !process.env.FONNTE_TOKEN) {
-    return Response.json({ status: "unknown device" }, { status: 404 });
+  if (!context.token) {
+    return Response.json({ status: "missing token" }, { status: 500 });
   }
 
   const message = incomingMessage.toLowerCase().trim();
@@ -214,9 +232,12 @@ export async function POST(req: Request) {
     ...INDUSTRIES[industry].templates,
     ...(context.channel?.template_overrides ?? {}),
   };
+  const tenantServices = await getServicesForUser(context.userId, industry);
   const today = getTodayInJakarta();
   const industryPrompt = getIndustryOptionsText();
   const scope = getRuntimeScope(context);
+  const getServiceDuration = (serviceName: string | null | undefined) =>
+    tenantServices.find((service) => service.name === serviceName)?.duration_minutes ?? 60;
   let reply = "";
 
   if (message === "halo" || message === "menu" || message === "booking") {
@@ -233,7 +254,7 @@ export async function POST(req: Request) {
     });
 
     reply = renderTemplate(templates.greeting, {
-      service_list: getServiceOptionsText(getServicesForIndustry(industry)),
+      service_list: getServiceOptionsText(tenantServices),
     });
   } else if (
     ["industri", "pilih industri", "ganti industri", "ubah industri"].includes(message)
@@ -272,13 +293,15 @@ export async function POST(req: Request) {
       });
 
       reply = renderTemplate(selectedTemplates.greeting, {
-        service_list: getServiceOptionsText(getServicesForIndustry(selectedIndustry)),
+        service_list: getServiceOptionsText(
+          await getServicesForUser(context.userId, selectedIndustry)
+        ),
       });
     }
   } else if (!state) {
     reply = "Ketik *halo* untuk mulai booking ✂️";
   } else if (state.step === "pilih_layanan") {
-    const industryServices = getServicesForIndustry(industry);
+    const industryServices = tenantServices;
     const service = getServiceBySelection(message, industryServices);
 
     if (!service) {
@@ -305,7 +328,12 @@ export async function POST(req: Request) {
     if (!selectedDate) {
       reply = `${templates.invalidOptionMessage}\n\n${getDateOptionsText(today)}`;
     } else {
-      const slots = await getAvailableSlots(selectedDate.key, industry, scope);
+      const slots = await getAvailableSlots(
+        selectedDate.key,
+        industry,
+        scope,
+        getServiceDuration(state?.layanan)
+      );
 
       if (slots.length === 0) {
         reply =
@@ -333,15 +361,25 @@ export async function POST(req: Request) {
       await clearState(sender, context.channelId);
       reply = "Sesi booking kamu sudah kedaluwarsa. Ketik *halo* untuk mulai lagi.";
     } else {
-      const slots = await getAvailableSlots(state.tanggal, industry, scope);
+      const durationMinutes = getServiceDuration(state.layanan);
+      const slots = await getAvailableSlots(state.tanggal, industry, scope, durationMinutes);
       const selectedSlot = getSlotBySelection(message, slots);
 
       if (!selectedSlot) {
         reply = `${templates.invalidOptionMessage}\n\n${getSlotOptionsText(slots)}`;
-      } else if (await isSlotTaken(state.tanggal, selectedSlot, scope)) {
+      } else if (!(await isSlotAvailable({
+        date: state.tanggal,
+        time: selectedSlot,
+        industry,
+        durationMinutes,
+        userId: scope.userId,
+        channelId: scope.channelId,
+      }))) {
         reply =
           "Jam tersebut baru saja terisi. Pilih jam lain ya 🙏\n\n" +
-          getSlotOptionsText(await getAvailableSlots(state.tanggal, industry, scope));
+          getSlotOptionsText(
+            await getAvailableSlots(state.tanggal, industry, scope, durationMinutes)
+          );
       } else {
         const confirmationSummary = renderTemplate(templates.confirmationPrompt, {
           layanan: state.layanan,
@@ -370,22 +408,54 @@ export async function POST(req: Request) {
       if (!state.tanggal || !state.jam) {
         await clearState(sender, context.channelId);
         reply = "Sesi booking kamu sudah kedaluwarsa. Ketik *halo* untuk mulai lagi.";
-      } else if (await isSlotTaken(state.tanggal, state.jam, scope)) {
+      } else if (!(await isSlotAvailable({
+        date: state.tanggal,
+        time: state.jam,
+        industry,
+        durationMinutes: getServiceDuration(state.layanan),
+        userId: scope.userId,
+        channelId: scope.channelId,
+      }))) {
         reply = "❌ Slot sudah diambil pelanggan lain. Ketik *halo* untuk mulai pilih ulang ya.";
       } else {
-        await getSupabase().from("bookings").insert([
+        const durationMinutes = getServiceDuration(state.layanan);
+        const { error: bookingInsertError } = await getSupabase().from("bookings").insert([
           {
             sender,
             layanan: state.layanan,
             harga: state.harga,
             tanggal: state.tanggal,
             jam: state.jam,
+            duration_minutes: durationMinutes,
             status: "confirmed",
             industry,
             user_id: context.userId,
             channel_id: context.channelId,
           },
         ]);
+
+        if (bookingInsertError) {
+          if (isBookingSlotConflict(bookingInsertError)) {
+            reply = "❌ Slot baru saja diambil pelanggan lain. Ketik *halo* untuk mulai pilih ulang ya.";
+          } else {
+            console.error("Failed to create WhatsApp booking:", bookingInsertError);
+            reply = "Maaf, booking belum berhasil diproses. Ketik *halo* untuk coba lagi ya.";
+          }
+
+          await clearState(sender, context.channelId);
+          await sendWhatsappMessage({
+            target: sender,
+            message: reply,
+            token: context.token,
+          });
+
+          return Response.json({
+            status: "booking_failed",
+            channelId: context.channelId,
+            userId: context.userId,
+            legacy: false,
+          }, { status: 409 });
+        }
 
         await clearState(sender, context.channelId);
 
@@ -417,6 +487,6 @@ export async function POST(req: Request) {
     status: "ok",
     channelId: context.channelId,
     userId: context.userId,
-    legacy: context.isLegacyFallback,
+    legacy: false,
   });
 }

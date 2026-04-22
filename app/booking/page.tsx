@@ -1,54 +1,26 @@
 import Link from "next/link";
-import { PublicBookingForm } from "@/components/public-booking-form";
-import { getIndustryConfig, getBusinessName } from "@/lib/industry-config";
-import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
 
-type BookingPageProps = {
-  searchParams?: {
-    industry?: string;
-  };
-};
-
-export default async function BookingPage({ searchParams }: BookingPageProps) {
-  const config = await getIndustryConfig();
-  const requestedIndustry = searchParams?.industry;
-  const industry =
-    requestedIndustry && Object.prototype.hasOwnProperty.call(INDUSTRIES, requestedIndustry)
-      ? (requestedIndustry as IndustryKey)
-      : config.default;
-  const industryData = INDUSTRIES[industry];
-  const businessName = await getBusinessName();
-
+export default function BookingPage() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.12),_transparent_25%),linear-gradient(180deg,_#111111,_#1c1917)] px-6 py-10 text-white">
-      <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.95fr_1.05fr]">
-        <section className="flex flex-col justify-center">
-          <Link href="/" className="w-fit text-sm uppercase tracking-[0.28em] text-amber-300/80">
-            {businessName}
-          </Link>
-          <h1 className="mt-6 max-w-xl text-4xl font-bold leading-tight md:text-6xl">
-            Booking {businessName} secara langsung tanpa perlu buat akun.
-          </h1>
-          <p className="mt-5 max-w-lg text-base leading-7 text-white/70">
-            Pelanggan cukup isi nomor WhatsApp, pilih layanan, tanggal, dan jam untuk {businessName.toLowerCase()}. Pesanan akan langsung masuk ke dashboard admin.
-          </p>
-          <div className="mt-8 space-y-4 rounded-[2rem] border border-white/10 bg-white/5 p-6 text-sm leading-7 text-white/70">
-            <p>Slot yang dipilih akan dicek dulu agar tidak bentrok dengan booking lain.</p>
-            <p>Status awal pesanan adalah <strong className="text-amber-200">pending</strong> supaya admin bisa memproses dengan rapi.</p>
-            <p>Untuk akses dashboard owner, gunakan halaman login admin.</p>
-          </div>
-        </section>
-
-        <section className="rounded-[2rem] border border-white/10 bg-white p-8 text-stone-900 shadow-2xl shadow-black/20">
-          <p className="text-sm uppercase tracking-[0.2em] text-amber-600">Public Booking</p>
-          <h2 className="mt-3 text-3xl font-semibold">Form Pesanan</h2>
-          <p className="mt-2 text-sm text-stone-500">
-            Booking tanpa akun, cepat untuk pelanggan, tetap mudah dipantau owner.
-          </p>
-          <div className="mt-8">
-            <PublicBookingForm />
-          </div>
-        </section>
+      <div className="mx-auto max-w-3xl rounded-[2rem] border border-white/10 bg-white/5 p-8 text-center shadow-2xl shadow-black/20">
+        <p className="text-sm uppercase tracking-[0.28em] text-amber-300/80">Public Booking</p>
+        <h1 className="mt-6 text-4xl font-bold leading-tight md:text-5xl">
+          Halaman booking umum sudah dipindahkan ke link bisnis masing-masing.
+        </h1>
+        <p className="mt-5 text-base leading-7 text-white/70">
+          Sekarang setiap bisnis memiliki halaman booking tenant-aware sendiri, misalnya <span className="font-mono text-amber-200">/b/namabisnis</span>, supaya slot, dashboard, dan nomor WhatsApp bot tidak tercampur dengan tenant lain.
+        </p>
+        <div className="mt-8 rounded-[1.5rem] border border-white/10 bg-black/20 p-5 text-left text-sm leading-7 text-white/75">
+          <p>Jika Anda owner bisnis, buka dashboard lalu atur slug landing page di menu pengaturan landing page.</p>
+          <p>Jika Anda pelanggan, minta link booking resmi langsung dari bisnis yang ingin Anda booking.</p>
+        </div>
+        <Link
+          href="/"
+          className="mt-8 inline-flex rounded-2xl bg-amber-400 px-5 py-3 font-semibold text-stone-950 transition hover:bg-amber-300"
+        >
+          Kembali ke halaman utama
+        </Link>
       </div>
     </main>
   );

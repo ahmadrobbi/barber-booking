@@ -89,6 +89,7 @@ export async function registerUser(
         name,
         email,
         no_hp,
+        industry,
         password_hash,
         role: "admin",
         created_at: new Date().toISOString(),

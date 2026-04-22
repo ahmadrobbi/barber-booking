@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { updateUserProfile } from "@/app/actions/user-profile";
 import type { UserProfile } from "@/lib/user";
+import { normalizeBusinessHours, WEEKDAY_KEYS } from "@/lib/scheduling";
 
 type User = {
   id: string;
@@ -20,6 +21,7 @@ type UserProfileFormProps = {
 
 export function UserProfileForm({ user, initialProfile }: UserProfileFormProps) {
   const [state, action] = useActionState(updateUserProfile, { message: "" });
+  const businessHours = normalizeBusinessHours(initialProfile?.business_hours);
 
   return (
     <form action={action} className="space-y-6">
@@ -164,6 +166,61 @@ export function UserProfileForm({ user, initialProfile }: UserProfileFormProps) 
               className="w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-amber-300 focus:bg-white"
             />
           </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-semibold text-stone-900 mb-4">Jam Operasional</h3>
+        <div className="space-y-3">
+          {WEEKDAY_KEYS.map((day) => {
+            const labelMap: Record<string, string> = {
+              monday: "Senin",
+              tuesday: "Selasa",
+              wednesday: "Rabu",
+              thursday: "Kamis",
+              friday: "Jumat",
+              saturday: "Sabtu",
+              sunday: "Minggu",
+            };
+            const value = businessHours[day];
+
+            return (
+              <div
+                key={day}
+                className="grid gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 md:grid-cols-[1.2fr_0.8fr_0.8fr]"
+              >
+                <label className="flex items-center gap-3 text-sm font-medium text-stone-800">
+                  <input
+                    type="checkbox"
+                    name={`business_hours_${day}_enabled`}
+                    defaultChecked={value.enabled}
+                    className="h-4 w-4 rounded border-stone-300 text-amber-500 focus:ring-amber-400"
+                  />
+                  {labelMap[day]}
+                </label>
+
+                <label className="block text-sm font-medium text-stone-700">
+                  Buka
+                  <input
+                    type="time"
+                    name={`business_hours_${day}_open`}
+                    defaultValue={value.open}
+                    className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-stone-900 outline-none transition focus:border-amber-300 focus:bg-white"
+                  />
+                </label>
+
+                <label className="block text-sm font-medium text-stone-700">
+                  Tutup
+                  <input
+                    type="time"
+                    name={`business_hours_${day}_close`}
+                    defaultValue={value.close}
+                    className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-stone-900 outline-none transition focus:border-amber-300 focus:bg-white"
+                  />
+                </label>
+              </div>
+            );
+          })}
         </div>
       </div>
 

@@ -1,24 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createPublicBooking } from "@/app/actions/public-booking";
 import { initialBookingFormState } from "@/lib/booking-form-state";
-import { getAvailableIndustries } from "@/lib/industries";
-import {
-  getServicesForIndustry,
-  getSlotsForIndustry,
-  type IndustryKey,
-} from "@/lib/bookings";
+import type { IndustryKey } from "@/lib/bookings";
+import type { TenantService } from "@/lib/tenant-context";
 
-function SubmitButton() {
+type PublicBookingFormProps = {
+  slug: string;
+  industry: IndustryKey;
+  services: TenantService[];
+  hasActiveChannel: boolean;
+};
+
+function SubmitButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
+  const isDisabled = pending || disabled;
 
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={isDisabled}
       className="w-full rounded-2xl bg-amber-400 px-4 py-3 font-semibold text-stone-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-70"
     >
       {pending ? "Mengirim booking..." : "Kirim Booking"}
@@ -26,50 +29,70 @@ function SubmitButton() {
   );
 }
 
-export function PublicBookingForm() {
+export function PublicBookingForm({
+  slug,
+  industry,
+  services,
+  hasActiveChannel,
+}: PublicBookingFormProps) {
   const [state, formAction] = useActionState(createPublicBooking, initialBookingFormState);
-  const industries = getAvailableIndustries();
-  const [selectedIndustry, setSelectedIndustry] = useState<IndustryKey>("barbershop");
-  const [serviceCode, setServiceCode] = useState("");
+  const [serviceCode, setServiceCode] = useState(services[0]?.code ?? "");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [slot, setSlot] = useState("");
-
-  const availableServices = getServicesForIndustry(selectedIndustry);
-  const availableSlots = getSlotsForIndustry(selectedIndustry);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const hasServices = services.length > 0;
+  const isReady = hasActiveChannel && hasServices;
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const industryParam = params.get("industry");
+    let ignore = false;
 
-    if (industryParam && industries.some((industry) => industry.key === industryParam)) {
-      setSelectedIndustry(industryParam as IndustryKey);
+    async function loadSlots() {
+      if (!isReady || !selectedDate || !serviceCode) {
+        setAvailableSlots([]);
+        setSlot("");
+        return;
+      }
+
+      setLoadingSlots(true);
+
+      try {
+        const params = new URLSearchParams({
+          slug,
+          date: selectedDate,
+          service: serviceCode,
+        });
+        const response = await fetch(`/api/public-booking/slots?${params.toString()}`);
+        const payload = (await response.json()) as { slots?: string[] };
+
+        if (!ignore) {
+          const nextSlots = payload.slots ?? [];
+          setAvailableSlots(nextSlots);
+          setSlot(nextSlots[0] ?? "");
+        }
+      } catch {
+        if (!ignore) {
+          setAvailableSlots([]);
+          setSlot("");
+        }
+      } finally {
+        if (!ignore) {
+          setLoadingSlots(false);
+        }
+      }
     }
-  }, [industries]);
 
-  useEffect(() => {
-    setServiceCode(availableServices[0]?.code ?? "");
-    setSlot(availableSlots[0] ?? "");
-  }, [selectedIndustry]);
+    void loadSlots();
+
+    return () => {
+      ignore = true;
+    };
+  }, [isReady, selectedDate, serviceCode, slug]);
 
   return (
     <form action={formAction} className="space-y-5">
-      <div>
-        <label htmlFor="industry" className="mb-2 block text-sm font-medium text-stone-700">
-          Pilih Industri
-        </label>
-        <select
-          id="industry"
-          name="industry"
-          value={selectedIndustry}
-          onChange={(event) => setSelectedIndustry(event.target.value as IndustryKey)}
-          className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-stone-900 outline-none transition focus:border-amber-400"
-        >
-          {industries.map((industry) => (
-            <option key={industry.key} value={industry.key}>
-              {industry.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <input type="hidden" name="slug" value={slug} />
+      <input type="hidden" name="industry" value={industry} />
 
       <div>
         <label htmlFor="no_hp" className="mb-2 block text-sm font-medium text-stone-700">
@@ -83,6 +106,7 @@ export function PublicBookingForm() {
           maxLength={20}
           placeholder="Contoh: 081234567890"
           className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-stone-900 outline-none transition focus:border-amber-400"
+          disabled={!isReady}
           required
         />
       </div>
@@ -97,8 +121,9 @@ export function PublicBookingForm() {
           value={serviceCode}
           onChange={(event) => setServiceCode(event.target.value)}
           className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-stone-900 outline-none transition focus:border-amber-400"
+          disabled={!isReady}
         >
-          {availableServices.map((service) => (
+          {services.map((service) => (
             <option key={service.code} value={service.code}>
               {service.name} - Rp{service.price.toLocaleString("id-ID")}
             </option>
@@ -115,7 +140,10 @@ export function PublicBookingForm() {
             id="tanggal"
             name="tanggal"
             type="date"
+            value={selectedDate}
+            onChange={(event) => setSelectedDate(event.target.value)}
             className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-stone-900 outline-none transition focus:border-amber-400"
+            disabled={!isReady}
             required
           />
         </div>
@@ -130,7 +158,18 @@ export function PublicBookingForm() {
             value={slot}
             onChange={(event) => setSlot(event.target.value)}
             className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-stone-900 outline-none transition focus:border-amber-400"
+            disabled={!isReady || loadingSlots || availableSlots.length === 0}
+            required
           >
+            {availableSlots.length === 0 ? (
+              <option value="">
+                {selectedDate
+                  ? loadingSlots
+                    ? "Memuat slot..."
+                    : "Tidak ada slot tersedia"
+                  : "Pilih tanggal dulu"}
+              </option>
+            ) : null}
             {availableSlots.map((slotOption) => (
               <option key={slotOption} value={slotOption}>
                 {slotOption}
@@ -141,7 +180,11 @@ export function PublicBookingForm() {
       </div>
 
       <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm leading-6 text-stone-600">
-        Booking publik akan masuk dengan status <strong>pending</strong>. Admin akan memantau transaksi dari dashboard owner.
+        {isReady ? (
+          <>Booking publik akan masuk langsung ke dashboard bisnis ini dengan status <strong>pending</strong>.</>
+        ) : (
+          <>Booking belum bisa diproses karena bisnis ini belum memiliki channel WhatsApp aktif atau layanan yang bisa dipilih.</>
+        )}
       </div>
 
       {state.message ? (
@@ -156,7 +199,7 @@ export function PublicBookingForm() {
         </p>
       ) : null}
 
-      <SubmitButton />
+      <SubmitButton disabled={!isReady} />
     </form>
   );
 }

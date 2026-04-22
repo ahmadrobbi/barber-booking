@@ -1,10 +1,14 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createOrUpdateUserLandingPage } from "@/lib/user";
+import { createOrUpdateUserLandingPage, type UserLandingPage } from "@/lib/user";
 
 function normalizeText(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeSlug(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9-]/g, "");
 }
 
 function formatError(message: string) {
@@ -15,8 +19,8 @@ export async function updateLandingPage(
   _prevState: { message: string } | void,
   formData: FormData
 ) {
-  const subdomain = normalizeText(formData.get("subdomain"));
-  const custom_domain = normalizeText(formData.get("custom_domain"));
+  const subdomain = normalizeSlug(normalizeText(formData.get("subdomain")));
+  const custom_domain = normalizeText(formData.get("custom_domain")).toLowerCase();
   const template = normalizeText(formData.get("template")) || "default";
   const is_active = formData.get("is_active") === "on";
 
@@ -34,9 +38,9 @@ export async function updateLandingPage(
   }
 
   try {
-    const landingPageData: any = {
-      subdomain: subdomain || null,
-      custom_domain: custom_domain || null,
+    const landingPageData: Partial<UserLandingPage> = {
+      subdomain: subdomain || undefined,
+      custom_domain: custom_domain || undefined,
       template,
       is_active,
     };

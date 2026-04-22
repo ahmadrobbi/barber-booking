@@ -40,7 +40,7 @@ export async function GET() {
             return {
               id: item.id,
               status: "skipped",
-              reason: "missing sender or token",
+              reason: "missing sender, channel, or token",
             };
           }
 

@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/auth";
 import { createAdminSupabase } from "@/lib/supabase";
 
 function normalizeText(value: FormDataEntryValue | null) {
@@ -15,6 +16,8 @@ export async function assignBookingsToUser(
   _prevState: { message: string } | void,
   formData: FormData
 ) {
+  await requireAdmin();
+
   const userEmail = normalizeText(formData.get("user_email"));
   const bookingIds = formData.getAll("booking_ids");
 

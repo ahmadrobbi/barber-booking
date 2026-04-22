@@ -65,6 +65,12 @@ export default async function AdminBookingsPage({
           <span className="rounded-full bg-emerald-100 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
             {filteredBookings.filter((item) => item.status === "confirmed").length} confirmed
           </span>
+          <span className="rounded-full bg-sky-100 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
+            {filteredBookings.filter((item) => item.status === "completed").length} completed
+          </span>
+          <span className="rounded-full bg-red-100 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-red-700">
+            {filteredBookings.filter((item) => item.status === "cancelled").length} cancelled
+          </span>
         </div>
 
         <div className="mt-6 overflow-hidden rounded-[1.5rem] border border-stone-200">

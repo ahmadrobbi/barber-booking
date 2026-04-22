@@ -1,5 +1,5 @@
 import { createAdminSupabase } from "@/lib/supabase";
-import { ALL_BOOKING_SLOTS, BOOKING_SERVICES } from "@/lib/bookings";
+import { ALL_BOOKING_SLOTS, BOOKING_SERVICES, type BookingService } from "@/lib/bookings";
 
 export const CHATBOT_TEMPLATE_KEY = "chatbot_templates";
 
@@ -123,7 +123,7 @@ export function getDateOptionsText(baseDate = new Date()) {
     .join("\n");
 }
 
-export function getServiceOptionsText(services = BOOKING_SERVICES) {
+export function getServiceOptionsText(services: readonly BookingService[] = BOOKING_SERVICES) {
   return services
     .map(
       (service, index) =>
@@ -132,7 +132,10 @@ export function getServiceOptionsText(services = BOOKING_SERVICES) {
     .join("\n\n");
 }
 
-export function getServiceBySelection(message: string, services = BOOKING_SERVICES) {
+export function getServiceBySelection(
+  message: string,
+  services: readonly BookingService[] = BOOKING_SERVICES
+) {
   const cleaned = message.trim().toLowerCase();
   const selectedIndex = Number(cleaned);
 

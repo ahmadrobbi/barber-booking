@@ -1,11 +1,11 @@
 "use server";
 
 import type { BookingFormState } from "@/lib/booking-form-state";
-import { INDUSTRIES } from "@/lib/industries";
-import { getBookingService, getSlotsForIndustry, type IndustryKey } from "@/lib/bookings";
-import { isIndustryEnabled } from "@/lib/industry-config";
+import { isBookingSlotConflict } from "@/lib/booking-conflicts";
+import { isSlotAvailable } from "@/lib/scheduling";
 import { createAdminSupabase } from "@/lib/supabase";
 import { createTransaction } from "@/lib/transactions";
+import { getPublicTenantContextBySlug } from "@/lib/tenant-context";
 
 function normalizeText(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";
@@ -30,30 +30,26 @@ function isValidPhoneNumber(value: string) {
   return /^[+]?\d{10,20}$/.test(value);
 }
 
-function getIndustryFromFormData(formData: FormData): IndustryKey {
-  const industryValue = normalizeText(formData.get("industry")).toLowerCase();
-  return Object.keys(INDUSTRIES).includes(industryValue)
-    ? (industryValue as IndustryKey)
-    : "barbershop";
-}
-
 export async function createPublicBooking(
   _prevState: BookingFormState | void,
   formData: FormData
 ) {
-  const industry = getIndustryFromFormData(formData);
-  // Validate industry is enabled
-  const isEnabled = await isIndustryEnabled(industry);
-  if (!isEnabled) {
-    return formatBookingError("Industri booking tidak tersedia.");
-  }
-
+  const slug = normalizeText(formData.get("slug"));
+  const tenant = await getPublicTenantContextBySlug(slug);
   const phoneNumber = normalizePhoneNumber(normalizeText(formData.get("no_hp")));
   const serviceCode = normalizeText(formData.get("service"));
   const tanggal = normalizeText(formData.get("tanggal"));
   const jam = normalizeText(formData.get("jam"));
-  const service = getBookingService(serviceCode, industry);
-  const availableSlots = getSlotsForIndustry(industry);
+
+  if (!tenant) {
+    return formatBookingError("Halaman booking bisnis tidak ditemukan atau sudah tidak aktif.");
+  }
+
+  if (!tenant.channelId) {
+    return formatBookingError("Bisnis ini belum menghubungkan nomor WhatsApp bot yang aktif.");
+  }
+
+  const service = tenant.services.find((item) => item.code === serviceCode) ?? null;
 
   if (!isValidPhoneNumber(phoneNumber)) {
     return formatBookingError("Nomor WhatsApp harus 10-20 digit angka.");
@@ -67,7 +63,16 @@ export async function createPublicBooking(
     return formatBookingError("Tanggal booking belum valid.");
   }
 
-  if (!availableSlots.includes(jam as (typeof availableSlots)[number])) {
+  const slotStillAvailable = await isSlotAvailable({
+    date: tanggal,
+    time: jam,
+    industry: tenant.industry,
+    durationMinutes: service.duration_minutes,
+    userId: tenant.userId,
+    channelId: tenant.channelId,
+  });
+
+  if (!slotStillAvailable) {
     return formatBookingError("Pilih jam booking yang tersedia.");
   }
 
@@ -76,8 +81,11 @@ export async function createPublicBooking(
   const { data: existingBooking, error: bookingError } = await supabase
     .from("bookings")
     .select("id")
+    .eq("user_id", tenant.userId)
     .eq("tanggal", tanggal)
     .eq("jam", jam)
+    .in("status", ["pending", "confirmed"])
+    .limit(1)
     .maybeSingle();
 
   if (bookingError && bookingError.code !== "PGRST116") {
@@ -96,19 +104,26 @@ export async function createPublicBooking(
       harga: service.price,
       tanggal,
       jam,
+      duration_minutes: service.duration_minutes,
       status: "pending",
-      industry,
-      user_id: null, // Public booking, will be assigned later via admin
+      industry: tenant.industry,
+      user_id: tenant.userId,
+      channel_id: tenant.channelId,
+      source: "public_form",
     })
     .select("id")
     .single();
 
   if (insertError || !bookingRecord) {
+    if (isBookingSlotConflict(insertError)) {
+      return formatBookingError("Slot tersebut baru saja terisi. Silakan pilih jam lain.");
+    }
+
     return formatBookingError(insertError?.message || "Gagal membuat booking.");
   }
 
   const transaction = await createTransaction({
-    user_id: null,
+    user_id: tenant.userId,
     type: "payment",
     amount: service.price,
     currency: "IDR",
@@ -118,8 +133,10 @@ export async function createPublicBooking(
     reference_id: `booking-${bookingRecord.id}`,
     metadata: {
       booking_id: bookingRecord.id,
-      industry,
+      slug: tenant.slug,
+      industry: tenant.industry,
       sender: phoneNumber,
+      channel_id: tenant.channelId,
     },
   });
 

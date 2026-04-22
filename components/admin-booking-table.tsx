@@ -1,6 +1,10 @@
-import { confirmPendingBooking } from "@/app/actions/admin-booking";
+import {
+  cancelBooking,
+  completeBooking,
+  confirmPendingBooking,
+} from "@/app/actions/admin-booking";
 import { BookingRow, formatBookingDate, formatPrice } from "@/lib/dashboard";
-import { ConfirmBookingButton } from "@/components/confirm-booking-button";
+import { BookingActionButton } from "@/components/booking-action-button";
 
 type AdminBookingTableProps = {
   bookings: readonly BookingRow[];
@@ -41,20 +45,46 @@ export function AdminBookingTable({ bookings }: AdminBookingTableProps) {
               <td className="px-5 py-4 text-stone-700">{formatPrice(item.harga)}</td>
               <td className="px-5 py-4">
                 <span
-                  className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${
-                    item.status === "confirmed"
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-amber-100 text-amber-700"
-                  }`}
+                  className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${getStatusBadgeClass(item.status)}`}
                 >
                   {item.status ?? "-"}
                 </span>
               </td>
               <td className="px-5 py-4 text-right">
                 {item.status === "pending" ? (
-                  <form action={confirmPendingBooking.bind(null, item.id)}>
-                    <ConfirmBookingButton />
-                  </form>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <form action={confirmPendingBooking.bind(null, item.id)}>
+                      <BookingActionButton
+                        idleLabel="Konfirmasi"
+                        pendingLabel="Memproses..."
+                        tone="success"
+                      />
+                    </form>
+                    <form action={cancelBooking.bind(null, item.id)}>
+                      <BookingActionButton
+                        idleLabel="Batalkan"
+                        pendingLabel="Membatalkan..."
+                        tone="danger"
+                      />
+                    </form>
+                  </div>
+                ) : item.status === "confirmed" ? (
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <form action={completeBooking.bind(null, item.id)}>
+                      <BookingActionButton
+                        idleLabel="Selesai"
+                        pendingLabel="Menyimpan..."
+                        tone="neutral"
+                      />
+                    </form>
+                    <form action={cancelBooking.bind(null, item.id)}>
+                      <BookingActionButton
+                        idleLabel="Batalkan"
+                        pendingLabel="Membatalkan..."
+                        tone="danger"
+                      />
+                    </form>
+                  </div>
                 ) : (
                   <span className="text-xs font-medium uppercase tracking-[0.18em] text-stone-400">
                     Sudah diproses
@@ -67,4 +97,18 @@ export function AdminBookingTable({ bookings }: AdminBookingTableProps) {
       </table>
     </div>
   );
+}
+
+function getStatusBadgeClass(status: string | null) {
+  switch (status) {
+    case "confirmed":
+      return "bg-emerald-100 text-emerald-700";
+    case "completed":
+      return "bg-sky-100 text-sky-700";
+    case "cancelled":
+      return "bg-red-100 text-red-700";
+    case "pending":
+    default:
+      return "bg-amber-100 text-amber-700";
+  }
 }

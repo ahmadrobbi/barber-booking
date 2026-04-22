@@ -94,6 +94,36 @@ async function getChannelByQuery(column: "id" | "device_number", value: string) 
   }
 }
 
+export async function getDefaultWhatsappChannelByUserId(userId: string | null | undefined) {
+  if (!userId) {
+    return null;
+  }
+
+  try {
+    const supabase = createAdminSupabase();
+    const { data, error } = await supabase
+      .from("whatsapp_channels")
+      .select(
+        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, industry, is_active, is_default, template_overrides, created_at, updated_at"
+      )
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .order("is_default", { ascending: false })
+      .order("created_at", { ascending: true })
+      .limit(1);
+
+    if (error && error.code !== "42P01") {
+      throw new Error(error.message);
+    }
+
+    const row = Array.isArray(data) ? data[0] : null;
+    return mapChannelRow(row);
+  } catch (error) {
+    console.warn("Failed to load default WhatsApp channel by user:", error);
+    return null;
+  }
+}
+
 export async function getWhatsappChannelByDevice(deviceNumber: string | null | undefined) {
   const sanitized = sanitizeDeviceNumber(deviceNumber);
 
@@ -156,7 +186,7 @@ export async function resolveWhatsappRuntimeContext(
     userId: channel?.user_id ?? null,
     deviceNumber: sanitizeDeviceNumber(deviceNumber),
     industry,
-    token: channel?.fonnte_device_token ?? process.env.FONNTE_TOKEN ?? null,
+    token: channel?.fonnte_device_token ?? null,
     templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),
     isLegacyFallback: !channel,
   };
@@ -165,9 +195,12 @@ export async function resolveWhatsappRuntimeContext(
 export async function resolveWhatsappContextFromBooking(booking: {
   channel_id?: string | null;
   industry?: string | null;
+  user_id?: string | null;
 }) {
   const globalTemplates = await getGlobalChatbotTemplates();
-  const channel = await getWhatsappChannelById(booking.channel_id ?? null);
+  const channel =
+    (await getWhatsappChannelById(booking.channel_id ?? null)) ??
+    (await getDefaultWhatsappChannelByUserId(booking.user_id ?? null));
   const config = await getIndustryConfig();
   const industry =
     (channel?.industry as IndustryKey | null) ??
@@ -181,7 +214,7 @@ export async function resolveWhatsappContextFromBooking(booking: {
     userId: channel?.user_id ?? null,
     deviceNumber: channel?.device_number ?? null,
     industry,
-    token: channel?.fonnte_device_token ?? process.env.FONNTE_TOKEN ?? null,
+    token: channel?.fonnte_device_token ?? null,
     templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),
     isLegacyFallback: !channel,
   } satisfies WhatsappRuntimeContext;

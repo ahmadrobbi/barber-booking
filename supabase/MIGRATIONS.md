@@ -30,6 +30,9 @@ supabase db push
    - `20260415_add_industry_column.sql`
    - `20260418_phase1_multi_user_schema.sql`
    - `20260419090000_add_industry_to_dashboard_users_fix.sql`
+   - `20260419103000_add_whatsapp_channels.sql`
+   - `20260421110000_mvp_barbershop_foundation.sql`
+   - `20260422103000_add_duration_to_bookings.sql`
 
 ## 🔧 Quick Fix: Apply All Migrations at Once
 
@@ -62,6 +65,9 @@ WHERE table_schema = 'public'
 | `20260415_add_industry_column.sql` | Add industry field to bookings |
 | `20260418_phase1_multi_user_schema.sql` | Multi-user dashboard tables and dashboard user industry |
 | `20260419090000_add_industry_to_dashboard_users_fix.sql` | Ensure `dashboard_users.industry` exists and refresh schema cache |
+| `20260419103000_add_whatsapp_channels.sql` | Add per-user WhatsApp channel routing foundation |
+| `20260421110000_mvp_barbershop_foundation.sql` | Add tenant-scoped booking indexes, session ownership, and per-user service catalog |
+| `20260422103000_add_duration_to_bookings.sql` | Add booking duration field for overlap-aware scheduling |
 
 ## ✅ Verification
 

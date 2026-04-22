@@ -1,5 +1,6 @@
 import { createAdminSupabase } from "@/lib/supabase";
 import { getSession } from "@/lib/auth";
+import type { BusinessHours } from "@/lib/scheduling";
 
 export type UserProfile = {
   user_id: string;
@@ -8,8 +9,8 @@ export type UserProfile = {
   logo_url?: string;
   website_url?: string;
   social_media?: Record<string, string>;
-  contact_info?: Record<string, any>;
-  business_hours?: Record<string, any>;
+  contact_info?: Record<string, string>;
+  business_hours?: BusinessHours;
   created_at?: string;
   updated_at?: string;
 };
@@ -24,7 +25,7 @@ export type UserTransaction = {
   payment_method?: string;
   description?: string;
   reference_id?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, string | number | boolean | null>;
   created_at: string;
   updated_at?: string;
 };
@@ -34,7 +35,7 @@ export type UserLandingPage = {
   subdomain?: string;
   custom_domain?: string;
   template: string;
-  settings?: Record<string, any>;
+  settings?: Record<string, string | number | boolean | null>;
   is_active: boolean;
   created_at?: string;
   updated_at?: string;
