@@ -1,8 +1,7 @@
 import {
   formatBookingDateLabel,
   formatRupiah,
-  getDateBySelection,
-  getDateOptionsText,
+  getUpcomingDateOptions,
   getServiceBySelection,
   getServiceOptionsText,
   getSlotBySelection,
@@ -70,6 +69,62 @@ async function getAvailableSlots(
     userId: scope.userId,
     channelId: scope.channelId,
   });
+}
+
+async function getAvailableDateOptions(params: {
+  baseDate: Date;
+  industry: IndustryKey;
+  scope: BookingScope;
+  durationMinutes: number;
+  maxOptions?: number;
+  lookaheadDays?: number;
+}) {
+  const maxOptions = params.maxOptions ?? 7;
+  const lookaheadDays = params.lookaheadDays ?? 14;
+  const rawOptions = getUpcomingDateOptions(params.baseDate, lookaheadDays);
+  const available: Array<{ key: string; label: string; index: number }> = [];
+
+  for (const option of rawOptions) {
+    const slots = await getAvailableSlots(
+      option.key,
+      params.industry,
+      params.scope,
+      params.durationMinutes
+    );
+
+    if (slots.length > 0) {
+      available.push({
+        ...option,
+        index: available.length + 1,
+      });
+    }
+
+    if (available.length >= maxOptions) {
+      break;
+    }
+  }
+
+  return available;
+}
+
+function getDateOptionsText(
+  options: Array<{ key: string; label: string; index: number }>
+) {
+  return options.map((item) => `${item.index}. ${item.label}`).join("\n");
+}
+
+function getDateBySelection(
+  message: string,
+  options: Array<{ key: string; label: string; index: number }>
+) {
+  const cleaned = message.trim();
+  const selectedIndex = Number(cleaned);
+
+  if (Number.isInteger(selectedIndex)) {
+    return options.find((item) => item.index === selectedIndex) ?? null;
+  }
+
+  return options.find((item) => item.key === cleaned) ?? null;
 }
 
 function getIndustryOptionsText() {
@@ -332,6 +387,18 @@ export async function POST(req: Request) {
     if (!service) {
       reply = `${templates.invalidOptionMessage}\n\n${getServiceOptionsText(industryServices)}`;
     } else {
+      const dateOptions = await getAvailableDateOptions({
+        baseDate: today,
+        industry,
+        scope,
+        durationMinutes: service.duration_minutes ?? 60,
+      });
+
+      if (dateOptions.length === 0) {
+        reply =
+          "Maaf, belum ada tanggal yang tersedia dalam beberapa hari ke depan. " +
+          "Silakan hubungi admin untuk penjadwalan manual ya 🙏";
+      } else {
       await saveState({
         sender,
         channel_id: context.channelId,
@@ -342,17 +409,27 @@ export async function POST(req: Request) {
         industry,
       });
 
-      reply = renderTemplate(templates.servicePrompt, {
-        business_name: context.businessName,
-        layanan: service.name,
-        date_options: getDateOptionsText(today),
-      });
+        reply = renderTemplate(templates.servicePrompt, {
+          business_name: context.businessName,
+          layanan: service.name,
+          date_options: getDateOptionsText(dateOptions),
+        });
+      }
     }
   } else if (state.step === "pilih_tanggal") {
-    const selectedDate = getDateBySelection(message, today);
+    const dateOptions = await getAvailableDateOptions({
+      baseDate: today,
+      industry,
+      scope,
+      durationMinutes: getServiceDuration(state?.layanan),
+    });
+    const selectedDate = getDateBySelection(message, dateOptions);
 
     if (!selectedDate) {
-      reply = `${templates.invalidOptionMessage}\n\n${getDateOptionsText(today)}`;
+      reply =
+        dateOptions.length > 0
+          ? `${templates.invalidOptionMessage}\n\n${getDateOptionsText(dateOptions)}`
+          : "Maaf, belum ada tanggal yang tersedia dalam beberapa hari ke depan. Silakan coba lagi nanti ya 🙏";
     } else {
       const slots = await getAvailableSlots(
         selectedDate.key,
@@ -362,10 +439,17 @@ export async function POST(req: Request) {
       );
 
       if (slots.length === 0) {
+        const refreshedDateOptions = await getAvailableDateOptions({
+          baseDate: today,
+          industry,
+          scope,
+          durationMinutes: getServiceDuration(state?.layanan),
+        });
+
         reply =
           `Maaf, semua jam pada *${selectedDate.label}* sudah penuh.\n\n` +
-          `${getDateOptionsText(today)}\n\n` +
-          "Balas dengan nomor tanggal lain ya 🙌";
+          `${getDateOptionsText(refreshedDateOptions)}\n\n` +
+          "Balas dengan nomor tanggal lain yang masih tersedia ya 🙌";
       } else {
         await saveState({
           sender,

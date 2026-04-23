@@ -12,6 +12,16 @@ function formatError(message: string) {
   return { message };
 }
 
+function isRedirectError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "digest" in error &&
+    typeof error.digest === "string" &&
+    error.digest.startsWith("NEXT_REDIRECT")
+  );
+}
+
 export async function updateUserProfile(
   _prevState: { message: string } | void,
   formData: FormData
@@ -85,6 +95,10 @@ export async function updateUserProfile(
     redirect("/admin/profile?success=1");
 
   } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
     console.error("Profile update error:", error);
     return formatError("Terjadi kesalahan saat menyimpan perubahan. Silakan coba lagi.");
   }
