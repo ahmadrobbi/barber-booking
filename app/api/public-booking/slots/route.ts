@@ -1,14 +1,18 @@
 import { getPublicTenantContextBySlug } from "@/lib/tenant-context";
+import { getServicesByCodes, summarizeServices } from "@/lib/bookings";
 import { getAvailableSlotsForDate } from "@/lib/scheduling";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const slug = url.searchParams.get("slug");
   const date = url.searchParams.get("date");
-  const serviceCode = url.searchParams.get("service");
+  const serviceCodes = (url.searchParams.get("services") ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 
-  if (!slug || !date || !serviceCode) {
-    return Response.json({ error: "Missing slug, date, or service." }, { status: 400 });
+  if (!slug || !date || serviceCodes.length === 0) {
+    return Response.json({ error: "Missing slug, date, or services." }, { status: 400 });
   }
 
   const tenant = await getPublicTenantContextBySlug(slug);
@@ -17,22 +21,24 @@ export async function GET(req: Request) {
     return Response.json({ error: "Tenant not found." }, { status: 404 });
   }
 
-  const service = tenant.services.find((item) => item.code === serviceCode);
+  const selectedServices = getServicesByCodes(tenant.services, serviceCodes);
 
-  if (!service) {
-    return Response.json({ error: "Service not found." }, { status: 404 });
+  if (selectedServices.length !== serviceCodes.length) {
+    return Response.json({ error: "One or more services were not found." }, { status: 404 });
   }
+
+  const summary = summarizeServices(selectedServices);
 
   const slots = await getAvailableSlotsForDate({
     date,
     industry: tenant.industry,
-    durationMinutes: service.duration_minutes,
+    durationMinutes: summary.totalDurationMinutes,
     userId: tenant.userId,
     channelId: tenant.channelId,
   });
 
   return Response.json({
     slots,
-    duration_minutes: service.duration_minutes,
+    duration_minutes: summary.totalDurationMinutes,
   });
 }

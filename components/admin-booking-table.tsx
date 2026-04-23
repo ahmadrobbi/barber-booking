@@ -26,8 +26,9 @@ export function AdminBookingTable({ bookings }: AdminBookingTableProps) {
           <tr>
             <th className="px-5 py-4 font-medium">Tanggal</th>
             <th className="px-5 py-4 font-medium">Jam</th>
+            <th className="px-5 py-4 font-medium">Pemesan</th>
             <th className="px-5 py-4 font-medium">Layanan</th>
-            <th className="px-5 py-4 font-medium">Pengirim</th>
+            <th className="px-5 py-4 font-medium">WhatsApp</th>
             <th className="px-5 py-4 font-medium">Harga</th>
             <th className="px-5 py-4 font-medium">Status</th>
             <th className="px-5 py-4 font-medium text-right">Aksi</th>
@@ -38,6 +39,7 @@ export function AdminBookingTable({ bookings }: AdminBookingTableProps) {
             <tr key={item.id} className="align-top">
               <td className="px-5 py-4 text-stone-700">{formatBookingDate(item.tanggal)}</td>
               <td className="px-5 py-4 text-stone-700">{item.jam ?? "-"}</td>
+              <td className="px-5 py-4 text-stone-700">{item.customer_name ?? "-"}</td>
               <td className="px-5 py-4">
                 <p className="font-semibold text-stone-900">{item.layanan ?? "-"}</p>
               </td>

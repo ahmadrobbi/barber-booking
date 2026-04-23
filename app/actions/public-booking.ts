@@ -2,6 +2,7 @@
 
 import type { BookingFormState } from "@/lib/booking-form-state";
 import { isBookingSlotConflict } from "@/lib/booking-conflicts";
+import { getServicesByCodes, summarizeServices } from "@/lib/bookings";
 import { isSlotAvailable } from "@/lib/scheduling";
 import { createAdminSupabase } from "@/lib/supabase";
 import { createTransaction } from "@/lib/transactions";
@@ -36,10 +37,18 @@ export async function createPublicBooking(
 ) {
   const slug = normalizeText(formData.get("slug"));
   const tenant = await getPublicTenantContextBySlug(slug);
+  const customerName = normalizeText(formData.get("customer_name"));
   const phoneNumber = normalizePhoneNumber(normalizeText(formData.get("no_hp")));
-  const serviceCode = normalizeText(formData.get("service"));
+  const selectedServiceCodes = normalizeText(formData.get("services"))
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
   const tanggal = normalizeText(formData.get("tanggal"));
   const jam = normalizeText(formData.get("jam"));
+
+  if (!customerName || customerName.length < 2) {
+    return formatBookingError("Nama pemesan minimal 2 karakter.");
+  }
 
   if (!tenant) {
     return formatBookingError("Halaman booking bisnis tidak ditemukan atau sudah tidak aktif.");
@@ -49,14 +58,15 @@ export async function createPublicBooking(
     return formatBookingError("Bisnis ini belum menghubungkan nomor WhatsApp bot yang aktif.");
   }
 
-  const service = tenant.services.find((item) => item.code === serviceCode) ?? null;
+  const selectedServices = getServicesByCodes(tenant.services, selectedServiceCodes);
+  const summary = summarizeServices(selectedServices);
 
   if (!isValidPhoneNumber(phoneNumber)) {
     return formatBookingError("Nomor WhatsApp harus 10-20 digit angka.");
   }
 
-  if (!service) {
-    return formatBookingError("Pilih layanan booking yang valid.");
+  if (selectedServiceCodes.length === 0 || selectedServices.length !== selectedServiceCodes.length) {
+    return formatBookingError("Pilih minimal satu layanan booking yang valid.");
   }
 
   if (!isValidDate(tanggal)) {
@@ -67,7 +77,7 @@ export async function createPublicBooking(
     date: tanggal,
     time: jam,
     industry: tenant.industry,
-    durationMinutes: service.duration_minutes,
+    durationMinutes: summary.totalDurationMinutes,
     userId: tenant.userId,
     channelId: tenant.channelId,
   });
@@ -100,11 +110,13 @@ export async function createPublicBooking(
     .from("bookings")
     .insert({
       sender: phoneNumber,
-      layanan: service.name,
-      harga: service.price,
+      customer_name: customerName,
+      layanan: summary.names.join(", "),
+      service_codes: selectedServices.map((service) => service.code),
+      harga: summary.totalPrice,
       tanggal,
       jam,
-      duration_minutes: service.duration_minutes,
+      duration_minutes: summary.totalDurationMinutes,
       status: "pending",
       industry: tenant.industry,
       user_id: tenant.userId,
@@ -125,16 +137,17 @@ export async function createPublicBooking(
   const transaction = await createTransaction({
     user_id: tenant.userId,
     type: "payment",
-    amount: service.price,
+    amount: summary.totalPrice,
     currency: "IDR",
     status: "pending",
     payment_method: "whatsapp",
-    description: `Booking ${service.name} pada ${tanggal} ${jam}`,
+    description: `Booking ${summary.names.join(", ")} pada ${tanggal} ${jam}`,
     reference_id: `booking-${bookingRecord.id}`,
     metadata: {
       booking_id: bookingRecord.id,
       slug: tenant.slug,
       industry: tenant.industry,
+      customer_name: customerName,
       sender: phoneNumber,
       channel_id: tenant.channelId,
     },

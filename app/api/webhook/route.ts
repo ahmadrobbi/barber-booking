@@ -532,10 +532,12 @@ export async function POST(req: Request) {
         reply = "❌ Slot sudah diambil pelanggan lain. Ketik *halo* untuk mulai pilih ulang ya.";
       } else {
         const durationMinutes = getServiceDuration(state.layanan);
+        const selectedService = tenantServices.find((service) => service.name === state.layanan);
         const { error: bookingInsertError } = await getSupabase().from("bookings").insert([
           {
             sender,
             layanan: state.layanan,
+            service_codes: selectedService ? [selectedService.code] : [],
             harga: state.harga,
             tanggal: state.tanggal,
             jam: state.jam,

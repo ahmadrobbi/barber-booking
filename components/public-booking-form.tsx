@@ -36,7 +36,9 @@ export function PublicBookingForm({
   hasActiveChannel,
 }: PublicBookingFormProps) {
   const [state, formAction] = useActionState(createPublicBooking, initialBookingFormState);
-  const [serviceCode, setServiceCode] = useState(services[0]?.code ?? "");
+  const [selectedServiceCodes, setSelectedServiceCodes] = useState<string[]>(
+    services[0]?.code ? [services[0].code] : []
+  );
   const [selectedDate, setSelectedDate] = useState("");
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [slot, setSlot] = useState("");
@@ -48,7 +50,7 @@ export function PublicBookingForm({
     let ignore = false;
 
     async function loadSlots() {
-      if (!isReady || !selectedDate || !serviceCode) {
+      if (!isReady || !selectedDate || selectedServiceCodes.length === 0) {
         setAvailableSlots([]);
         setSlot("");
         return;
@@ -60,7 +62,7 @@ export function PublicBookingForm({
         const params = new URLSearchParams({
           slug,
           date: selectedDate,
-          service: serviceCode,
+          services: selectedServiceCodes.join(","),
         });
         const response = await fetch(`/api/public-booking/slots?${params.toString()}`);
         const payload = (await response.json()) as { slots?: string[] };
@@ -87,12 +89,52 @@ export function PublicBookingForm({
     return () => {
       ignore = true;
     };
-  }, [isReady, selectedDate, serviceCode, slug]);
+  }, [isReady, selectedDate, selectedServiceCodes, slug]);
+
+  const selectedServices = services.filter((service) =>
+    selectedServiceCodes.includes(service.code)
+  );
+  const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
+  const totalDuration = selectedServices.reduce(
+    (sum, service) => sum + service.duration_minutes,
+    0
+  );
+
+  function toggleService(code: string) {
+    setSelectedDate("");
+    setAvailableSlots([]);
+    setSlot("");
+    setSelectedServiceCodes((current) => {
+      const exists = current.includes(code);
+      if (exists) {
+        const next = current.filter((item) => item !== code);
+        return next.length > 0 ? next : current;
+      }
+
+      return [...current, code];
+    });
+  }
 
   return (
     <form action={formAction} className="space-y-5">
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="industry" value={industry} />
+      <input type="hidden" name="services" value={selectedServiceCodes.join(",")} />
+
+      <div>
+        <label htmlFor="customer_name" className="mb-2 block text-sm font-medium text-stone-700">
+          Nama Pemesan
+        </label>
+        <input
+          id="customer_name"
+          name="customer_name"
+          type="text"
+          placeholder="Contoh: Ahmad"
+          className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-stone-900 outline-none transition focus:border-amber-400"
+          disabled={!isReady}
+          required
+        />
+      </div>
 
       <div>
         <label htmlFor="no_hp" className="mb-2 block text-sm font-medium text-stone-700">
@@ -112,23 +154,39 @@ export function PublicBookingForm({
       </div>
 
       <div>
-        <label htmlFor="service" className="mb-2 block text-sm font-medium text-stone-700">
+        <label className="mb-2 block text-sm font-medium text-stone-700">
           Pilih Layanan
         </label>
-        <select
-          id="service"
-          name="service"
-          value={serviceCode}
-          onChange={(event) => setServiceCode(event.target.value)}
-          className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-stone-900 outline-none transition focus:border-amber-400"
-          disabled={!isReady}
-        >
-          {services.map((service) => (
-            <option key={service.code} value={service.code}>
-              {service.name} - Rp{service.price.toLocaleString("id-ID")}
-            </option>
-          ))}
-        </select>
+        <div className="space-y-3">
+          {services.map((service) => {
+            const checked = selectedServiceCodes.includes(service.code);
+
+            return (
+              <label
+                key={service.code}
+                className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 text-sm transition ${
+                  checked
+                    ? "border-amber-300 bg-amber-50"
+                    : "border-stone-200 bg-white hover:border-stone-300"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggleService(service.code)}
+                  className="mt-1 h-4 w-4 rounded border-stone-300 text-amber-500 focus:ring-amber-400"
+                  disabled={!isReady}
+                />
+                <span className="flex-1">
+                  <span className="block font-semibold text-stone-900">{service.name}</span>
+                  <span className="mt-1 block text-stone-600">
+                    Rp{service.price.toLocaleString("id-ID")} • {service.duration_minutes} menit
+                  </span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">
@@ -181,7 +239,15 @@ export function PublicBookingForm({
 
       <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm leading-6 text-stone-600">
         {isReady ? (
-          <>Booking publik akan masuk langsung ke dashboard bisnis ini dengan status <strong>pending</strong>.</>
+          <>
+            Booking publik akan masuk langsung ke dashboard bisnis ini dengan status <strong>pending</strong>.
+            {selectedServices.length > 0 ? (
+              <>
+                {" "}Total saat ini: <strong>Rp{totalPrice.toLocaleString("id-ID")}</strong> untuk{" "}
+                <strong>{totalDuration} menit</strong>.
+              </>
+            ) : null}
+          </>
         ) : (
           <>Booking belum bisa diproses karena bisnis ini belum memiliki channel WhatsApp aktif atau layanan yang bisa dipilih.</>
         )}

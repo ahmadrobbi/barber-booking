@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 
 export type BookingRow = {
   id: number;
+  customer_name: string | null;
   sender: string | null;
   layanan: string | null;
   harga: number | null;
@@ -22,7 +23,7 @@ export async function getAllBookings() {
 
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, sender, layanan, harga, jam, status, tanggal, user_id")
+    .select("id, customer_name, sender, layanan, harga, jam, status, tanggal, user_id")
     .eq("user_id", session.userId)
     .not("tanggal", "is", null)
     .order("tanggal", { ascending: false })
@@ -45,7 +46,7 @@ export async function getBookingsBySender(sender: string) {
 
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, sender, layanan, harga, jam, status, tanggal, user_id")
+    .select("id, customer_name, sender, layanan, harga, jam, status, tanggal, user_id")
     .eq("user_id", session.userId)
     .eq("sender", sender)
     .order("tanggal", { ascending: false })

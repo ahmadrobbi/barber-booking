@@ -97,3 +97,22 @@ export async function getServicesForUser(
 
   return getServicesForIndustry(industry);
 }
+
+export function getServicesByCodes(
+  services: readonly BookingService[],
+  codes: readonly string[]
+) {
+  const codeSet = new Set(codes);
+  return services.filter((service) => codeSet.has(service.code));
+}
+
+export function summarizeServices(services: readonly BookingService[]) {
+  return {
+    names: services.map((service) => service.name),
+    totalPrice: services.reduce((sum, service) => sum + service.price, 0),
+    totalDurationMinutes: services.reduce(
+      (sum, service) => sum + service.duration_minutes,
+      0
+    ),
+  };
+}
