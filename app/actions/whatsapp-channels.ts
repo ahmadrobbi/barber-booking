@@ -73,6 +73,32 @@ function mapChannelErrorMessage(message: string) {
   return message;
 }
 
+async function ensureDeviceNumberAvailable(params: {
+  supabase: ReturnType<typeof createAdminSupabase>;
+  userId: string;
+  deviceNumber: string;
+  currentId: string;
+}) {
+  const { data, error } = await params.supabase
+    .from("whatsapp_channels")
+    .select("id, user_id, device_number")
+    .eq("device_number", params.deviceNumber);
+
+  if (error) {
+    redirectWithStatus("error", mapChannelErrorMessage(error.message));
+  }
+
+  const rows = Array.isArray(data) ? data : [];
+  const conflictingRow = rows.find((row) => row.id !== params.currentId);
+
+  if (conflictingRow) {
+    redirectWithStatus(
+      "error",
+      "Nomor device sudah dipakai channel lain. Hapus atau ubah channel lama terlebih dulu."
+    );
+  }
+}
+
 export async function saveWhatsappChannel(formData: FormData) {
   try {
     const user = await requireAdmin();
@@ -91,6 +117,13 @@ export async function saveWhatsappChannel(formData: FormData) {
     if (!deviceNumber) {
       redirectWithStatus("error", "Nomor device wajib diisi.");
     }
+
+    await ensureDeviceNumberAvailable({
+      supabase,
+      userId: user.id,
+      deviceNumber,
+      currentId: id,
+    });
 
     let resolvedToken = fonnteToken;
 
@@ -137,13 +170,41 @@ export async function saveWhatsappChannel(formData: FormData) {
     };
 
     const query = id
-      ? supabase.from("whatsapp_channels").update(payload).eq("id", id).eq("user_id", user.id)
-      : supabase.from("whatsapp_channels").insert(payload);
+      ? supabase
+          .from("whatsapp_channels")
+          .update(payload)
+          .eq("id", id)
+          .eq("user_id", user.id)
+          .select("id, device_number")
+          .maybeSingle()
+      : supabase
+          .from("whatsapp_channels")
+          .insert(payload)
+          .select("id, device_number")
+          .maybeSingle();
 
-    const { error } = await query;
+    const { data, error } = await query;
 
     if (error) {
+      console.error("saveWhatsappChannel failed", {
+        userId: user.id,
+        channelId: id || null,
+        deviceNumber,
+        error: error.message,
+      });
       redirectWithStatus("error", mapChannelErrorMessage(error.message));
+    }
+
+    if (!data?.id) {
+      console.error("saveWhatsappChannel affected no rows", {
+        userId: user.id,
+        channelId: id || null,
+        deviceNumber,
+      });
+      redirectWithStatus(
+        "error",
+        "Perubahan channel tidak tersimpan. Coba reload halaman lalu simpan lagi."
+      );
     }
 
     revalidatePath("/admin/settings/webhook");
@@ -175,6 +236,11 @@ export async function deleteWhatsappChannel(formData: FormData) {
       .eq("user_id", user.id);
 
     if (error) {
+      console.error("deleteWhatsappChannel failed", {
+        userId: user.id,
+        channelId: id,
+        error: error.message,
+      });
       redirectWithStatus("error", mapChannelErrorMessage(error.message));
     }
 
