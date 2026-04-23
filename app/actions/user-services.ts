@@ -115,7 +115,6 @@ export async function saveUserServices(
   }
 
   const payload = services.map((service) => ({
-    id: service.id,
     user_id: user.id,
     code: service.code,
     name: service.name,
@@ -123,14 +122,30 @@ export async function saveUserServices(
     duration_minutes: service.duration_minutes,
     is_active: service.is_active,
     sort_order: service.sort_order,
+    ...(service.id ? { id: service.id } : {}),
   }));
 
-  const { error } = await supabase
-    .from("user_services")
-    .upsert(payload, { onConflict: "id" });
+  const existingPayload = payload.filter((service) => "id" in service);
+  const newPayload = payload.filter((service) => !("id" in service));
 
-  if (error) {
-    return formatState(error.message, false);
+  if (existingPayload.length > 0) {
+    const { error: existingUpsertError } = await supabase
+      .from("user_services")
+      .upsert(existingPayload, { onConflict: "id" });
+
+    if (existingUpsertError) {
+      return formatState(existingUpsertError.message, false);
+    }
+  }
+
+  if (newPayload.length > 0) {
+    const { error: newInsertError } = await supabase
+      .from("user_services")
+      .insert(newPayload);
+
+    if (newInsertError) {
+      return formatState(newInsertError.message, false);
+    }
   }
 
   revalidatePath("/admin/settings/services");
