@@ -48,6 +48,15 @@ function getSupabase() {
   return createAdminSupabase();
 }
 
+function normalizeSender(value: string | null | undefined) {
+  if (!value) {
+    return "";
+  }
+
+  const digits = value.replace(/[^\d]/g, "");
+  return digits || value.trim();
+}
+
 async function getAvailableSlots(
   tanggal: string,
   industry: IndustryKey,
@@ -102,12 +111,21 @@ async function loadState(sender: string, channelId: string | null) {
   let query = getSupabase()
     .from("user_sessions")
     .select("*")
-    .eq("sender", sender);
+    .eq("sender", sender)
+    .order("updated_at", { ascending: false })
+    .limit(1);
 
   query = channelId ? query.eq("channel_id", channelId) : query.is("channel_id", null);
 
-  const { data } = await query.maybeSingle();
-  return (data ?? null) as SessionState | null;
+  const { data, error } = await query;
+
+  if (error) {
+    console.warn("Failed to load chat session:", { sender, channelId, error: error.message });
+    return null;
+  }
+
+  const row = Array.isArray(data) ? data[0] : null;
+  return (row ?? null) as SessionState | null;
 }
 
 async function saveState(payload: Partial<SessionState> & { sender: string; channel_id: string | null }) {
@@ -116,30 +134,43 @@ async function saveState(payload: Partial<SessionState> & { sender: string; chan
     user_id: payload.user_id ?? null,
   };
 
-  if (!payload.channel_id) {
-    const existing = await getSupabase()
-      .from("user_sessions")
-      .select("sender")
-      .eq("sender", payload.sender)
-      .is("channel_id", null)
-      .maybeSingle();
+  let existingQuery = getSupabase()
+    .from("user_sessions")
+    .select("id")
+    .eq("sender", payload.sender)
+    .order("updated_at", { ascending: false })
+    .limit(1);
 
-    if (existing.data) {
-      await getSupabase()
-        .from("user_sessions")
-        .update(normalizedPayload)
-        .eq("sender", payload.sender)
-        .is("channel_id", null);
-      return;
+  existingQuery = payload.channel_id
+    ? existingQuery.eq("channel_id", payload.channel_id)
+    : existingQuery.is("channel_id", null);
+
+  const { data: existingRows, error: existingError } = await existingQuery;
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
+
+  const existingRow = Array.isArray(existingRows) ? existingRows[0] : null;
+
+  if (existingRow?.id) {
+    const { error: updateError } = await getSupabase()
+      .from("user_sessions")
+      .update(normalizedPayload)
+      .eq("id", existingRow.id);
+
+    if (updateError) {
+      throw new Error(updateError.message);
     }
 
-    await getSupabase().from("user_sessions").insert(normalizedPayload);
     return;
   }
 
-  await getSupabase()
-    .from("user_sessions")
-    .upsert(normalizedPayload, { onConflict: "sender,channel_id" });
+  const { error: insertError } = await getSupabase().from("user_sessions").insert(normalizedPayload);
+
+  if (insertError) {
+    throw new Error(insertError.message);
+  }
 }
 
 async function clearState(sender: string, channelId: string | null) {
@@ -155,7 +186,7 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
     const body = await req.json();
     return {
       incomingMessage: body.message?.text || body.message || body.text || "",
-      sender: body.sender || body.from || "",
+      sender: normalizeSender(body.sender || body.from || ""),
       device: body.device || body.number || body.device_number || null,
       webhookSecret:
         body.webhook_secret ||
@@ -170,7 +201,7 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
     const params = new URLSearchParams(text);
     return {
       incomingMessage: params.get("message") || params.get("text") || "",
-      sender: params.get("sender") || params.get("from") || "",
+      sender: normalizeSender(params.get("sender") || params.get("from") || ""),
       device: params.get("device") || params.get("number") || params.get("device_number"),
       webhookSecret:
         params.get("webhook_secret") ||
