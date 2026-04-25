@@ -44,15 +44,31 @@ type BookingScope = {
   branchId?: string | null;
 };
 
-const DEFAULT_BUSINESS_HOURS: BusinessHours = {
-  monday: { enabled: true, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
-  tuesday: { enabled: true, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
-  wednesday: { enabled: true, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
-  thursday: { enabled: true, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
-  friday: { enabled: true, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
-  saturday: { enabled: true, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
-  sunday: { enabled: false, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
-};
+function createDefaultDayBusinessHours(overrides?: Partial<DayBusinessHours>): DayBusinessHours {
+  return {
+    enabled: true,
+    open: "09:00",
+    close: "18:00",
+    break_enabled: false,
+    break_open: "12:00",
+    break_close: "13:00",
+    ...overrides,
+  };
+}
+
+export function createDefaultBusinessHours(): BusinessHours {
+  return {
+    monday: createDefaultDayBusinessHours(),
+    tuesday: createDefaultDayBusinessHours(),
+    wednesday: createDefaultDayBusinessHours(),
+    thursday: createDefaultDayBusinessHours(),
+    friday: createDefaultDayBusinessHours(),
+    saturday: createDefaultDayBusinessHours(),
+    sunday: createDefaultDayBusinessHours({ enabled: false }),
+  };
+}
+
+const DEFAULT_BUSINESS_HOURS: BusinessHours = createDefaultBusinessHours();
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -60,36 +76,39 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export function normalizeBusinessHours(value: unknown): BusinessHours {
   if (!isRecord(value)) {
-    return DEFAULT_BUSINESS_HOURS;
+    return createDefaultBusinessHours();
   }
 
   return WEEKDAY_KEYS.reduce<BusinessHours>((acc, key) => {
     const item = value[key];
+    const defaultValue = createDefaultDayBusinessHours(
+      key === "sunday" ? { enabled: false } : undefined
+    );
 
     if (isRecord(item)) {
       acc[key] = {
-        enabled: typeof item.enabled === "boolean" ? item.enabled : DEFAULT_BUSINESS_HOURS[key].enabled,
-        open: typeof item.open === "string" ? item.open : DEFAULT_BUSINESS_HOURS[key].open,
-        close: typeof item.close === "string" ? item.close : DEFAULT_BUSINESS_HOURS[key].close,
+        enabled: typeof item.enabled === "boolean" ? item.enabled : defaultValue.enabled,
+        open: typeof item.open === "string" ? item.open : defaultValue.open,
+        close: typeof item.close === "string" ? item.close : defaultValue.close,
         break_enabled:
           typeof item.break_enabled === "boolean"
             ? item.break_enabled
-            : DEFAULT_BUSINESS_HOURS[key].break_enabled,
+            : defaultValue.break_enabled,
         break_open:
           typeof item.break_open === "string"
             ? item.break_open
-            : DEFAULT_BUSINESS_HOURS[key].break_open,
+            : defaultValue.break_open,
         break_close:
           typeof item.break_close === "string"
             ? item.break_close
-            : DEFAULT_BUSINESS_HOURS[key].break_close,
+            : defaultValue.break_close,
       };
       return acc;
     }
 
-    acc[key] = DEFAULT_BUSINESS_HOURS[key];
+    acc[key] = defaultValue;
     return acc;
-  }, { ...DEFAULT_BUSINESS_HOURS });
+  }, createDefaultBusinessHours());
 }
 
 export async function getBusinessHoursForUser(userId: string | null | undefined) {

@@ -234,7 +234,7 @@ export function UserBranchesForm({ initialBranches }: UserBranchesFormProps) {
                           <label className="flex items-center gap-3 text-sm font-medium text-stone-800">
                             <input
                               type="checkbox"
-                              checked={value.break_enabled}
+                              checked={Boolean(value.break_enabled)}
                               onChange={(event) =>
                                 updateBranchHour(index, day, { break_enabled: event.target.checked })
                               }
