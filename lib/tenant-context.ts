@@ -12,6 +12,7 @@ export type PublicTenantContext = {
   businessName: string;
   industry: IndustryKey;
   channelId: string | null;
+  branches: UserBranch[];
   services: TenantService[];
   slots: string[];
 };
@@ -160,10 +161,11 @@ export async function getPublicTenantContextBySlug(
     return null;
   }
 
-  const [industry, businessName, channelId] = await Promise.all([
+  const [industry, businessName, channelId, branches] = await Promise.all([
     getUserIndustry(landingPage.user_id),
     getBusinessNameByUserId(landingPage.user_id),
     getDefaultWhatsappChannelByUserId(landingPage.user_id).then((channel) => channel?.id ?? null),
+    getBranchesForUser(landingPage.user_id, { activeOnly: true }),
   ]);
   const services = await getServicesForUser(landingPage.user_id, industry);
 
@@ -173,6 +175,7 @@ export async function getPublicTenantContextBySlug(
     businessName,
     industry,
     channelId,
+    branches,
     services,
     slots: getSlotsForIndustry(industry),
   };

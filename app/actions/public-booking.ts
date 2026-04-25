@@ -39,6 +39,7 @@ export async function createPublicBooking(
   const tenant = await getPublicTenantContextBySlug(slug);
   const customerName = normalizeText(formData.get("customer_name"));
   const phoneNumber = normalizePhoneNumber(normalizeText(formData.get("no_hp")));
+  const branchId = normalizeText(formData.get("branch_id")) || null;
   const selectedServiceCodes = normalizeText(formData.get("services"))
     .split(",")
     .map((item) => item.trim())
@@ -56,6 +57,17 @@ export async function createPublicBooking(
 
   if (!tenant.channelId) {
     return formatBookingError("Bisnis ini belum menghubungkan nomor WhatsApp bot yang aktif.");
+  }
+
+  if (tenant.branches.length > 0) {
+    if (!branchId) {
+      return formatBookingError("Pilih cabang booking terlebih dulu.");
+    }
+
+    const selectedBranch = tenant.branches.find((branch) => branch.id === branchId);
+    if (!selectedBranch) {
+      return formatBookingError("Cabang booking tidak ditemukan atau sudah tidak aktif.");
+    }
   }
 
   const selectedServices = getServicesByCodes(tenant.services, selectedServiceCodes);
@@ -80,7 +92,7 @@ export async function createPublicBooking(
     durationMinutes: summary.totalDurationMinutes,
     userId: tenant.userId,
     channelId: tenant.channelId,
-    branchId: null,
+    branchId,
   });
 
   if (!slotStillAvailable) {
@@ -93,6 +105,7 @@ export async function createPublicBooking(
     .from("bookings")
     .select("id")
     .eq("user_id", tenant.userId)
+    .eq("branch_id", branchId)
     .eq("tanggal", tanggal)
     .eq("jam", jam)
     .in("status", ["pending", "confirmed"])
@@ -122,6 +135,7 @@ export async function createPublicBooking(
       industry: tenant.industry,
       user_id: tenant.userId,
       channel_id: tenant.channelId,
+      branch_id: branchId,
       source: "public_form",
     })
     .select("id")
@@ -144,13 +158,14 @@ export async function createPublicBooking(
     payment_method: "whatsapp",
     description: `Booking ${summary.names.join(", ")} pada ${tanggal} ${jam}`,
     reference_id: `booking-${bookingRecord.id}`,
-    metadata: {
-      booking_id: bookingRecord.id,
-      slug: tenant.slug,
-      industry: tenant.industry,
-      customer_name: customerName,
-      sender: phoneNumber,
-      channel_id: tenant.channelId,
+      metadata: {
+        booking_id: bookingRecord.id,
+        slug: tenant.slug,
+        industry: tenant.industry,
+        branch_id: branchId,
+        customer_name: customerName,
+        sender: phoneNumber,
+        channel_id: tenant.channelId,
     },
   });
 

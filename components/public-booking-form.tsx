@@ -6,11 +6,13 @@ import { createPublicBooking } from "@/app/actions/public-booking";
 import { initialBookingFormState } from "@/lib/booking-form-state";
 import type { IndustryKey } from "@/lib/bookings";
 import type { TenantService } from "@/lib/tenant-context";
+import type { UserBranch } from "@/lib/user-branches";
 
 type PublicBookingFormProps = {
   slug: string;
   industry: IndustryKey;
   services: TenantService[];
+  branches: UserBranch[];
   hasActiveChannel: boolean;
 };
 
@@ -33,6 +35,7 @@ export function PublicBookingForm({
   slug,
   industry,
   services,
+  branches,
   hasActiveChannel,
 }: PublicBookingFormProps) {
   const [state, formAction] = useActionState(createPublicBooking, initialBookingFormState);
@@ -40,6 +43,9 @@ export function PublicBookingForm({
     services[0]?.code ? [services[0].code] : []
   );
   const [selectedDate, setSelectedDate] = useState("");
+  const [selectedBranchId, setSelectedBranchId] = useState(
+    branches.length === 1 ? branches[0]?.id ?? "" : ""
+  );
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [slot, setSlot] = useState("");
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -50,7 +56,12 @@ export function PublicBookingForm({
     let ignore = false;
 
     async function loadSlots() {
-      if (!isReady || !selectedDate || selectedServiceCodes.length === 0) {
+      if (
+        !isReady ||
+        !selectedDate ||
+        selectedServiceCodes.length === 0 ||
+        (branches.length > 0 && !selectedBranchId)
+      ) {
         setAvailableSlots([]);
         setSlot("");
         return;
@@ -64,6 +75,9 @@ export function PublicBookingForm({
           date: selectedDate,
           services: selectedServiceCodes.join(","),
         });
+        if (selectedBranchId) {
+          params.set("branch", selectedBranchId);
+        }
         const response = await fetch(`/api/public-booking/slots?${params.toString()}`);
         const payload = (await response.json()) as { slots?: string[] };
 
@@ -89,7 +103,7 @@ export function PublicBookingForm({
     return () => {
       ignore = true;
     };
-  }, [isReady, selectedDate, selectedServiceCodes, slug]);
+  }, [branches.length, isReady, selectedBranchId, selectedDate, selectedServiceCodes, slug]);
 
   const selectedServices = services.filter((service) =>
     selectedServiceCodes.includes(service.code)
@@ -120,6 +134,38 @@ export function PublicBookingForm({
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="industry" value={industry} />
       <input type="hidden" name="services" value={selectedServiceCodes.join(",")} />
+      <input type="hidden" name="branch_id" value={selectedBranchId} />
+
+      {branches.length > 0 ? (
+        <div>
+          <label htmlFor="branch_id" className="mb-2 block text-sm font-medium text-stone-700">
+            Pilih Cabang
+          </label>
+          <select
+            id="branch_id"
+            value={selectedBranchId}
+            onChange={(event) => {
+              setSelectedBranchId(event.target.value);
+              setSelectedDate("");
+              setAvailableSlots([]);
+              setSlot("");
+            }}
+            className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-stone-900 outline-none transition focus:border-amber-400"
+            disabled={!isReady || branches.length === 1}
+            required
+          >
+            {branches.length > 1 ? <option value="">Pilih cabang dulu</option> : null}
+            {branches.map((branch) => (
+              <option key={branch.id ?? branch.code ?? branch.name} value={branch.id}>
+                {branch.name}
+              </option>
+            ))}
+          </select>
+          <p className="mt-2 text-xs text-stone-500">
+            Jadwal dan slot booking akan menyesuaikan cabang yang dipilih.
+          </p>
+        </div>
+      ) : null}
 
       <div>
         <label htmlFor="customer_name" className="mb-2 block text-sm font-medium text-stone-700">
@@ -225,7 +271,9 @@ export function PublicBookingForm({
                   ? loadingSlots
                     ? "Memuat slot..."
                     : "Tidak ada slot tersedia"
-                  : "Pilih tanggal dulu"}
+                  : branches.length > 0 && !selectedBranchId
+                    ? "Pilih cabang dulu"
+                    : "Pilih tanggal dulu"}
               </option>
             ) : null}
             {availableSlots.map((slotOption) => (
@@ -241,6 +289,14 @@ export function PublicBookingForm({
         {isReady ? (
           <>
             Booking publik akan masuk langsung ke dashboard bisnis ini dengan status <strong>pending</strong>.
+            {selectedBranchId ? (
+              <>
+                {" "}Cabang:{" "}
+                <strong>
+                  {branches.find((branch) => branch.id === selectedBranchId)?.name ?? "-"}
+                </strong>.
+              </>
+            ) : null}
             {selectedServices.length > 0 ? (
               <>
                 {" "}Total saat ini: <strong>Rp{totalPrice.toLocaleString("id-ID")}</strong> untuk{" "}

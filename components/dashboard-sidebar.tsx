@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 
 type DashboardSidebarProps = {
   businessName: string;
+  className?: string;
+  onNavigate?: () => void;
 };
 
 function getInitials(name: string) {
@@ -20,11 +22,17 @@ function getInitials(name: string) {
   );
 }
 
-export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
+export function DashboardSidebar({
+  businessName,
+  className,
+  onNavigate,
+}: DashboardSidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-full border-b border-white/10 bg-[#16110d] text-white md:min-h-screen md:w-64 md:border-b-0 md:border-r">
+    <aside
+      className={`w-full border-b border-white/10 bg-[#16110d] text-white md:min-h-screen md:w-64 md:border-b-0 md:border-r ${className ?? ""}`}
+    >
       <div className="border-b border-white/10 px-5 py-5">
         <div className="flex items-center gap-4">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-400 text-base font-black text-stone-950">
@@ -48,6 +56,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
           <nav className="mt-4 space-y-2">
             <Link
               href="/admin"
+              onClick={onNavigate}
               className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin"
                   ? "bg-amber-300 text-stone-950"
@@ -61,6 +70,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
             </Link>
             <Link
               href="/admin/bookings"
+              onClick={onNavigate}
               className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/bookings"
                   ? "bg-amber-300 text-stone-950"
@@ -78,6 +88,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
             </Link>
             <Link
               href="/admin/transactions"
+              onClick={onNavigate}
               className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/transactions"
                   ? "bg-amber-300 text-stone-950"
@@ -104,6 +115,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
           <nav className="mt-4 space-y-2">
             <Link
               href="/admin/profile"
+              onClick={onNavigate}
               className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/profile"
                   ? "bg-amber-300 text-stone-950"
@@ -121,6 +133,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
             </Link>
             <Link
               href="/admin/landing"
+              onClick={onNavigate}
               className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/landing"
                   ? "bg-amber-300 text-stone-950"
@@ -138,6 +151,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
             </Link>
             <Link
               href="/admin/settings/webhook"
+              onClick={onNavigate}
               className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/settings/webhook"
                   ? "bg-amber-300 text-stone-950"
@@ -155,6 +169,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
             </Link>
             <Link
               href="/admin/settings/services"
+              onClick={onNavigate}
               className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/settings/services"
                   ? "bg-amber-300 text-stone-950"
@@ -172,6 +187,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
             </Link>
             <Link
               href="/admin/settings/branches"
+              onClick={onNavigate}
               className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/settings/branches"
                   ? "bg-amber-300 text-stone-950"

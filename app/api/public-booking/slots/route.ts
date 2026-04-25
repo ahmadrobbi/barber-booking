@@ -6,6 +6,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const slug = url.searchParams.get("slug");
   const date = url.searchParams.get("date");
+  const branchId = url.searchParams.get("branch");
   const serviceCodes = (url.searchParams.get("services") ?? "")
     .split(",")
     .map((item) => item.trim())
@@ -35,7 +36,7 @@ export async function GET(req: Request) {
     durationMinutes: summary.totalDurationMinutes,
     userId: tenant.userId,
     channelId: tenant.channelId,
-    branchId: null,
+    branchId,
   });
 
   return Response.json({
