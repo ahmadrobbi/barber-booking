@@ -194,7 +194,7 @@ export function UserProfileForm({ user, initialProfile }: UserProfileFormProps) 
             return (
               <div
                 key={day}
-                className="grid gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 md:grid-cols-[1.2fr_0.8fr_0.8fr]"
+                className="grid gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 md:grid-cols-[1.1fr_0.85fr_0.85fr]"
               >
                 <label className="flex items-center gap-3 text-sm font-medium text-stone-800">
                   <input
@@ -225,6 +225,45 @@ export function UserProfileForm({ user, initialProfile }: UserProfileFormProps) 
                     className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-stone-900 outline-none transition focus:border-amber-300 focus:bg-white"
                   />
                 </label>
+
+                <div className="md:col-span-3 rounded-2xl border border-stone-200 bg-white p-4">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <label className="flex items-center gap-3 text-sm font-medium text-stone-800">
+                      <input
+                        type="checkbox"
+                        name={`business_hours_${day}_break_enabled`}
+                        defaultChecked={value.break_enabled}
+                        className="h-4 w-4 rounded border-stone-300 text-amber-500 focus:ring-amber-400"
+                      />
+                      Aktifkan jam istirahat
+                    </label>
+                    <p className="text-xs text-stone-500">
+                      Slot pada jam istirahat tidak akan muncul di pilihan booking.
+                    </p>
+                  </div>
+
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <label className="block text-sm font-medium text-stone-700">
+                      Istirahat mulai
+                      <input
+                        type="time"
+                        name={`business_hours_${day}_break_open`}
+                        defaultValue={value.break_open}
+                        className="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-900 outline-none transition focus:border-amber-300 focus:bg-white"
+                      />
+                    </label>
+
+                    <label className="block text-sm font-medium text-stone-700">
+                      Istirahat selesai
+                      <input
+                        type="time"
+                        name={`business_hours_${day}_break_close`}
+                        defaultValue={value.break_close}
+                        className="mt-2 w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-900 outline-none transition focus:border-amber-300 focus:bg-white"
+                      />
+                    </label>
+                  </div>
+                </div>
               </div>
             );
           })}

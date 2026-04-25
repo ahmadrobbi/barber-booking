@@ -4,6 +4,20 @@ import { LandingPageForm } from "@/components/landing-page-form";
 
 export const dynamic = "force-dynamic";
 
+function getAppUrl() {
+  const explicitUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
+
+  if (explicitUrl) {
+    return explicitUrl.replace(/\/$/, "");
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  return "http://localhost:3000";
+}
+
 export default async function LandingPage({
   searchParams,
 }: {
@@ -13,6 +27,7 @@ export default async function LandingPage({
 
   const landingPage = await getUserLandingPage();
   const params = (await searchParams) ?? {};
+  const appUrl = getAppUrl();
 
   return (
     <div className="space-y-6">
@@ -34,7 +49,7 @@ export default async function LandingPage({
             Pengaturan landing page berhasil disimpan.
           </div>
         ) : null}
-        <LandingPageForm initialLandingPage={landingPage} />
+        <LandingPageForm initialLandingPage={landingPage} appUrl={appUrl} />
       </section>
     </div>
   );

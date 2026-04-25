@@ -42,6 +42,9 @@ export async function updateUserProfile(
         enabled: formData.get(`business_hours_${day}_enabled`) === "on",
         open: normalizeText(formData.get(`business_hours_${day}_open`)) || "09:00",
         close: normalizeText(formData.get(`business_hours_${day}_close`)) || "18:00",
+        break_enabled: formData.get(`business_hours_${day}_break_enabled`) === "on",
+        break_open: normalizeText(formData.get(`business_hours_${day}_break_open`)) || "12:00",
+        break_close: normalizeText(formData.get(`business_hours_${day}_break_close`)) || "13:00",
       },
     ])
   );

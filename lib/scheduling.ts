@@ -18,6 +18,9 @@ export type DayBusinessHours = {
   enabled: boolean;
   open: string;
   close: string;
+  break_enabled: boolean;
+  break_open: string;
+  break_close: string;
 };
 
 export type BusinessHours = Record<WeekdayKey, DayBusinessHours>;
@@ -42,13 +45,13 @@ type BookingScope = {
 };
 
 const DEFAULT_BUSINESS_HOURS: BusinessHours = {
-  monday: { enabled: true, open: "09:00", close: "18:00" },
-  tuesday: { enabled: true, open: "09:00", close: "18:00" },
-  wednesday: { enabled: true, open: "09:00", close: "18:00" },
-  thursday: { enabled: true, open: "09:00", close: "18:00" },
-  friday: { enabled: true, open: "09:00", close: "18:00" },
-  saturday: { enabled: true, open: "09:00", close: "18:00" },
-  sunday: { enabled: false, open: "09:00", close: "18:00" },
+  monday: { enabled: true, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
+  tuesday: { enabled: true, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
+  wednesday: { enabled: true, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
+  thursday: { enabled: true, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
+  friday: { enabled: true, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
+  saturday: { enabled: true, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
+  sunday: { enabled: false, open: "09:00", close: "18:00", break_enabled: false, break_open: "12:00", break_close: "13:00" },
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -68,6 +71,18 @@ export function normalizeBusinessHours(value: unknown): BusinessHours {
         enabled: typeof item.enabled === "boolean" ? item.enabled : DEFAULT_BUSINESS_HOURS[key].enabled,
         open: typeof item.open === "string" ? item.open : DEFAULT_BUSINESS_HOURS[key].open,
         close: typeof item.close === "string" ? item.close : DEFAULT_BUSINESS_HOURS[key].close,
+        break_enabled:
+          typeof item.break_enabled === "boolean"
+            ? item.break_enabled
+            : DEFAULT_BUSINESS_HOURS[key].break_enabled,
+        break_open:
+          typeof item.break_open === "string"
+            ? item.break_open
+            : DEFAULT_BUSINESS_HOURS[key].break_open,
+        break_close:
+          typeof item.break_close === "string"
+            ? item.break_close
+            : DEFAULT_BUSINESS_HOURS[key].break_close,
       };
       return acc;
     }
@@ -178,6 +193,9 @@ export function buildCandidateSlots(params: {
 
   const openMinutes = toMinutes(hours.open);
   const closeMinutes = toMinutes(hours.close);
+  const breakEnabled = hours.break_enabled;
+  const breakOpenMinutes = breakEnabled ? toMinutes(hours.break_open) : null;
+  const breakCloseMinutes = breakEnabled ? toMinutes(hours.break_close) : null;
   const stepMinutes = getSlotStepMinutes(params.industry, params.durationMinutes);
   const result: string[] = [];
 
@@ -186,6 +204,15 @@ export function buildCandidateSlots(params: {
     current + params.durationMinutes <= closeMinutes;
     current += stepMinutes
   ) {
+    if (
+      breakEnabled &&
+      breakOpenMinutes !== null &&
+      breakCloseMinutes !== null &&
+      overlaps(current, params.durationMinutes, breakOpenMinutes, breakCloseMinutes - breakOpenMinutes)
+    ) {
+      continue;
+    }
+
     result.push(toTimeString(current));
   }
 

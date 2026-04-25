@@ -6,16 +6,17 @@ import type { UserLandingPage } from "@/lib/user";
 
 type LandingPageFormProps = {
   initialLandingPage: UserLandingPage | null;
+  appUrl: string;
 };
 
-export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
+export function LandingPageForm({ initialLandingPage, appUrl }: LandingPageFormProps) {
   const [state, action] = useActionState(updateLandingPage, { message: "" });
   const publicProfilePath = initialLandingPage?.subdomain
-    ? `/landing_page/${initialLandingPage.subdomain}`
-    : "/landing_page/namabisnis";
+    ? `${appUrl}/landing_page/${initialLandingPage.subdomain}`
+    : `${appUrl}/landing_page/namabisnis`;
   const publicBookingPath = initialLandingPage?.subdomain
-    ? `/b/${initialLandingPage.subdomain}`
-    : "/b/namabisnis";
+    ? `${appUrl}/b/${initialLandingPage.subdomain}`
+    : `${appUrl}/b/namabisnis`;
 
   return (
     <form action={action} className="space-y-6">
