@@ -34,6 +34,7 @@ supabase db push
    - `20260421110000_mvp_barbershop_foundation.sql`
    - `20260422103000_add_duration_to_bookings.sql`
    - `20260423110000_add_customer_name_and_multi_service_booking.sql`
+   - `20260425103000_add_customer_name_to_user_sessions.sql`
 
 ## 🔧 Quick Fix: Apply All Migrations at Once
 
@@ -70,6 +71,7 @@ WHERE table_schema = 'public'
 | `20260421110000_mvp_barbershop_foundation.sql` | Add tenant-scoped booking indexes, session ownership, and per-user service catalog |
 | `20260422103000_add_duration_to_bookings.sql` | Add booking duration field for overlap-aware scheduling |
 | `20260423110000_add_customer_name_and_multi_service_booking.sql` | Add customer name and multi-service support to bookings |
+| `20260425103000_add_customer_name_to_user_sessions.sql` | Add customer name field to WhatsApp chatbot session state |
 
 ## ✅ Verification
 

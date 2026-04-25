@@ -24,6 +24,7 @@ type SessionState = {
   channel_id: string | null;
   user_id: string | null;
   step: string | null;
+  customer_name: string | null;
   layanan: string | null;
   harga: number | null;
   tanggal: string | null;
@@ -54,6 +55,10 @@ function normalizeSender(value: string | null | undefined) {
 
   const digits = value.replace(/[^\d]/g, "");
   return digits || value.trim();
+}
+
+function normalizeCustomerName(value: string) {
+  return value.replace(/\s+/g, " ").trim();
 }
 
 async function getAvailableSlots(
@@ -310,7 +315,8 @@ export async function POST(req: Request) {
     return Response.json({ status: "missing token" }, { status: 500 });
   }
 
-  const message = incomingMessage.toLowerCase().trim();
+  const rawMessage = incomingMessage.trim();
+  const message = rawMessage.toLowerCase();
   const state = await loadState(sender, context.channelId);
   const industry: IndustryKey = state?.industry || context.industry;
   const templates = context.templates;
@@ -328,6 +334,7 @@ export async function POST(req: Request) {
       channel_id: context.channelId,
       user_id: context.userId,
       step: "pilih_layanan",
+      customer_name: null,
       layanan: null,
       harga: null,
       tanggal: null,
@@ -364,6 +371,7 @@ export async function POST(req: Request) {
         channel_id: context.channelId,
         user_id: context.userId,
         step: "pilih_layanan",
+        customer_name: null,
         industry: selectedIndustry,
         layanan: null,
         harga: null,
@@ -404,6 +412,7 @@ export async function POST(req: Request) {
         channel_id: context.channelId,
         user_id: context.userId,
         step: "pilih_tanggal",
+        customer_name: null,
         layanan: service.name,
         harga: service.price,
         industry,
@@ -492,33 +501,52 @@ export async function POST(req: Request) {
             await getAvailableSlots(state.tanggal, industry, scope, durationMinutes)
           );
       } else {
-        const confirmationSummary = renderTemplate(templates.confirmationPrompt, {
-          business_name: context.businessName,
-          layanan: state.layanan,
-          tanggal_label: formatBookingDateLabel(state.tanggal),
-          jam: selectedSlot,
-          harga: formatRupiah(state.harga),
-        });
-
         await saveState({
           sender,
           channel_id: context.channelId,
           user_id: context.userId,
-          step: "konfirmasi",
+          step: "isi_nama",
           jam: selectedSlot,
           industry,
         });
 
-        reply = renderTemplate(templates.slotPrompt, {
-          business_name: context.businessName,
-          jam: selectedSlot,
-          confirmation_summary: confirmationSummary,
-        });
+        reply =
+          `Sip, jam *${selectedSlot}* masih tersedia untuk *${state.layanan}*.\n\n` +
+          "Sekarang balas dengan *nama pemesan* untuk melanjutkan booking ya 🙌";
       }
+    }
+  } else if (state.step === "isi_nama") {
+    const customerName = normalizeCustomerName(rawMessage);
+
+    if (!customerName || customerName.length < 2) {
+      reply = "Nama pemesan minimal 2 karakter. Balas dengan nama yang benar ya 🙌";
+    } else {
+      const confirmationSummary = renderTemplate(templates.confirmationPrompt, {
+        business_name: context.businessName,
+        customer_name: customerName,
+        layanan: state.layanan,
+        tanggal_label: state.tanggal ? formatBookingDateLabel(state.tanggal) : "-",
+        jam: state.jam,
+        harga: formatRupiah(state.harga),
+      });
+
+      await saveState({
+        sender,
+        channel_id: context.channelId,
+        user_id: context.userId,
+        step: "konfirmasi",
+        customer_name: customerName,
+        industry,
+      });
+
+      reply =
+        `${confirmationSummary}\n\n` +
+        `🙍 Nama pemesan: ${customerName}\n\n` +
+        "Balas *YA* untuk konfirmasi atau *BATAL* untuk mengulang.";
     }
   } else if (state.step === "konfirmasi") {
     if (message === "ya") {
-      if (!state.tanggal || !state.jam) {
+      if (!state.tanggal || !state.jam || !state.customer_name) {
         await clearState(sender, context.channelId);
         reply = "Sesi booking kamu sudah kedaluwarsa. Ketik *halo* untuk mulai lagi.";
       } else if (!(await isSlotAvailable({
@@ -536,6 +564,7 @@ export async function POST(req: Request) {
         const { error: bookingInsertError } = await getSupabase().from("bookings").insert([
           {
             sender,
+            customer_name: state.customer_name,
             layanan: state.layanan,
             service_codes: selectedService ? [selectedService.code] : [],
             harga: state.harga,
@@ -576,6 +605,7 @@ export async function POST(req: Request) {
 
         reply = renderTemplate(templates.successMessage, {
           business_name: context.businessName,
+          customer_name: state.customer_name,
           layanan: state.layanan,
           tanggal_label: formatBookingDateLabel(state.tanggal),
           jam: state.jam,
