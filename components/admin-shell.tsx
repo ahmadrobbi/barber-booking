@@ -65,8 +65,8 @@ export function AdminShell({ businessName, userName, children }: AdminShellProps
 
       <div className="flex min-h-screen flex-1 flex-col">
         <header className="border-b border-stone-200 bg-white/80 px-4 py-4 backdrop-blur md:px-8">
-          <div className="flex flex-wrap items-start justify-between gap-4 md:flex-nowrap md:items-center">
-            <Link href="/admin" className="flex min-w-0 items-center gap-3">
+          <div className="flex items-center justify-between gap-4 md:flex-nowrap">
+            <Link href="/admin" className="flex min-w-0 flex-1 items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-900 text-sm font-black text-amber-300">
                 {getInitials(businessName)}
               </div>
@@ -76,7 +76,7 @@ export function AdminShell({ businessName, userName, children }: AdminShellProps
               </div>
             </Link>
 
-            <div className="flex w-full items-center justify-end gap-3 md:w-auto">
+            <div className="flex items-center justify-end gap-3 md:w-auto">
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
