@@ -31,9 +31,14 @@ type UserProfileRow = {
   business_hours: unknown;
 };
 
+type UserBranchRow = {
+  business_hours: unknown;
+};
+
 type BookingScope = {
   userId: string | null;
   channelId: string | null;
+  branchId?: string | null;
 };
 
 const DEFAULT_BUSINESS_HOURS: BusinessHours = {
@@ -94,6 +99,38 @@ export async function getBusinessHoursForUser(userId: string | null | undefined)
     console.warn("Failed to load business hours:", error);
     return DEFAULT_BUSINESS_HOURS;
   }
+}
+
+export async function getBusinessHoursForScope(params: {
+  userId: string | null | undefined;
+  branchId?: string | null;
+}) {
+  if (params.branchId) {
+    try {
+      const supabase = createAdminSupabase();
+      const { data, error } = await supabase
+        .from("user_branches")
+        .select("business_hours")
+        .eq("id", params.branchId)
+        .maybeSingle();
+
+      if (error && error.code !== "PGRST116" && error.code !== "42P01") {
+        throw new Error(error.message);
+      }
+
+      if (
+        data &&
+        isRecord((data as UserBranchRow | null)?.business_hours) &&
+        Object.keys((data as UserBranchRow | null)?.business_hours as Record<string, unknown>).length > 0
+      ) {
+        return normalizeBusinessHours((data as UserBranchRow | null)?.business_hours);
+      }
+    } catch (error) {
+      console.warn("Failed to load branch business hours:", error);
+    }
+  }
+
+  return getBusinessHoursForUser(params.userId);
 }
 
 export function toMinutes(value: string) {
@@ -177,6 +214,9 @@ export async function getBookedSlotsForDate(date: string, scope: BookingScope) {
 
   if (scope.userId) {
     query = query.eq("user_id", scope.userId);
+    if (scope.branchId) {
+      query = query.eq("branch_id", scope.branchId);
+    }
   } else if (scope.channelId) {
     query = query.eq("channel_id", scope.channelId);
   } else {
@@ -198,8 +238,12 @@ export async function getAvailableSlotsForDate(params: {
   durationMinutes: number;
   userId: string | null;
   channelId: string | null;
+  branchId?: string | null;
 }) {
-  const businessHours = await getBusinessHoursForUser(params.userId);
+  const businessHours = await getBusinessHoursForScope({
+    userId: params.userId,
+    branchId: params.branchId,
+  });
   const candidateSlots = buildCandidateSlots({
     date: params.date,
     industry: params.industry,
@@ -209,6 +253,7 @@ export async function getAvailableSlotsForDate(params: {
   const bookings = await getBookedSlotsForDate(params.date, {
     userId: params.userId,
     channelId: params.channelId,
+    branchId: params.branchId,
   });
 
   return candidateSlots.filter((slot) => {
@@ -232,6 +277,7 @@ export async function isSlotAvailable(params: {
   durationMinutes: number;
   userId: string | null;
   channelId: string | null;
+  branchId?: string | null;
 }) {
   const availableSlots = await getAvailableSlotsForDate({
     date: params.date,
@@ -239,6 +285,7 @@ export async function isSlotAvailable(params: {
     durationMinutes: params.durationMinutes,
     userId: params.userId,
     channelId: params.channelId,
+    branchId: params.branchId,
   });
 
   return availableSlots.includes(params.time);

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { UserBranch } from "@/lib/user-branches";
 
 const monthOptions = [
   { value: "1", label: "Januari" },
@@ -17,19 +18,23 @@ const monthOptions = [
 
 type AdminBookingFiltersProps = {
   availableYears: readonly number[];
+  branches?: readonly UserBranch[];
   path: string;
+  selectedBranchId?: string | null;
   selectedMonth: number;
   selectedYear: number;
 };
 
 export function AdminBookingFilters({
   availableYears,
+  branches = [],
   path,
+  selectedBranchId = null,
   selectedMonth,
   selectedYear,
 }: AdminBookingFiltersProps) {
   return (
-    <form className="grid gap-3 rounded-[1.5rem] bg-stone-50 p-4 sm:grid-cols-[1fr_1fr_auto]">
+    <form className="grid gap-3 rounded-[1.5rem] bg-stone-50 p-4 xl:grid-cols-[1fr_1fr_1fr_auto]">
       <label className="text-sm">
         <span className="mb-2 block text-stone-500">Bulan</span>
         <select
@@ -55,6 +60,22 @@ export function AdminBookingFilters({
           {availableYears.map((year) => (
             <option key={year} value={year}>
               {year}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="text-sm">
+        <span className="mb-2 block text-stone-500">Cabang</span>
+        <select
+          name="branch"
+          defaultValue={selectedBranchId ?? ""}
+          className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 [color-scheme:light] outline-none transition focus:border-amber-400"
+        >
+          <option value="">Semua cabang</option>
+          {branches.map((branch) => (
+            <option key={branch.id} value={branch.id}>
+              {branch.name}
             </option>
           ))}
         </select>

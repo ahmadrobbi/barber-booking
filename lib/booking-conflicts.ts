@@ -7,6 +7,8 @@ type DatabaseErrorLike = {
 const BOOKING_SLOT_CONSTRAINTS = new Set([
   "bookings_user_active_slot_key",
   "bookings_channel_active_slot_key",
+  "bookings_user_branch_active_slot_key",
+  "bookings_channel_branch_active_slot_key",
 ]);
 
 function includesKnownConstraint(message: string | undefined) {

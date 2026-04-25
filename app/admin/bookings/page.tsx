@@ -1,7 +1,9 @@
 import { AdminBookingFilters } from "@/components/admin-booking-filters";
 import { AdminBookingTable } from "@/components/admin-booking-table";
 import { requireAdmin } from "@/lib/auth";
+import { getCurrentUserBranches } from "@/lib/user-branches";
 import {
+  filterBookingsByBranchId,
   filterBookingsByMonthYear,
   formatCalendarMonthYear,
   getAllBookings,
@@ -15,16 +17,21 @@ export const dynamic = "force-dynamic";
 export default async function AdminBookingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string; year?: string }>;
+  searchParams: Promise<{ month?: string; year?: string; branch?: string }>;
 }) {
   await requireAdmin();
 
   const bookings = await getAllBookings();
+  const branches = await getCurrentUserBranches();
   const params = await searchParams;
-  const { selectedMonth, selectedYear } = getFilterState(params, new Date());
+  const { selectedMonth, selectedYear, selectedBranchId } = getFilterState(params, new Date());
   const availableYears = getAvailableBookingYears(bookings, selectedYear);
   const filteredBookings = sortBookingsLatest(
-    filterBookingsByMonthYear(bookings, selectedMonth, selectedYear)
+    filterBookingsByMonthYear(
+      filterBookingsByBranchId(bookings, selectedBranchId),
+      selectedMonth,
+      selectedYear
+    )
   );
 
   return (
@@ -49,7 +56,9 @@ export default async function AdminBookingsPage({
 
           <AdminBookingFilters
             availableYears={availableYears}
+            branches={branches}
             path="/admin/bookings"
+            selectedBranchId={selectedBranchId}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
           />

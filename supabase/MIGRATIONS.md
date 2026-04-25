@@ -35,6 +35,9 @@ supabase db push
    - `20260422103000_add_duration_to_bookings.sql`
    - `20260423110000_add_customer_name_and_multi_service_booking.sql`
    - `20260425103000_add_customer_name_to_user_sessions.sql`
+   - `20260425120000_create_user_branches.sql`
+   - `20260425121000_add_branch_id_to_bookings_and_sessions.sql`
+   - `20260425133000_scope_booking_unique_indexes_by_branch.sql`
 
 ## 🔧 Quick Fix: Apply All Migrations at Once
 
@@ -72,6 +75,9 @@ WHERE table_schema = 'public'
 | `20260422103000_add_duration_to_bookings.sql` | Add booking duration field for overlap-aware scheduling |
 | `20260423110000_add_customer_name_and_multi_service_booking.sql` | Add customer name and multi-service support to bookings |
 | `20260425103000_add_customer_name_to_user_sessions.sql` | Add customer name field to WhatsApp chatbot session state |
+| `20260425120000_create_user_branches.sql` | Create tenant-scoped branch table for multi-outlet MVP |
+| `20260425121000_add_branch_id_to_bookings_and_sessions.sql` | Add branch relation to bookings and chatbot sessions |
+| `20260425133000_scope_booking_unique_indexes_by_branch.sql` | Scope active booking uniqueness to branch-aware slots |
 
 ## ✅ Verification
 

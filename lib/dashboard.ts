@@ -4,6 +4,8 @@ import { getSession } from "@/lib/auth";
 export type BookingRow = {
   id: number;
   created_at?: string | null;
+  branch_id?: string | null;
+  branch_name?: string | null;
   customer_name: string | null;
   sender: string | null;
   layanan: string | null;
@@ -24,7 +26,7 @@ export async function getAllBookings() {
 
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, created_at, customer_name, sender, layanan, harga, jam, status, tanggal, user_id")
+    .select("id, created_at, branch_id, customer_name, sender, layanan, harga, jam, status, tanggal, user_id")
     .eq("user_id", session.userId)
     .not("tanggal", "is", null)
     .order("tanggal", { ascending: false })
@@ -34,7 +36,12 @@ export async function getAllBookings() {
     throw new Error(error.message);
   }
 
-  return (data ?? []) as BookingRow[];
+  const branchMap = await getBranchNameMap(session.userId);
+
+  return ((data ?? []) as BookingRow[]).map((booking) => ({
+    ...booking,
+    branch_name: booking.branch_id ? branchMap.get(booking.branch_id) ?? null : null,
+  }));
 }
 
 export async function getBookingsBySender(sender: string) {
@@ -47,7 +54,7 @@ export async function getBookingsBySender(sender: string) {
 
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, created_at, customer_name, sender, layanan, harga, jam, status, tanggal, user_id")
+    .select("id, created_at, branch_id, customer_name, sender, layanan, harga, jam, status, tanggal, user_id")
     .eq("user_id", session.userId)
     .eq("sender", sender)
     .order("tanggal", { ascending: false })
@@ -57,7 +64,12 @@ export async function getBookingsBySender(sender: string) {
     throw new Error(error.message);
   }
 
-  return (data ?? []) as BookingRow[];
+  const branchMap = await getBranchNameMap(session.userId);
+
+  return ((data ?? []) as BookingRow[]).map((booking) => ({
+    ...booking,
+    branch_name: booking.branch_id ? branchMap.get(booking.branch_id) ?? null : null,
+  }));
 }
 
 export function groupBookingsByDate(data: BookingRow[]) {
@@ -116,6 +128,17 @@ export function filterBookingsByMonthYear(
   });
 }
 
+export function filterBookingsByBranchId(
+  data: BookingRow[],
+  branchId: string | null
+) {
+  if (!branchId) {
+    return data;
+  }
+
+  return data.filter((item) => item.branch_id === branchId);
+}
+
 export function getAvailableBookingYears(
   data: BookingRow[],
   fallbackYear?: number
@@ -156,13 +179,35 @@ export function sortBookingsByCreatedAtDesc(data: BookingRow[]) {
 }
 
 export function getFilterState(
-  params: { month?: string; year?: string },
+  params: { month?: string; year?: string; branch?: string },
   now = new Date()
 ) {
   const selectedMonth = parsePositiveInteger(params.month) ?? now.getMonth() + 1;
   const selectedYear = parsePositiveInteger(params.year) ?? now.getFullYear();
+  const selectedBranchId = typeof params.branch === "string" && params.branch.trim()
+    ? params.branch.trim()
+    : null;
 
-  return { selectedMonth, selectedYear };
+  return { selectedMonth, selectedYear, selectedBranchId };
+}
+
+async function getBranchNameMap(userId: string) {
+  const supabase = createAdminSupabase();
+  const { data, error } = await supabase
+    .from("user_branches")
+    .select("id, name")
+    .eq("user_id", userId);
+
+  if (error && error.code !== "42P01") {
+    throw new Error(error.message);
+  }
+
+  return new Map(
+    ((data ?? []) as Array<{ id: string; name: string | null }>).map((branch) => [
+      branch.id,
+      branch.name ?? "Cabang tanpa nama",
+    ])
+  );
 }
 
 function parsePositiveInteger(value: string | undefined) {

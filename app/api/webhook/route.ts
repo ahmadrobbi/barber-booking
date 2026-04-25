@@ -13,6 +13,7 @@ import { isBookingSlotConflict } from "@/lib/booking-conflicts";
 import { getServicesForUser } from "@/lib/bookings";
 import { getAvailableSlotsForDate, isSlotAvailable } from "@/lib/scheduling";
 import { createAdminSupabase } from "@/lib/supabase";
+import { getBranchesForUser, type UserBranch } from "@/lib/user-branches";
 import {
   resolveWhatsappRuntimeContext,
   sendWhatsappMessage,
@@ -23,6 +24,7 @@ type SessionState = {
   sender: string;
   channel_id: string | null;
   user_id: string | null;
+  branch_id: string | null;
   step: string | null;
   customer_name: string | null;
   layanan: string | null;
@@ -35,6 +37,7 @@ type SessionState = {
 type BookingScope = {
   userId: string | null;
   channelId: string | null;
+  branchId: string | null;
 };
 
 type ParsedWebhookPayload = {
@@ -49,6 +52,7 @@ type GreetingParams = {
   context: WhatsappRuntimeContext;
   industry: IndustryKey;
   tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
+  branches: UserBranch[];
 };
 
 type StepReplyParams = {
@@ -56,6 +60,7 @@ type StepReplyParams = {
   context: WhatsappRuntimeContext;
   templates: WhatsappRuntimeContext["templates"];
   tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
+  branches: UserBranch[];
   today: Date;
   scope: BookingScope;
   industry: IndustryKey;
@@ -88,6 +93,45 @@ function isContinueMessage(message: string) {
 
 function withCancelHint(message: string) {
   return `${message}\n\nKetik *BATAL* kalau mau berhenti dari booking ini.`;
+}
+
+function getBranchOptionsText(branches: UserBranch[]) {
+  return branches.map((branch, index) => `${index + 1}. *${branch.name}*`).join("\n");
+}
+
+function getBranchBySelection(message: string, branches: UserBranch[]) {
+  const cleaned = message.trim().toLowerCase();
+  const selectedIndex = Number(cleaned);
+
+  if (Number.isInteger(selectedIndex) && selectedIndex >= 1 && selectedIndex <= branches.length) {
+    return branches[selectedIndex - 1] ?? null;
+  }
+
+  return (
+    branches.find(
+      (branch) =>
+        branch.id === cleaned ||
+        branch.code.toLowerCase() === cleaned ||
+        branch.name.toLowerCase() === cleaned
+    ) ?? null
+  );
+}
+
+function getSelectedBranch(branches: UserBranch[], branchId: string | null | undefined) {
+  if (!branchId) {
+    return null;
+  }
+
+  return branches.find((branch) => branch.id === branchId) ?? null;
+}
+
+function buildBranchSelectionMessage(context: WhatsappRuntimeContext, branches: UserBranch[]) {
+  return (
+    `Halo 👋 Selamat datang di *${context.businessName}* 💈\n\n` +
+    "Pilih cabang dulu ya sebelum lanjut booking:\n\n" +
+    `${getBranchOptionsText(branches)}\n\n` +
+    "Balas dengan nomor cabang yang kamu mau."
+  );
 }
 
 async function getAvailableSlots(
@@ -317,6 +361,7 @@ function getRuntimeScope(context: WhatsappRuntimeContext): BookingScope {
   return {
     userId: context.userId,
     channelId: context.channelId,
+    branchId: null,
   };
 }
 
@@ -325,11 +370,31 @@ async function resetToGreetingState({
   context,
   industry,
   tenantServices,
+  branches,
 }: GreetingParams) {
+  if (branches.length > 0) {
+    await saveState({
+      sender,
+      channel_id: context.channelId,
+      user_id: context.userId,
+      branch_id: null,
+      step: "pilih_cabang",
+      customer_name: null,
+      layanan: null,
+      harga: null,
+      tanggal: null,
+      jam: null,
+      industry,
+    });
+
+    return buildBranchSelectionMessage(context, branches);
+  }
+
   await saveState({
     sender,
     channel_id: context.channelId,
     user_id: context.userId,
+    branch_id: null,
     step: "pilih_layanan",
     customer_name: null,
     layanan: null,
@@ -350,17 +415,27 @@ async function buildCurrentStepReply({
   context,
   templates,
   tenantServices,
+  branches,
   today,
   scope,
   industry,
 }: StepReplyParams) {
+  const selectedBranch = getSelectedBranch(branches, state.branch_id);
+
   if (state.step === "pilih_industri") {
     return withCancelHint("Kita masih di langkah pilih industri.\n\nPilih industri:\n" + getIndustryOptionsText());
+  }
+
+  if (state.step === "pilih_cabang") {
+    return withCancelHint(
+      "Kita masih di langkah pilih cabang.\n\n" + buildBranchSelectionMessage(context, branches)
+    );
   }
 
   if (state.step === "pilih_layanan") {
     return withCancelHint(
       "Kita masih di langkah pilih layanan.\n\n" +
+        (selectedBranch ? `Cabang terpilih: *${selectedBranch.name}*\n\n` : "") +
         renderTemplate(templates.greeting, {
           business_name: context.businessName,
           service_list: getServiceOptionsText(tenantServices),
@@ -384,6 +459,7 @@ async function buildCurrentStepReply({
 
     return withCancelHint(
       "Kita masih di langkah pilih tanggal.\n\n" +
+        (selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : "") +
         renderTemplate(templates.servicePrompt, {
           business_name: context.businessName,
           layanan: state.layanan,
@@ -407,6 +483,7 @@ async function buildCurrentStepReply({
 
     return withCancelHint(
       "Kita masih di langkah pilih jam.\n\n" +
+        (selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : "") +
         renderTemplate(templates.datePrompt, {
           business_name: context.businessName,
           tanggal_label: formatBookingDateLabel(state.tanggal),
@@ -418,6 +495,7 @@ async function buildCurrentStepReply({
   if (state.step === "isi_nama") {
     return withCancelHint(
       `Kita masih di langkah isi nama.\n\n` +
+        (selectedBranch ? `Cabang: *${selectedBranch.name}*\n` : "") +
         `Layanan: *${state.layanan ?? "-"}*\n` +
         `Tanggal: *${state.tanggal ? formatBookingDateLabel(state.tanggal) : "-"}*\n` +
         `Jam: *${state.jam ?? "-"}*\n\n` +
@@ -433,20 +511,24 @@ async function buildCurrentStepReply({
       tanggal_label: state.tanggal ? formatBookingDateLabel(state.tanggal) : "-",
       jam: state.jam,
       harga: formatRupiah(state.harga),
+      branch_name: selectedBranch?.name,
     });
 
     return (
       `${confirmationSummary}\n\n` +
+      (selectedBranch ? `📍 Cabang: ${selectedBranch.name}\n` : "") +
       `🙍 Nama pemesan: ${state.customer_name ?? "-"}\n\n` +
       "Balas *YA* untuk konfirmasi atau *BATAL* untuk mengulang."
     );
   }
 
   return withCancelHint(
-    renderTemplate(templates.greeting, {
-      business_name: context.businessName,
-      service_list: getServiceOptionsText(tenantServices),
-    })
+    branches.length > 0
+      ? buildBranchSelectionMessage(context, branches)
+      : renderTemplate(templates.greeting, {
+          business_name: context.businessName,
+          service_list: getServiceOptionsText(tenantServices),
+        })
   );
 }
 
@@ -479,10 +561,14 @@ export async function POST(req: Request) {
   const state = await loadState(sender, context.channelId);
   const industry: IndustryKey = state?.industry || context.industry;
   const templates = context.templates;
+  const branches = await getBranchesForUser(context.userId, { activeOnly: true });
   const tenantServices = await getServicesForUser(context.userId, industry);
   const today = getTodayInJakarta();
   const industryPrompt = getIndustryOptionsText();
-  const scope = getRuntimeScope(context);
+  const scope = {
+    ...getRuntimeScope(context),
+    branchId: state?.branch_id ?? null,
+  };
   const getServiceDuration = (serviceName: string | null | undefined) =>
     tenantServices.find((service) => service.name === serviceName)?.duration_minutes ?? 60;
   let reply = "";
@@ -496,19 +582,40 @@ export async function POST(req: Request) {
       context,
       templates,
       tenantServices,
+      branches,
       today,
       scope,
       industry,
     });
-  } else
-  if (message === "halo" || message === "menu" || message === "booking") {
+  } else if (message === "halo" || message === "menu" || message === "booking") {
     reply = await resetToGreetingState({
       sender,
       context,
       industry,
       tenantServices,
+      branches,
     });
     reply = withCancelHint(reply);
+  } else if (
+    state &&
+    branches.length > 0 &&
+    ["cabang", "pilih cabang", "ganti cabang", "ubah cabang"].includes(message)
+  ) {
+    await saveState({
+      sender,
+      channel_id: context.channelId,
+      user_id: context.userId,
+      branch_id: null,
+      step: "pilih_cabang",
+      customer_name: null,
+      layanan: null,
+      harga: null,
+      tanggal: null,
+      jam: null,
+      industry,
+    });
+
+    reply = withCancelHint(buildBranchSelectionMessage(context, branches));
   } else if (
     ["industri", "pilih industri", "ganti industri", "ubah industri"].includes(message)
   ) {
@@ -516,6 +623,7 @@ export async function POST(req: Request) {
       sender,
       channel_id: context.channelId,
       user_id: context.userId,
+      branch_id: state?.branch_id ?? null,
       step: "pilih_industri",
       industry,
     });
@@ -535,6 +643,7 @@ export async function POST(req: Request) {
         sender,
         channel_id: context.channelId,
         user_id: context.userId,
+        branch_id: null,
         step: "pilih_layanan",
         customer_name: null,
         industry: selectedIndustry,
@@ -553,21 +662,55 @@ export async function POST(req: Request) {
         })
       );
     }
+  } else if (state?.step === "pilih_cabang") {
+    const selectedBranch = getBranchBySelection(message, branches);
+
+    if (!selectedBranch) {
+      reply = withCancelHint(
+        `Kita masih di langkah pilih cabang.\n\nPilihan belum sesuai. Balas dengan nomor cabang yang tersedia ya 🙌\n\n${getBranchOptionsText(branches)}`
+      );
+    } else {
+      await saveState({
+        sender,
+        channel_id: context.channelId,
+        user_id: context.userId,
+        branch_id: selectedBranch.id ?? null,
+        step: "pilih_layanan",
+        customer_name: null,
+        layanan: null,
+        harga: null,
+        tanggal: null,
+        jam: null,
+        industry,
+      });
+
+      reply = withCancelHint(
+        `Cabang dipilih: *${selectedBranch.name}*\n\n` +
+          renderTemplate(templates.greeting, {
+            business_name: context.businessName,
+            service_list: getServiceOptionsText(tenantServices),
+          })
+      );
+    }
   } else if (!state) {
     reply = await resetToGreetingState({
       sender,
       context,
       industry,
       tenantServices,
+      branches,
     });
     reply = withCancelHint(reply);
   } else if (state.step === "pilih_layanan") {
     const industryServices = tenantServices;
     const service = getServiceBySelection(message, industryServices);
+    const selectedBranch = getSelectedBranch(branches, state.branch_id);
 
     if (!service) {
       reply = withCancelHint(
-        `Kita masih di langkah pilih layanan.\n\n${templates.invalidOptionMessage}\n\n${getServiceOptionsText(industryServices)}`
+        `Kita masih di langkah pilih layanan.\n\n` +
+          `${selectedBranch ? `Cabang terpilih: *${selectedBranch.name}*\n\n` : ""}` +
+          `${templates.invalidOptionMessage}\n\n${getServiceOptionsText(industryServices)}`
       );
     } else {
       const dateOptions = await getAvailableDateOptions({
@@ -591,14 +734,15 @@ export async function POST(req: Request) {
         layanan: service.name,
         harga: service.price,
         industry,
-      });
+        });
 
         reply = withCancelHint(
-          renderTemplate(templates.servicePrompt, {
-            business_name: context.businessName,
-            layanan: service.name,
-            date_options: getDateOptionsText(dateOptions),
-          })
+          `${selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : ""}` +
+            renderTemplate(templates.servicePrompt, {
+              business_name: context.businessName,
+              layanan: service.name,
+              date_options: getDateOptionsText(dateOptions),
+            })
         );
       }
     }
@@ -610,12 +754,15 @@ export async function POST(req: Request) {
       durationMinutes: getServiceDuration(state?.layanan),
     });
     const selectedDate = getDateBySelection(message, dateOptions);
+    const selectedBranch = getSelectedBranch(branches, state.branch_id);
 
     if (!selectedDate) {
       reply =
         dateOptions.length > 0
           ? withCancelHint(
-              `Kita masih di langkah pilih tanggal.\n\n${templates.invalidOptionMessage}\n\n${getDateOptionsText(dateOptions)}`
+              `Kita masih di langkah pilih tanggal.\n\n` +
+                `${selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : ""}` +
+                `${templates.invalidOptionMessage}\n\n${getDateOptionsText(dateOptions)}`
             )
           : "Maaf, belum ada tanggal yang tersedia dalam beberapa hari ke depan. Silakan coba lagi nanti ya 🙏";
     } else {
@@ -649,11 +796,12 @@ export async function POST(req: Request) {
         });
 
         reply = withCancelHint(
-          renderTemplate(templates.datePrompt, {
-            business_name: context.businessName,
-            tanggal_label: selectedDate.label,
-            slot_options: getSlotOptionsText(slots),
-          })
+          `${selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : ""}` +
+            renderTemplate(templates.datePrompt, {
+              business_name: context.businessName,
+              tanggal_label: selectedDate.label,
+              slot_options: getSlotOptionsText(slots),
+            })
         );
       }
     }
@@ -665,10 +813,13 @@ export async function POST(req: Request) {
       const durationMinutes = getServiceDuration(state.layanan);
       const slots = await getAvailableSlots(state.tanggal, industry, scope, durationMinutes);
       const selectedSlot = getSlotBySelection(message, slots);
+      const selectedBranch = getSelectedBranch(branches, state.branch_id);
 
       if (!selectedSlot) {
         reply = withCancelHint(
-          `Kita masih di langkah pilih jam.\n\n${templates.invalidOptionMessage}\n\n${getSlotOptionsText(slots)}`
+          `Kita masih di langkah pilih jam.\n\n` +
+            `${selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : ""}` +
+            `${templates.invalidOptionMessage}\n\n${getSlotOptionsText(slots)}`
         );
       } else if (!(await isSlotAvailable({
         date: state.tanggal,
@@ -706,6 +857,7 @@ export async function POST(req: Request) {
     if (!customerName || customerName.length < 2) {
       reply =
         "Kita masih di langkah isi nama.\n\n" +
+        `${getSelectedBranch(branches, state.branch_id) ? `Cabang: *${getSelectedBranch(branches, state.branch_id)?.name ?? "-"}*\n` : ""}` +
         "Nama pemesan minimal 2 karakter. Balas dengan nama yang benar ya 🙌\n\n" +
         "Ketik *BATAL* kalau mau berhenti.";
     } else {
@@ -716,12 +868,14 @@ export async function POST(req: Request) {
         tanggal_label: state.tanggal ? formatBookingDateLabel(state.tanggal) : "-",
         jam: state.jam,
         harga: formatRupiah(state.harga),
+        branch_name: getSelectedBranch(branches, state.branch_id)?.name,
       });
 
       await saveState({
         sender,
         channel_id: context.channelId,
         user_id: context.userId,
+        branch_id: state.branch_id ?? null,
         step: "konfirmasi",
         customer_name: customerName,
         industry,
@@ -729,6 +883,7 @@ export async function POST(req: Request) {
 
       reply =
         `${confirmationSummary}\n\n` +
+        `${getSelectedBranch(branches, state.branch_id) ? `📍 Cabang: ${getSelectedBranch(branches, state.branch_id)?.name ?? "-"}\n` : ""}` +
         `🙍 Nama pemesan: ${customerName}\n\n` +
         "Balas *YA* untuk konfirmasi atau *BATAL* untuk mengulang.";
     }
@@ -753,6 +908,7 @@ export async function POST(req: Request) {
           {
             sender,
             customer_name: state.customer_name,
+            branch_id: state.branch_id,
             layanan: state.layanan,
             service_codes: selectedService ? [selectedService.code] : [],
             harga: state.harga,
@@ -797,6 +953,7 @@ export async function POST(req: Request) {
           layanan: state.layanan,
           tanggal_label: formatBookingDateLabel(state.tanggal),
           jam: state.jam,
+          branch_name: getSelectedBranch(branches, state.branch_id)?.name,
         });
       }
     } else if (message === "batal") {
@@ -815,6 +972,7 @@ export async function POST(req: Request) {
       context,
       industry,
       tenantServices,
+      branches,
     });
     reply = withCancelHint(reply);
   }

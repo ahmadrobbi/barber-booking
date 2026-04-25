@@ -80,6 +80,7 @@ export async function createPublicBooking(
     durationMinutes: summary.totalDurationMinutes,
     userId: tenant.userId,
     channelId: tenant.channelId,
+    branchId: null,
   });
 
   if (!slotStillAvailable) {

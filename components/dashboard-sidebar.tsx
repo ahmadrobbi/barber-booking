@@ -170,6 +170,23 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
               </span>
               <span className="font-medium">Layanan</span>
             </Link>
+            <Link
+              href="/admin/settings/branches"
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
+                pathname === "/admin/settings/branches"
+                  ? "bg-amber-300 text-stone-950"
+                  : "text-white/75 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
+                  pathname === "/admin/settings/branches" ? "bg-stone-950/10" : "bg-white/5"
+                }`}
+              >
+                CB
+              </span>
+              <span className="font-medium">Cabang</span>
+            </Link>
           </nav>
         </div>
       </div>

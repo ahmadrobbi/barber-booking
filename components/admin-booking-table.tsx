@@ -28,6 +28,7 @@ export function AdminBookingTable({ bookings }: AdminBookingTableProps) {
             <th className="px-5 py-4 font-medium">Jam</th>
             <th className="px-5 py-4 font-medium">Pemesan</th>
             <th className="px-5 py-4 font-medium">Layanan</th>
+            <th className="px-5 py-4 font-medium">Cabang</th>
             <th className="px-5 py-4 font-medium">WhatsApp</th>
             <th className="px-5 py-4 font-medium">Harga</th>
             <th className="px-5 py-4 font-medium">Status</th>
@@ -47,6 +48,11 @@ export function AdminBookingTable({ bookings }: AdminBookingTableProps) {
               </td>
               <td className="px-5 py-4">
                 <p className="font-semibold text-stone-900">{item.layanan ?? "-"}</p>
+              </td>
+              <td className="px-5 py-4">
+                <p className="font-medium text-stone-800">
+                  {item.branch_name ?? "Cabang belum dipilih"}
+                </p>
               </td>
               <td className="px-5 py-4 text-stone-600">{item.sender ?? "-"}</td>
               <td className="px-5 py-4 text-stone-700">{formatPrice(item.harga)}</td>

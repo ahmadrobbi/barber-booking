@@ -109,6 +109,9 @@ export function AdminBookingCalendar({
                       <p className="mt-1 text-xs font-medium text-stone-700">
                         {booking.customer_name ?? "Nama pemesan belum diisi"}
                       </p>
+                      <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.16em] text-amber-700">
+                        {booking.branch_name ?? "Cabang belum dipilih"}
+                      </p>
                       <p className="mt-1 text-xs text-stone-500">
                         WhatsApp: {booking.sender ?? "-"}
                       </p>
@@ -176,6 +179,9 @@ export function AdminBookingCalendar({
                         </p>
                         <p className="mt-1 text-xs font-medium text-stone-700">
                           {booking.customer_name ?? "Nama pemesan belum diisi"}
+                        </p>
+                        <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.16em] text-amber-700">
+                          {booking.branch_name ?? "Cabang belum dipilih"}
                         </p>
                         <p className="mt-1 text-xs text-stone-500">
                           WhatsApp: {booking.sender ?? "-"}

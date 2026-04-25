@@ -2,7 +2,9 @@ import Link from "next/link";
 import { AdminBookingCalendar } from "@/components/admin-booking-calendar";
 import { AdminBookingFilters } from "@/components/admin-booking-filters";
 import { requireAdmin } from "@/lib/auth";
+import { getCurrentUserBranches } from "@/lib/user-branches";
 import {
+  filterBookingsByBranchId,
   filterBookingsByMonthYear,
   formatCalendarMonthYear,
   formatBookingDate,
@@ -19,19 +21,17 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string; year?: string }>;
+  searchParams: Promise<{ month?: string; year?: string; branch?: string }>;
 }) {
   await requireAdmin();
   const bookings = await getAllBookings();
+  const branches = await getCurrentUserBranches();
   const params = await searchParams;
-  const { selectedMonth, selectedYear } = getFilterState(params, new Date());
-  const filteredBookings = filterBookingsByMonthYear(
-    bookings,
-    selectedMonth,
-    selectedYear
-  );
+  const { selectedMonth, selectedYear, selectedBranchId } = getFilterState(params, new Date());
+  const branchFilteredBookings = filterBookingsByBranchId(bookings, selectedBranchId);
+  const filteredBookings = filterBookingsByMonthYear(branchFilteredBookings, selectedMonth, selectedYear);
   const sortedFilteredBookings = sortBookingsLatest(filteredBookings);
-  const latestBookings = sortBookingsByCreatedAtDesc(bookings);
+  const latestBookings = sortBookingsByCreatedAtDesc(branchFilteredBookings);
   const availableYears = getAvailableBookingYears(bookings, selectedYear);
   const total = filteredBookings.length;
   const confirmed = filteredBookings.filter((booking) => booking.status === "confirmed").length;
@@ -55,7 +55,9 @@ export default async function AdminPage({
         <div className="mt-6">
           <AdminBookingFilters
             availableYears={availableYears}
+            branches={branches}
             path="/admin"
+            selectedBranchId={selectedBranchId}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
           />
@@ -115,6 +117,9 @@ export default async function AdminPage({
                       <p className="mt-1 text-sm font-medium text-stone-700">
                         {item.customer_name ?? "Nama pemesan belum diisi"}
                       </p>
+                      <p className="mt-1 text-xs font-medium uppercase tracking-[0.16em] text-amber-700">
+                        {item.branch_name ?? "Cabang belum dipilih"}
+                      </p>
                       <p className="mt-1 text-xs text-stone-500">
                         WhatsApp: {item.sender ?? "-"}
                       </p>
@@ -138,7 +143,7 @@ export default async function AdminPage({
 
           <div className="mt-6">
             <Link
-              href={`/admin/bookings?month=${selectedMonth}&year=${selectedYear}`}
+              href={`/admin/bookings?month=${selectedMonth}&year=${selectedYear}${selectedBranchId ? `&branch=${selectedBranchId}` : ""}`}
               className="inline-flex cursor-pointer rounded-2xl border border-stone-200 bg-white px-5 py-3 text-sm font-semibold text-stone-700 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm"
             >
               Buka daftar booking lengkap

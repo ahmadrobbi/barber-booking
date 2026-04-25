@@ -35,6 +35,7 @@ export async function GET(req: Request) {
     durationMinutes: summary.totalDurationMinutes,
     userId: tenant.userId,
     channelId: tenant.channelId,
+    branchId: null,
   });
 
   return Response.json({
