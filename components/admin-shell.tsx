@@ -64,7 +64,7 @@ export function AdminShell({ businessName, userName, children }: AdminShellProps
       ) : null}
 
       <div className="flex min-h-screen flex-1 flex-col">
-        <header className="border-b border-stone-200 bg-white/80 px-4 py-4 backdrop-blur md:px-8">
+        <header className="sticky top-0 z-20 border-b border-stone-200 bg-white/95 px-4 py-4 backdrop-blur md:px-8">
           <div className="flex items-center justify-between gap-4 md:flex-nowrap">
             <Link href="/admin" className="flex min-w-0 flex-1 items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-900 text-sm font-black text-amber-300">
