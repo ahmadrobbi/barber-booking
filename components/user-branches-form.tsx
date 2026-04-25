@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { saveUserBranches } from "@/app/actions/user-branches";
+import { AdminActionFeedbackAlert } from "@/components/admin-action-feedback-alert";
 import type { UserBranch } from "@/lib/user-branches";
 import { normalizeBusinessHours, WEEKDAY_KEYS } from "@/lib/scheduling";
 
@@ -87,6 +88,7 @@ export function UserBranchesForm({ initialBranches }: UserBranchesFormProps) {
 
   return (
     <form action={formAction} className="space-y-6">
+      <AdminActionFeedbackAlert message={state.message} success={state.success} />
       <input type="hidden" name="branches_json" value={serializedBranches} />
 
       <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5 text-sm leading-7 text-stone-600">
@@ -298,18 +300,6 @@ export function UserBranchesForm({ initialBranches }: UserBranchesFormProps) {
           Simpan Cabang
         </button>
       </div>
-
-      {state.message ? (
-        <div
-          className={`rounded-2xl px-4 py-3 text-sm ${
-            state.success
-              ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-              : "border border-rose-200 bg-rose-50 text-rose-700"
-          }`}
-        >
-          {state.message}
-        </div>
-      ) : null}
     </form>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { updateUserProfile } from "@/app/actions/user-profile";
+import { AdminActionFeedbackAlert } from "@/components/admin-action-feedback-alert";
 import type { UserProfile } from "@/lib/user";
 import { normalizeBusinessHours, WEEKDAY_KEYS } from "@/lib/scheduling";
 
@@ -25,6 +26,7 @@ export function UserProfileForm({ user, initialProfile }: UserProfileFormProps) 
 
   return (
     <form action={action} className="space-y-6">
+      <AdminActionFeedbackAlert message={state.message} success={false} />
       {/* Account Information */}
       <div>
         <h3 className="text-lg font-semibold text-stone-900 mb-4">Informasi Akun</h3>

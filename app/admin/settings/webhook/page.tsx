@@ -1,4 +1,5 @@
 import { saveChatbotTemplates } from "@/app/actions/chatbot-settings";
+import { AdminQueryFeedbackAlert } from "@/components/admin-query-feedback-alert";
 import {
   deleteWhatsappChannel,
   saveWhatsappChannel,
@@ -57,16 +58,10 @@ export default async function WebhookSettingsPage({
 
   return (
     <div className="grid gap-6">
-      {params.error ? (
-        <div className="rounded-[1.5rem] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
-          {params.error}
-        </div>
-      ) : null}
-      {params.success ? (
-        <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
-          {params.success}
-        </div>
-      ) : null}
+      <AdminQueryFeedbackAlert
+        successMessage={params.success ?? null}
+        errorMessage={params.error ?? null}
+      />
       <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
         <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Setting</p>
         <h1 className="mt-3 text-3xl font-semibold">Webhook Fonnte</h1>

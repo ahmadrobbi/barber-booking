@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { saveUserServices } from "@/app/actions/user-services";
+import { AdminActionFeedbackAlert } from "@/components/admin-action-feedback-alert";
 import type { UserService } from "@/lib/user-services";
 
 type UserServicesFormProps = {
@@ -76,6 +77,7 @@ export function UserServicesForm({ initialServices }: UserServicesFormProps) {
 
   return (
     <form action={formAction} className="space-y-6">
+      <AdminActionFeedbackAlert message={state.message} success={state.success} />
       <input type="hidden" name="services_json" value={serializedServices} />
 
       <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5 text-sm leading-7 text-stone-600">
@@ -200,18 +202,6 @@ export function UserServicesForm({ initialServices }: UserServicesFormProps) {
           Simpan Layanan
         </button>
       </div>
-
-      {state.message ? (
-        <div
-          className={`rounded-2xl px-4 py-3 text-sm ${
-            state.success
-              ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-              : "border border-rose-200 bg-rose-50 text-rose-700"
-          }`}
-        >
-          {state.message}
-        </div>
-      ) : null}
     </form>
   );
 }

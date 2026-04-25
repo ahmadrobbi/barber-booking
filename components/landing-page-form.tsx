@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { updateLandingPage } from "@/app/actions/landing-page";
+import { AdminActionFeedbackAlert } from "@/components/admin-action-feedback-alert";
 import type { UserLandingPage } from "@/lib/user";
 
 type LandingPageFormProps = {
@@ -20,6 +21,7 @@ export function LandingPageForm({ initialLandingPage, appUrl }: LandingPageFormP
 
   return (
     <form action={action} className="space-y-6">
+      <AdminActionFeedbackAlert message={state.message} success={false} />
       {/* Domain Settings */}
       <div>
         <h3 className="text-lg font-semibold text-stone-900 mb-4">Pengaturan URL Publik</h3>
@@ -162,14 +164,6 @@ export function LandingPageForm({ initialLandingPage, appUrl }: LandingPageFormP
           )}
         </div>
       </div>
-
-      {/* Error Message */}
-      {state?.message && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {state.message}
-        </div>
-      )}
-
       {/* Submit Button */}
       <div className="flex justify-end">
         <button

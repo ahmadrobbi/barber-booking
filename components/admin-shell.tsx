@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { logoutUser } from "@/app/actions/auth";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 
 type AdminShellProps = {
@@ -29,7 +28,7 @@ export function AdminShell({ businessName, userName, children }: AdminShellProps
   return (
     <div className="min-h-screen bg-[#f5efe7] text-stone-900 md:flex">
       <div className="hidden md:block">
-        <DashboardSidebar businessName={businessName} />
+        <DashboardSidebar businessName={businessName} userName={userName} />
       </div>
 
       {mobileMenuOpen ? (
@@ -56,6 +55,7 @@ export function AdminShell({ businessName, userName, children }: AdminShellProps
             </div>
             <DashboardSidebar
               businessName={businessName}
+              userName={userName}
               className="min-h-full border-b-0 border-r-0"
               onNavigate={() => setMobileMenuOpen(false)}
             />
@@ -88,24 +88,15 @@ export function AdminShell({ businessName, userName, children }: AdminShellProps
 
               <Link
                 href="/admin/profile"
-                className="hidden cursor-pointer rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm sm:block"
+                className="hidden cursor-pointer rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm md:block"
               >
                 <span className="block font-semibold">{userName}</span>
                 <span className="block text-stone-500">Admin / Owner</span>
               </Link>
-
-              <form action={logoutUser}>
-                <button
-                  type="submit"
-                  className="w-full cursor-pointer rounded-2xl bg-stone-900 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 hover:shadow-sm sm:w-auto"
-                >
-                  Logout
-                </button>
-              </form>
             </div>
           </div>
 
-          <div className="mt-3 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm sm:hidden">
+          <div className="mt-3 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm md:hidden">
             <span className="block font-semibold">{userName}</span>
             <span className="block text-stone-500">Admin / Owner</span>
           </div>

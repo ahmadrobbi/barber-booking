@@ -1,5 +1,6 @@
 import { getUserLandingPage } from "@/lib/user";
 import { requireAdmin } from "@/lib/auth";
+import { AdminQueryFeedbackAlert } from "@/components/admin-query-feedback-alert";
 import { LandingPageForm } from "@/components/landing-page-form";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,9 @@ export default async function LandingPage({
 
   return (
     <div className="space-y-6">
+      <AdminQueryFeedbackAlert
+        successMessage={params.success === "1" ? "Pengaturan landing page berhasil disimpan." : null}
+      />
       <section className="rounded-[2rem] bg-stone-950 px-6 py-8 text-white md:px-8">
         <p className="text-xs uppercase tracking-[0.3em] text-amber-300/70">Landing Page</p>
         <h1 className="mt-3 text-3xl font-semibold md:text-4xl">
@@ -42,13 +46,7 @@ export default async function LandingPage({
           <span className="font-medium text-white"> /b/[slug]</span> tanpa perlu subdomain dulu.
         </p>
       </section>
-
       <section className="rounded-[2rem] bg-white p-6 shadow-xl md:p-8">
-        {params.success === "1" ? (
-          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            Pengaturan landing page berhasil disimpan.
-          </div>
-        ) : null}
         <LandingPageForm initialLandingPage={landingPage} appUrl={appUrl} />
       </section>
     </div>

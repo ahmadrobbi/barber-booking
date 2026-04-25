@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import {
   CHATBOT_TEMPLATE_KEY,
@@ -14,39 +15,46 @@ function normalizeText(value: FormDataEntryValue | null) {
 }
 
 export async function saveChatbotTemplates(formData: FormData) {
-  await requireAdmin();
+  try {
+    await requireAdmin();
 
-  const payload: ChatbotTemplates = {
-    greeting: normalizeText(formData.get("greeting")) || DEFAULT_CHATBOT_TEMPLATES.greeting,
-    servicePrompt:
-      normalizeText(formData.get("servicePrompt")) || DEFAULT_CHATBOT_TEMPLATES.servicePrompt,
-    datePrompt: normalizeText(formData.get("datePrompt")) || DEFAULT_CHATBOT_TEMPLATES.datePrompt,
-    slotPrompt: normalizeText(formData.get("slotPrompt")) || DEFAULT_CHATBOT_TEMPLATES.slotPrompt,
-    confirmationPrompt:
-      normalizeText(formData.get("confirmationPrompt")) ||
-      DEFAULT_CHATBOT_TEMPLATES.confirmationPrompt,
-    successMessage:
-      normalizeText(formData.get("successMessage")) || DEFAULT_CHATBOT_TEMPLATES.successMessage,
-    cancelMessage:
-      normalizeText(formData.get("cancelMessage")) || DEFAULT_CHATBOT_TEMPLATES.cancelMessage,
-    invalidOptionMessage:
-      normalizeText(formData.get("invalidOptionMessage")) ||
-      DEFAULT_CHATBOT_TEMPLATES.invalidOptionMessage,
-    reminder: normalizeText(formData.get("reminder")) || DEFAULT_CHATBOT_TEMPLATES.reminder,
-  };
+    const payload: ChatbotTemplates = {
+      greeting: normalizeText(formData.get("greeting")) || DEFAULT_CHATBOT_TEMPLATES.greeting,
+      servicePrompt:
+        normalizeText(formData.get("servicePrompt")) || DEFAULT_CHATBOT_TEMPLATES.servicePrompt,
+      datePrompt: normalizeText(formData.get("datePrompt")) || DEFAULT_CHATBOT_TEMPLATES.datePrompt,
+      slotPrompt: normalizeText(formData.get("slotPrompt")) || DEFAULT_CHATBOT_TEMPLATES.slotPrompt,
+      confirmationPrompt:
+        normalizeText(formData.get("confirmationPrompt")) ||
+        DEFAULT_CHATBOT_TEMPLATES.confirmationPrompt,
+      successMessage:
+        normalizeText(formData.get("successMessage")) || DEFAULT_CHATBOT_TEMPLATES.successMessage,
+      cancelMessage:
+        normalizeText(formData.get("cancelMessage")) || DEFAULT_CHATBOT_TEMPLATES.cancelMessage,
+      invalidOptionMessage:
+        normalizeText(formData.get("invalidOptionMessage")) ||
+        DEFAULT_CHATBOT_TEMPLATES.invalidOptionMessage,
+      reminder: normalizeText(formData.get("reminder")) || DEFAULT_CHATBOT_TEMPLATES.reminder,
+    };
 
-  const supabase = createAdminSupabase();
-  const { error } = await supabase.from("app_settings").upsert(
-    {
-      key: CHATBOT_TEMPLATE_KEY,
-      value_json: payload,
-    },
-    { onConflict: "key" }
-  );
+    const supabase = createAdminSupabase();
+    const { error } = await supabase.from("app_settings").upsert(
+      {
+        key: CHATBOT_TEMPLATE_KEY,
+        value_json: payload,
+      },
+      { onConflict: "key" }
+    );
 
-  if (error) {
-    throw new Error(error.message);
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    revalidatePath("/admin/settings/webhook");
+    redirect("/admin/settings/webhook?success=Template%20chatbot%20berhasil%20disimpan.");
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Terjadi kesalahan saat menyimpan template chatbot.";
+    redirect(`/admin/settings/webhook?error=${encodeURIComponent(message)}`);
   }
-
-  revalidatePath("/admin/settings/webhook");
 }

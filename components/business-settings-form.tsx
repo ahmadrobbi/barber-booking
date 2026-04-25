@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { updateBusinessSettings } from "@/app/actions/business-settings";
+import { AdminActionFeedbackAlert } from "@/components/admin-action-feedback-alert";
 import type { IndustryConfig } from "@/lib/industry-config";
 
 interface BusinessSettingsFormProps {
@@ -17,6 +18,7 @@ export function BusinessSettingsForm({ initialBusinessName, config }: BusinessSe
 
   return (
     <form action={formAction} className="space-y-6">
+      <AdminActionFeedbackAlert message={state.message} success={state.success} />
       <div>
         <label htmlFor="businessName" className="block text-sm font-medium text-stone-700 mb-2">
           Nama Bisnis
@@ -65,18 +67,6 @@ export function BusinessSettingsForm({ initialBusinessName, config }: BusinessSe
           Simpan Pengaturan
         </button>
       </div>
-
-      {state.message && (
-        <div
-          className={`rounded-2xl px-4 py-3 text-sm ${
-            state.success
-              ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-              : "border border-rose-200 bg-rose-50 text-rose-700"
-          }`}
-        >
-          {state.message}
-        </div>
-      )}
     </form>
   );
 }
