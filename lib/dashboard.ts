@@ -33,7 +33,7 @@ export async function getAllBookings() {
     throw new Error(error.message);
   }
 
-  return enrichCustomerNames((data ?? []) as BookingRow[]);
+  return (data ?? []) as BookingRow[];
 }
 
 export async function getBookingsBySender(sender: string) {
@@ -56,37 +56,7 @@ export async function getBookingsBySender(sender: string) {
     throw new Error(error.message);
   }
 
-  return enrichCustomerNames((data ?? []) as BookingRow[]);
-}
-
-function enrichCustomerNames(bookings: BookingRow[]) {
-  const latestCustomerNameBySender = new Map<string, string>();
-  const sortedLatest = sortBookingsLatest(bookings);
-
-  for (const booking of sortedLatest) {
-    const sender = booking.sender?.trim();
-    const customerName = booking.customer_name?.trim();
-
-    if (!sender || !customerName || latestCustomerNameBySender.has(sender)) {
-      continue;
-    }
-
-    latestCustomerNameBySender.set(sender, customerName);
-  }
-
-  return bookings.map((booking) => {
-    if (booking.customer_name?.trim()) {
-      return booking;
-    }
-
-    const sender = booking.sender?.trim();
-    const fallbackName = sender ? latestCustomerNameBySender.get(sender) : null;
-
-    return {
-      ...booking,
-      customer_name: fallbackName ?? null,
-    };
-  });
+  return (data ?? []) as BookingRow[];
 }
 
 export function groupBookingsByDate(data: BookingRow[]) {
