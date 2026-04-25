@@ -63,13 +63,13 @@ export function AdminBookingFilters({
       <div className="flex gap-2 sm:items-end">
         <button
           type="submit"
-          className="rounded-xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-800"
+          className="cursor-pointer rounded-xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 hover:shadow-sm"
         >
           Terapkan
         </button>
         <Link
           href={path}
-          className="rounded-xl border border-stone-200 bg-white px-5 py-3 text-sm font-semibold text-stone-600 transition hover:border-amber-300 hover:bg-amber-50"
+          className="cursor-pointer rounded-xl border border-stone-200 bg-white px-5 py-3 text-sm font-semibold text-stone-600 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm"
         >
           Reset
         </Link>

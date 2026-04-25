@@ -260,7 +260,7 @@ export default async function WebhookSettingsPage({
                       <button
                         type="submit"
                         formAction={deleteWhatsappChannel}
-                        className="rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                        className="cursor-pointer rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700 transition hover:-translate-y-0.5 hover:bg-red-100 hover:shadow-sm"
                       >
                         Hapus Channel
                       </button>
@@ -272,7 +272,7 @@ export default async function WebhookSettingsPage({
 
                     <button
                       type="submit"
-                      className="rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-800"
+                      className="cursor-pointer rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 hover:shadow-sm"
                     >
                       {isNew ? "Tambah Channel" : "Simpan Channel"}
                     </button>
@@ -405,7 +405,7 @@ export default async function WebhookSettingsPage({
 
             <button
               type="submit"
-              className="rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-800"
+              className="cursor-pointer rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 hover:shadow-sm"
             >
               Simpan Template Chatbot
             </button>

@@ -235,7 +235,7 @@ export function UserProfileForm({ user, initialProfile }: UserProfileFormProps) 
       <div className="flex justify-end">
         <button
           type="submit"
-          className="rounded-xl bg-amber-400 px-6 py-3 font-semibold text-black transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-70"
+          className="cursor-pointer rounded-xl bg-amber-400 px-6 py-3 font-semibold text-black transition hover:-translate-y-0.5 hover:bg-amber-300 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-70"
         >
           Simpan Perubahan
         </button>

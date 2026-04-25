@@ -44,6 +44,13 @@ type ParsedWebhookPayload = {
   webhookSecret: string | null;
 };
 
+type GreetingParams = {
+  sender: string;
+  context: WhatsappRuntimeContext;
+  industry: IndustryKey;
+  tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
+};
+
 function getSupabase() {
   return createAdminSupabase();
 }
@@ -291,6 +298,31 @@ function getRuntimeScope(context: WhatsappRuntimeContext): BookingScope {
   };
 }
 
+async function resetToGreetingState({
+  sender,
+  context,
+  industry,
+  tenantServices,
+}: GreetingParams) {
+  await saveState({
+    sender,
+    channel_id: context.channelId,
+    user_id: context.userId,
+    step: "pilih_layanan",
+    customer_name: null,
+    layanan: null,
+    harga: null,
+    tanggal: null,
+    jam: null,
+    industry,
+  });
+
+  return renderTemplate(context.templates.greeting, {
+    business_name: context.businessName,
+    service_list: getServiceOptionsText(tenantServices),
+  });
+}
+
 export async function POST(req: Request) {
   const { incomingMessage, sender, device, webhookSecret } = await parseWebhookPayload(req);
   const context = await resolveWhatsappRuntimeContext(device);
@@ -329,22 +361,11 @@ export async function POST(req: Request) {
   let reply = "";
 
   if (message === "halo" || message === "menu" || message === "booking") {
-    await saveState({
+    reply = await resetToGreetingState({
       sender,
-      channel_id: context.channelId,
-      user_id: context.userId,
-      step: "pilih_layanan",
-      customer_name: null,
-      layanan: null,
-      harga: null,
-      tanggal: null,
-      jam: null,
+      context,
       industry,
-    });
-
-    reply = renderTemplate(templates.greeting, {
-      business_name: context.businessName,
-      service_list: getServiceOptionsText(tenantServices),
+      tenantServices,
     });
   } else if (
     ["industri", "pilih industri", "ganti industri", "ubah industri"].includes(message)
@@ -387,7 +408,12 @@ export async function POST(req: Request) {
       });
     }
   } else if (!state) {
-    reply = "Ketik *halo* untuk mulai booking ✂️";
+    reply = await resetToGreetingState({
+      sender,
+      context,
+      industry,
+      tenantServices,
+    });
   } else if (state.step === "pilih_layanan") {
     const industryServices = tenantServices;
     const service = getServiceBySelection(message, industryServices);
@@ -620,7 +646,12 @@ export async function POST(req: Request) {
   }
 
   if (!reply) {
-    reply = "Ketik *halo* untuk mulai booking ✂️";
+    reply = await resetToGreetingState({
+      sender,
+      context,
+      industry,
+      tenantServices,
+    });
   }
 
   await sendWhatsappMessage({

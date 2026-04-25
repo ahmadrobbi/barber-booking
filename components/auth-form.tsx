@@ -21,7 +21,7 @@ function SubmitButton({ mode }: { mode: "login" | "register" }) {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+      className="w-full cursor-pointer rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-70"
     >
       {pending ? "Memproses..." : mode === "login" ? "Login Dashboard" : "Buat Akun"}
     </button>

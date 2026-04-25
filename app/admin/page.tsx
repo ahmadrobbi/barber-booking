@@ -110,7 +110,12 @@ export default async function AdminPage({
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-semibold text-stone-900">{item.layanan ?? "-"}</p>
-                      <p className="mt-1 text-sm text-stone-500">{item.sender ?? "-"}</p>
+                      <p className="mt-1 text-sm font-medium text-stone-700">
+                        {item.customer_name ?? "Nama pemesan belum diisi"}
+                      </p>
+                      <p className="mt-1 text-xs text-stone-500">
+                        WhatsApp: {item.sender ?? "-"}
+                      </p>
                     </div>
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${getStatusBadgeClass(item.status)}`}
@@ -132,7 +137,7 @@ export default async function AdminPage({
           <div className="mt-6">
             <Link
               href={`/admin/bookings?month=${selectedMonth}&year=${selectedYear}`}
-              className="inline-flex rounded-2xl border border-stone-200 bg-white px-5 py-3 text-sm font-semibold text-stone-700 transition hover:border-amber-300 hover:bg-amber-50"
+              className="inline-flex cursor-pointer rounded-2xl border border-stone-200 bg-white px-5 py-3 text-sm font-semibold text-stone-700 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm"
             >
               Buka daftar booking lengkap
             </Link>
@@ -153,13 +158,13 @@ export default async function AdminPage({
           <div className="mt-3 flex flex-wrap gap-3">
             <Link
               href="/admin/settings/webhook"
-              className="rounded-2xl bg-stone-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-stone-800"
+              className="cursor-pointer rounded-2xl bg-stone-900 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 hover:shadow-sm"
             >
               Setting Webhook
             </Link>
             <Link
               href="/admin/profile"
-              className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-700 transition hover:border-amber-300 hover:bg-amber-50"
+              className="cursor-pointer rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-700 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm"
             >
               Profil Owner
             </Link>

@@ -106,7 +106,12 @@ export function AdminBookingCalendar({
                       <p className="mt-2 text-sm font-semibold text-stone-900">
                         {booking.layanan ?? "-"}
                       </p>
-                      <p className="mt-1 text-xs text-stone-500">{booking.sender ?? "-"}</p>
+                      <p className="mt-1 text-xs font-medium text-stone-700">
+                        {booking.customer_name ?? "Nama pemesan belum diisi"}
+                      </p>
+                      <p className="mt-1 text-xs text-stone-500">
+                        WhatsApp: {booking.sender ?? "-"}
+                      </p>
                       <p className="mt-2 text-xs font-medium text-stone-600">
                         {formatPrice(booking.harga)}
                       </p>
@@ -169,7 +174,12 @@ export function AdminBookingCalendar({
                         <p className="mt-2 text-sm font-semibold text-stone-900">
                           {booking.layanan ?? "-"}
                         </p>
-                        <p className="mt-1 text-xs text-stone-500">{booking.sender ?? "-"}</p>
+                        <p className="mt-1 text-xs font-medium text-stone-700">
+                          {booking.customer_name ?? "Nama pemesan belum diisi"}
+                        </p>
+                        <p className="mt-1 text-xs text-stone-500">
+                          WhatsApp: {booking.sender ?? "-"}
+                        </p>
                       </div>
                     ))
                   )}

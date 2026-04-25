@@ -10,14 +10,16 @@ export default async function RegisterPage() {
     redirect("/admin");
   }
 
-  const brandName = "AntriFlow";
-
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 px-6 py-10">
       <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <section className="flex flex-col justify-center">
-          <Link href="/" className="w-fit text-sm uppercase tracking-[0.28em] text-blue-600 font-medium">
-            {brandName}
+          <Link
+            href="/"
+            className="inline-flex w-fit items-center gap-2 text-sm font-medium text-blue-600 transition hover:text-blue-700"
+          >
+            <span aria-hidden="true">←</span>
+            <span>Kembali ke Home</span>
           </Link>
           <h1 className="mt-6 max-w-xl text-4xl font-bold leading-tight md:text-6xl text-slate-900">
             Jalankan Booking Barbershop dari Nomor WhatsApp Anda Sendiri

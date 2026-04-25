@@ -48,7 +48,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
           <nav className="mt-4 space-y-2">
             <Link
               href="/admin"
-              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin"
                   ? "bg-amber-300 text-stone-950"
                   : "text-white/75 hover:bg-white/5 hover:text-white"
@@ -61,7 +61,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
             </Link>
             <Link
               href="/admin/bookings"
-              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/bookings"
                   ? "bg-amber-300 text-stone-950"
                   : "text-white/75 hover:bg-white/5 hover:text-white"
@@ -78,7 +78,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
             </Link>
             <Link
               href="/admin/transactions"
-              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/transactions"
                   ? "bg-amber-300 text-stone-950"
                   : "text-white/75 hover:bg-white/5 hover:text-white"
@@ -104,7 +104,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
           <nav className="mt-4 space-y-2">
             <Link
               href="/admin/profile"
-              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/profile"
                   ? "bg-amber-300 text-stone-950"
                   : "text-white/75 hover:bg-white/5 hover:text-white"
@@ -121,7 +121,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
             </Link>
             <Link
               href="/admin/landing"
-              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/landing"
                   ? "bg-amber-300 text-stone-950"
                   : "text-white/75 hover:bg-white/5 hover:text-white"
@@ -138,7 +138,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
             </Link>
             <Link
               href="/admin/settings/webhook"
-              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/settings/webhook"
                   ? "bg-amber-300 text-stone-950"
                   : "text-white/75 hover:bg-white/5 hover:text-white"
@@ -155,7 +155,7 @@ export function DashboardSidebar({ businessName }: DashboardSidebarProps) {
             </Link>
             <Link
               href="/admin/settings/services"
-              className={`flex items-center gap-3 rounded-2xl px-3 py-3 transition ${
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
                 pathname === "/admin/settings/services"
                   ? "bg-amber-300 text-stone-950"
                   : "text-white/75 hover:bg-white/5 hover:text-white"

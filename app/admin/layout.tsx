@@ -51,7 +51,7 @@ export default async function AdminLayout({
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href="/admin/profile"
-                className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm transition hover:border-amber-300 hover:bg-amber-50"
+                className="cursor-pointer rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm"
               >
                 <span className="block font-semibold">{user.name}</span>
                 <span className="block text-stone-500">Admin / Owner</span>
@@ -60,7 +60,7 @@ export default async function AdminLayout({
               <form action={logoutUser}>
                 <button
                   type="submit"
-                  className="w-full rounded-2xl bg-stone-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-stone-800 sm:w-auto"
+                  className="w-full cursor-pointer rounded-2xl bg-stone-900 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 hover:shadow-sm sm:w-auto"
                 >
                   Logout
                 </button>
