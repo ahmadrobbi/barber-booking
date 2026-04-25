@@ -30,16 +30,16 @@ export function LandingPageForm({ initialLandingPage, appUrl }: LandingPageFormP
             <label htmlFor="subdomain" className="block text-sm font-medium text-stone-700 mb-2">
               Slug Halaman Publik
             </label>
-            <div className="flex">
+            <div className="flex min-w-0 overflow-hidden rounded-xl border border-stone-200 bg-stone-50">
               <input
                 id="subdomain"
                 name="subdomain"
                 type="text"
                 defaultValue={initialLandingPage?.subdomain || ""}
                 placeholder="namabisnis"
-                className="flex-1 rounded-l-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white"
+                className="min-w-0 flex-1 rounded-l-xl border-0 bg-transparent px-4 py-3 text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-transparent focus:ring-0 focus:bg-white"
               />
-              <span className="inline-flex items-center rounded-r-xl border border-l-0 border-stone-200 bg-stone-100 px-3 text-sm text-stone-600">
+              <span className="inline-flex shrink-0 items-center rounded-r-xl border border-l-0 border-stone-200 bg-stone-100 px-3 text-sm text-stone-600">
                 /landing_page/
               </span>
             </div>
@@ -58,7 +58,7 @@ export function LandingPageForm({ initialLandingPage, appUrl }: LandingPageFormP
               type="text"
               defaultValue={initialLandingPage?.custom_domain || ""}
               placeholder="booking.namabisnis.com"
-              className="w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white"
+              className="min-w-0 w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white"
             />
             <p className="text-xs text-stone-500 mt-1">
               Domain kustom Anda sendiri
