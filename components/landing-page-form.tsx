@@ -20,13 +20,13 @@ export function LandingPageForm({ initialLandingPage, appUrl }: LandingPageFormP
     : `${appUrl}/b/namabisnis`;
 
   return (
-    <form action={action} className="space-y-6">
+    <form action={action} className="space-y-6 overflow-x-hidden">
       <AdminActionFeedbackAlert message={state.message} success={false} />
       {/* Domain Settings */}
       <div>
         <h3 className="text-lg font-semibold text-stone-900 mb-4">Pengaturan URL Publik</h3>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+          <div className="min-w-0">
             <label htmlFor="subdomain" className="block text-sm font-medium text-stone-700 mb-2">
               Slug Halaman Publik
             </label>
@@ -48,7 +48,7 @@ export function LandingPageForm({ initialLandingPage, appUrl }: LandingPageFormP
             </p>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label htmlFor="custom_domain" className="block text-sm font-medium text-stone-700 mb-2">
               Domain Kustom (Opsional)
             </label>
