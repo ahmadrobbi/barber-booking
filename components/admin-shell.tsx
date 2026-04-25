@@ -86,13 +86,6 @@ export function AdminShell({ businessName, userName, children }: AdminShellProps
                 Menu
               </button>
 
-              <Link
-                href="/admin/profile"
-                className="hidden cursor-pointer rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm md:block"
-              >
-                <span className="block font-semibold">{userName}</span>
-                <span className="block text-stone-500">Admin / Owner</span>
-              </Link>
             </div>
           </div>
 

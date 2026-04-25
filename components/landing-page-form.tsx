@@ -114,10 +114,10 @@ export function LandingPageForm({ initialLandingPage, appUrl }: LandingPageFormP
       {/* Preview */}
       <div>
         <h3 className="text-lg font-semibold text-stone-900 mb-4">Preview URL</h3>
-        <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
+        <div className="overflow-hidden rounded-xl border border-stone-200 bg-stone-50 p-4">
           <p className="text-sm text-stone-600 mb-2">URL profil usaha Anda:</p>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-mono text-stone-900 bg-white px-3 py-1 rounded border">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <span className="min-w-0 break-words text-sm font-mono text-stone-900 bg-white px-3 py-1 rounded border w-full sm:w-auto">
               {publicProfilePath}
             </span>
             <button
@@ -132,8 +132,8 @@ export function LandingPageForm({ initialLandingPage, appUrl }: LandingPageFormP
           </div>
 
           <p className="text-sm text-stone-600 mt-4 mb-2">URL booking publik Anda:</p>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-mono text-stone-900 bg-white px-3 py-1 rounded border">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <span className="min-w-0 break-words text-sm font-mono text-stone-900 bg-white px-3 py-1 rounded border w-full sm:w-auto">
               {publicBookingPath}
             </span>
             <button
@@ -147,8 +147,8 @@ export function LandingPageForm({ initialLandingPage, appUrl }: LandingPageFormP
             </button>
           </div>
           {initialLandingPage?.custom_domain && (
-            <div className="flex items-center space-x-2 mt-2">
-              <span className="text-sm font-mono text-stone-900 bg-white px-3 py-1 rounded border">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 mt-2">
+              <span className="min-w-0 break-words text-sm font-mono text-stone-900 bg-white px-3 py-1 rounded border w-full sm:w-auto">
                 https://{initialLandingPage.custom_domain}
               </span>
               <button
