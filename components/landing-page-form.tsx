@@ -10,6 +10,9 @@ type LandingPageFormProps = {
 
 export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
   const [state, action] = useActionState(updateLandingPage, { message: "" });
+  const publicProfilePath = initialLandingPage?.subdomain
+    ? `/landing_page/${initialLandingPage.subdomain}`
+    : "/landing_page/namabisnis";
   const publicBookingPath = initialLandingPage?.subdomain
     ? `/b/${initialLandingPage.subdomain}`
     : "/b/namabisnis";
@@ -18,11 +21,11 @@ export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
     <form action={action} className="space-y-6">
       {/* Domain Settings */}
       <div>
-        <h3 className="text-lg font-semibold text-stone-900 mb-4">Pengaturan Domain</h3>
+        <h3 className="text-lg font-semibold text-stone-900 mb-4">Pengaturan URL Publik</h3>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label htmlFor="subdomain" className="block text-sm font-medium text-stone-700 mb-2">
-              Subdomain
+              Slug Halaman Publik
             </label>
             <div className="flex">
               <input
@@ -33,12 +36,12 @@ export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
                 placeholder="namabisnis"
                 className="flex-1 rounded-l-xl border border-stone-200 bg-stone-50 px-4 py-3 text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:bg-white"
               />
-              <span className="inline-flex items-center px-3 rounded-r-xl border border-l-0 border-stone-200 bg-stone-100 text-stone-600 text-sm">
-                .antriflow.com
+              <span className="inline-flex items-center rounded-r-xl border border-l-0 border-stone-200 bg-stone-100 px-3 text-sm text-stone-600">
+                /landing_page/
               </span>
             </div>
             <p className="text-xs text-stone-500 mt-1">
-              Public booking path: /b/namabisnis
+              Dipakai untuk URL profil usaha dan link booking publik.
             </p>
           </div>
 
@@ -109,7 +112,23 @@ export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
       <div>
         <h3 className="text-lg font-semibold text-stone-900 mb-4">Preview URL</h3>
         <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
-          <p className="text-sm text-stone-600 mb-2">URL Landing Page Anda:</p>
+          <p className="text-sm text-stone-600 mb-2">URL profil usaha Anda:</p>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-mono text-stone-900 bg-white px-3 py-1 rounded border">
+              {publicProfilePath}
+            </span>
+            <button
+              type="button"
+              className="text-xs text-blue-600 hover:text-blue-500 underline"
+              onClick={() => {
+                navigator.clipboard.writeText(publicProfilePath);
+              }}
+            >
+              Copy
+            </button>
+          </div>
+
+          <p className="text-sm text-stone-600 mt-4 mb-2">URL booking publik Anda:</p>
           <div className="flex items-center space-x-2">
             <span className="text-sm font-mono text-stone-900 bg-white px-3 py-1 rounded border">
               {publicBookingPath}

@@ -2,6 +2,7 @@ import { createAdminSupabase } from "@/lib/supabase";
 import { getServicesForUser, getSlotsForIndustry, type BookingService, type IndustryKey } from "@/lib/bookings";
 import { INDUSTRIES } from "@/lib/industries";
 import { getDefaultWhatsappChannelByUserId } from "@/lib/whatsapp-channels";
+import { getBranchesForUser, type UserBranch } from "@/lib/user-branches";
 
 export type TenantService = BookingService;
 
@@ -15,6 +16,19 @@ export type PublicTenantContext = {
   slots: string[];
 };
 
+export type PublicLandingPageContext = {
+  userId: string;
+  slug: string;
+  businessName: string;
+  businessDescription: string;
+  websiteUrl: string | null;
+  logoUrl: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  whatsappNumber: string | null;
+  branches: UserBranch[];
+};
+
 type LandingPageRow = {
   user_id: string;
   subdomain: string | null;
@@ -23,11 +37,19 @@ type LandingPageRow = {
 
 type ProfileRow = {
   business_name: string | null;
+  business_description?: string | null;
+  website_url?: string | null;
+  logo_url?: string | null;
+  social_media?: unknown;
 };
 
 type UserRow = {
   industry: string | null;
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
 
 function isIndustryKey(value: string | null | undefined): value is IndustryKey {
   return Boolean(value && Object.prototype.hasOwnProperty.call(INDUSTRIES, value));
@@ -103,6 +125,26 @@ async function getBusinessNameByUserId(userId: string) {
   }
 }
 
+async function getProfileByUserId(userId: string): Promise<ProfileRow | null> {
+  try {
+    const supabase = createAdminSupabase();
+    const { data, error } = await supabase
+      .from("user_profiles")
+      .select("business_name, business_description, website_url, logo_url, social_media")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error && error.code !== "PGRST116" && error.code !== "42P01") {
+      throw new Error(error.message);
+    }
+
+    return (data as ProfileRow | null) ?? null;
+  } catch (error) {
+    console.warn("Failed to load tenant profile:", error);
+    return null;
+  }
+}
+
 export async function getPublicTenantContextBySlug(
   rawSlug: string | null | undefined
 ): Promise<PublicTenantContext | null> {
@@ -133,5 +175,52 @@ export async function getPublicTenantContextBySlug(
     channelId,
     services,
     slots: getSlotsForIndustry(industry),
+  };
+}
+
+export async function getPublicLandingPageContextBySlug(
+  rawSlug: string | null | undefined
+): Promise<PublicLandingPageContext | null> {
+  const slug = normalizeTenantSlug(rawSlug);
+
+  if (!slug) {
+    return null;
+  }
+
+  const landingPage = await getLandingPageBySlug(slug);
+
+  if (!landingPage?.user_id) {
+    return null;
+  }
+
+  const [profile, defaultChannel, branches] = await Promise.all([
+    getProfileByUserId(landingPage.user_id),
+    getDefaultWhatsappChannelByUserId(landingPage.user_id),
+    getBranchesForUser(landingPage.user_id, { activeOnly: true }),
+  ]);
+
+  const socialMedia = isRecord(profile?.social_media) ? profile?.social_media : {};
+
+  return {
+    userId: landingPage.user_id,
+    slug,
+    businessName: profile?.business_name?.trim() || "Booking Barbershop",
+    businessDescription: profile?.business_description?.trim() || "Booking mudah langsung dari WhatsApp bisnis.",
+    websiteUrl: typeof profile?.website_url === "string" && profile.website_url.trim()
+      ? profile.website_url.trim()
+      : null,
+    logoUrl: typeof profile?.logo_url === "string" && profile.logo_url.trim()
+      ? profile.logo_url.trim()
+      : null,
+    instagram:
+      typeof socialMedia.instagram === "string" && socialMedia.instagram.trim()
+        ? socialMedia.instagram.trim()
+        : null,
+    facebook:
+      typeof socialMedia.facebook === "string" && socialMedia.facebook.trim()
+        ? socialMedia.facebook.trim()
+        : null,
+    whatsappNumber: defaultChannel?.device_number ?? null,
+    branches,
   };
 }

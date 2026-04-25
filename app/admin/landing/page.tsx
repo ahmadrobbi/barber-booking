@@ -17,7 +17,9 @@ export default async function LandingPage() {
           Pengaturan Landing Page
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-white/70">
-          Sesuaikan tampilan landing page Anda. Pilih subdomain atau domain kustom untuk halaman booking bisnis Anda.
+          Atur slug halaman publik bisnis Anda. Untuk MVP, cukup pakai URL sederhana seperti
+          <span className="font-medium text-white"> /landing_page/[slug]</span> dan
+          <span className="font-medium text-white"> /b/[slug]</span> tanpa perlu subdomain dulu.
         </p>
       </section>
 

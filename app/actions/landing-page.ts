@@ -26,7 +26,7 @@ export async function updateLandingPage(
 
   // Validation
   if (subdomain && (subdomain.length < 3 || !/^[a-z0-9-]+$/.test(subdomain))) {
-    return formatError("Subdomain harus 3-20 karakter, hanya huruf kecil, angka, dan tanda hubung.");
+    return formatError("Slug publik harus 3-20 karakter, hanya huruf kecil, angka, dan tanda hubung.");
   }
 
   if (custom_domain && !/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(custom_domain)) {
@@ -34,7 +34,7 @@ export async function updateLandingPage(
   }
 
   if (!subdomain && !custom_domain) {
-    return formatError("Minimal harus mengisi subdomain atau domain kustom.");
+    return formatError("Minimal isi slug publik atau domain kustom.");
   }
 
   try {
