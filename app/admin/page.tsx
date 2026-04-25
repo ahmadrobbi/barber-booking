@@ -10,6 +10,7 @@ import {
   getAllBookings,
   getAvailableBookingYears,
   getFilterState,
+  sortBookingsByCreatedAtDesc,
   sortBookingsLatest,
 } from "@/lib/dashboard";
 
@@ -30,6 +31,7 @@ export default async function AdminPage({
     selectedYear
   );
   const sortedFilteredBookings = sortBookingsLatest(filteredBookings);
+  const latestBookings = sortBookingsByCreatedAtDesc(bookings);
   const availableYears = getAvailableBookingYears(bookings, selectedYear);
   const total = filteredBookings.length;
   const confirmed = filteredBookings.filter((booking) => booking.status === "confirmed").length;
@@ -100,12 +102,12 @@ export default async function AdminPage({
           </div>
 
           <div className="mt-6 space-y-3">
-            {sortedFilteredBookings.length === 0 ? (
+            {latestBookings.length === 0 ? (
               <div className="rounded-[1.5rem] border border-dashed border-stone-300 bg-stone-50 px-5 py-10 text-center text-sm text-stone-500">
-                Belum ada transaksi pada periode ini.
+                Belum ada transaksi terbaru.
               </div>
             ) : (
-              sortedFilteredBookings.slice(0, 8).map((item) => (
+              latestBookings.slice(0, 8).map((item) => (
                 <article key={item.id} className="rounded-[1.5rem] bg-stone-50 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>

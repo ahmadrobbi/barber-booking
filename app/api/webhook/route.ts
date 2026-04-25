@@ -51,6 +51,16 @@ type GreetingParams = {
   tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
 };
 
+type StepReplyParams = {
+  state: SessionState;
+  context: WhatsappRuntimeContext;
+  templates: WhatsappRuntimeContext["templates"];
+  tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
+  today: Date;
+  scope: BookingScope;
+  industry: IndustryKey;
+};
+
 function getSupabase() {
   return createAdminSupabase();
 }
@@ -66,6 +76,18 @@ function normalizeSender(value: string | null | undefined) {
 
 function normalizeCustomerName(value: string) {
   return value.replace(/\s+/g, " ").trim();
+}
+
+function isCancelMessage(message: string) {
+  return ["batal", "cancel", "stop", "keluar"].includes(message);
+}
+
+function isContinueMessage(message: string) {
+  return ["lanjut", "lanjutkan", "opsi", "pilihan", "ulang"].includes(message);
+}
+
+function withCancelHint(message: string) {
+  return `${message}\n\nKetik *BATAL* kalau mau berhenti dari booking ini.`;
 }
 
 async function getAvailableSlots(
@@ -323,6 +345,111 @@ async function resetToGreetingState({
   });
 }
 
+async function buildCurrentStepReply({
+  state,
+  context,
+  templates,
+  tenantServices,
+  today,
+  scope,
+  industry,
+}: StepReplyParams) {
+  if (state.step === "pilih_industri") {
+    return withCancelHint("Kita masih di langkah pilih industri.\n\nPilih industri:\n" + getIndustryOptionsText());
+  }
+
+  if (state.step === "pilih_layanan") {
+    return withCancelHint(
+      "Kita masih di langkah pilih layanan.\n\n" +
+        renderTemplate(templates.greeting, {
+          business_name: context.businessName,
+          service_list: getServiceOptionsText(tenantServices),
+        })
+    );
+  }
+
+  if (state.step === "pilih_tanggal") {
+    const durationMinutes =
+      tenantServices.find((service) => service.name === state.layanan)?.duration_minutes ?? 60;
+    const dateOptions = await getAvailableDateOptions({
+      baseDate: today,
+      industry,
+      scope,
+      durationMinutes,
+    });
+
+    if (dateOptions.length === 0) {
+      return "Maaf, belum ada tanggal yang tersedia dalam beberapa hari ke depan. Silakan hubungi admin untuk penjadwalan manual ya 🙏";
+    }
+
+    return withCancelHint(
+      "Kita masih di langkah pilih tanggal.\n\n" +
+        renderTemplate(templates.servicePrompt, {
+          business_name: context.businessName,
+          layanan: state.layanan,
+          date_options: getDateOptionsText(dateOptions),
+        })
+    );
+  }
+
+  if (state.step === "pilih_jam") {
+    if (!state.tanggal) {
+      return "Sesi booking kamu sudah kedaluwarsa. Ketik *halo* untuk mulai lagi.";
+    }
+
+    const durationMinutes =
+      tenantServices.find((service) => service.name === state.layanan)?.duration_minutes ?? 60;
+    const slots = await getAvailableSlots(state.tanggal, industry, scope, durationMinutes);
+
+    if (slots.length === 0) {
+      return "Maaf, slot untuk tanggal ini sudah habis. Balas *LANJUT* untuk lihat pilihan tanggal lagi atau *BATAL* untuk berhenti.";
+    }
+
+    return withCancelHint(
+      "Kita masih di langkah pilih jam.\n\n" +
+        renderTemplate(templates.datePrompt, {
+          business_name: context.businessName,
+          tanggal_label: formatBookingDateLabel(state.tanggal),
+          slot_options: getSlotOptionsText(slots),
+        })
+    );
+  }
+
+  if (state.step === "isi_nama") {
+    return withCancelHint(
+      `Kita masih di langkah isi nama.\n\n` +
+        `Layanan: *${state.layanan ?? "-"}*\n` +
+        `Tanggal: *${state.tanggal ? formatBookingDateLabel(state.tanggal) : "-"}*\n` +
+        `Jam: *${state.jam ?? "-"}*\n\n` +
+        "Balas dengan *nama pemesan* untuk melanjutkan ya 🙌"
+    );
+  }
+
+  if (state.step === "konfirmasi") {
+    const confirmationSummary = renderTemplate(templates.confirmationPrompt, {
+      business_name: context.businessName,
+      customer_name: state.customer_name,
+      layanan: state.layanan,
+      tanggal_label: state.tanggal ? formatBookingDateLabel(state.tanggal) : "-",
+      jam: state.jam,
+      harga: formatRupiah(state.harga),
+    });
+
+    return (
+      `${confirmationSummary}\n\n` +
+      `🙍 Nama pemesan: ${state.customer_name ?? "-"}\n\n` +
+      "Balas *YA* untuk konfirmasi atau *BATAL* untuk mengulang."
+    );
+  }
+
+  return withCancelHint(
+    renderTemplate(templates.greeting, {
+      business_name: context.businessName,
+      service_list: getServiceOptionsText(tenantServices),
+    })
+  );
+}
+
 export async function POST(req: Request) {
   const { incomingMessage, sender, device, webhookSecret } = await parseWebhookPayload(req);
   const context = await resolveWhatsappRuntimeContext(device);
@@ -360,6 +487,20 @@ export async function POST(req: Request) {
     tenantServices.find((service) => service.name === serviceName)?.duration_minutes ?? 60;
   let reply = "";
 
+  if (state && isCancelMessage(message)) {
+    await clearState(sender, context.channelId);
+    reply = templates.cancelMessage;
+  } else if (state && isContinueMessage(message)) {
+    reply = await buildCurrentStepReply({
+      state,
+      context,
+      templates,
+      tenantServices,
+      today,
+      scope,
+      industry,
+    });
+  } else
   if (message === "halo" || message === "menu" || message === "booking") {
     reply = await resetToGreetingState({
       sender,
@@ -367,6 +508,7 @@ export async function POST(req: Request) {
       industry,
       tenantServices,
     });
+    reply = withCancelHint(reply);
   } else if (
     ["industri", "pilih industri", "ganti industri", "ubah industri"].includes(message)
   ) {
@@ -378,12 +520,14 @@ export async function POST(req: Request) {
       industry,
     });
 
-    reply = `Pilih industri:\n${industryPrompt}\n\nBalas dengan nomor atau nama industri.`;
+    reply = withCancelHint(`Pilih industri:\n${industryPrompt}\n\nBalas dengan nomor atau nama industri.`);
   } else if (state?.step === "pilih_industri") {
     const selectedIndustry = getIndustryBySelection(message);
 
     if (!selectedIndustry) {
-      reply = `${templates.invalidOptionMessage}\n\nPilih industri:\n${industryPrompt}`;
+      reply = withCancelHint(
+        `Kita masih di langkah pilih industri.\n\n${templates.invalidOptionMessage}\n\nPilih industri:\n${industryPrompt}`
+      );
     } else {
       const selectedTemplates = context.templates;
 
@@ -400,12 +544,14 @@ export async function POST(req: Request) {
         jam: null,
       });
 
-      reply = renderTemplate(selectedTemplates.greeting, {
-        business_name: context.businessName,
-        service_list: getServiceOptionsText(
-          await getServicesForUser(context.userId, selectedIndustry)
-        ),
-      });
+      reply = withCancelHint(
+        renderTemplate(selectedTemplates.greeting, {
+          business_name: context.businessName,
+          service_list: getServiceOptionsText(
+            await getServicesForUser(context.userId, selectedIndustry)
+          ),
+        })
+      );
     }
   } else if (!state) {
     reply = await resetToGreetingState({
@@ -414,12 +560,15 @@ export async function POST(req: Request) {
       industry,
       tenantServices,
     });
+    reply = withCancelHint(reply);
   } else if (state.step === "pilih_layanan") {
     const industryServices = tenantServices;
     const service = getServiceBySelection(message, industryServices);
 
     if (!service) {
-      reply = `${templates.invalidOptionMessage}\n\n${getServiceOptionsText(industryServices)}`;
+      reply = withCancelHint(
+        `Kita masih di langkah pilih layanan.\n\n${templates.invalidOptionMessage}\n\n${getServiceOptionsText(industryServices)}`
+      );
     } else {
       const dateOptions = await getAvailableDateOptions({
         baseDate: today,
@@ -444,11 +593,13 @@ export async function POST(req: Request) {
         industry,
       });
 
-        reply = renderTemplate(templates.servicePrompt, {
-          business_name: context.businessName,
-          layanan: service.name,
-          date_options: getDateOptionsText(dateOptions),
-        });
+        reply = withCancelHint(
+          renderTemplate(templates.servicePrompt, {
+            business_name: context.businessName,
+            layanan: service.name,
+            date_options: getDateOptionsText(dateOptions),
+          })
+        );
       }
     }
   } else if (state.step === "pilih_tanggal") {
@@ -463,7 +614,9 @@ export async function POST(req: Request) {
     if (!selectedDate) {
       reply =
         dateOptions.length > 0
-          ? `${templates.invalidOptionMessage}\n\n${getDateOptionsText(dateOptions)}`
+          ? withCancelHint(
+              `Kita masih di langkah pilih tanggal.\n\n${templates.invalidOptionMessage}\n\n${getDateOptionsText(dateOptions)}`
+            )
           : "Maaf, belum ada tanggal yang tersedia dalam beberapa hari ke depan. Silakan coba lagi nanti ya 🙏";
     } else {
       const slots = await getAvailableSlots(
@@ -484,7 +637,7 @@ export async function POST(req: Request) {
         reply =
           `Maaf, semua jam pada *${selectedDate.label}* sudah penuh.\n\n` +
           `${getDateOptionsText(refreshedDateOptions)}\n\n` +
-          "Balas dengan nomor tanggal lain yang masih tersedia ya 🙌";
+          "Balas dengan nomor tanggal lain yang masih tersedia ya 🙌\n\nKetik *BATAL* kalau mau berhenti.";
       } else {
         await saveState({
           sender,
@@ -495,11 +648,13 @@ export async function POST(req: Request) {
           industry,
         });
 
-        reply = renderTemplate(templates.datePrompt, {
-          business_name: context.businessName,
-          tanggal_label: selectedDate.label,
-          slot_options: getSlotOptionsText(slots),
-        });
+        reply = withCancelHint(
+          renderTemplate(templates.datePrompt, {
+            business_name: context.businessName,
+            tanggal_label: selectedDate.label,
+            slot_options: getSlotOptionsText(slots),
+          })
+        );
       }
     }
   } else if (state.step === "pilih_jam") {
@@ -512,7 +667,9 @@ export async function POST(req: Request) {
       const selectedSlot = getSlotBySelection(message, slots);
 
       if (!selectedSlot) {
-        reply = `${templates.invalidOptionMessage}\n\n${getSlotOptionsText(slots)}`;
+        reply = withCancelHint(
+          `Kita masih di langkah pilih jam.\n\n${templates.invalidOptionMessage}\n\n${getSlotOptionsText(slots)}`
+        );
       } else if (!(await isSlotAvailable({
         date: state.tanggal,
         time: selectedSlot,
@@ -525,7 +682,8 @@ export async function POST(req: Request) {
           "Jam tersebut baru saja terisi. Pilih jam lain ya 🙏\n\n" +
           getSlotOptionsText(
             await getAvailableSlots(state.tanggal, industry, scope, durationMinutes)
-          );
+          ) +
+          "\n\nKetik *BATAL* kalau mau berhenti.";
       } else {
         await saveState({
           sender,
@@ -538,14 +696,18 @@ export async function POST(req: Request) {
 
         reply =
           `Sip, jam *${selectedSlot}* masih tersedia untuk *${state.layanan}*.\n\n` +
-          "Sekarang balas dengan *nama pemesan* untuk melanjutkan booking ya 🙌";
+          "Sekarang balas dengan *nama pemesan* untuk melanjutkan booking ya 🙌\n\n" +
+          "Ketik *BATAL* kalau mau berhenti.";
       }
     }
   } else if (state.step === "isi_nama") {
     const customerName = normalizeCustomerName(rawMessage);
 
     if (!customerName || customerName.length < 2) {
-      reply = "Nama pemesan minimal 2 karakter. Balas dengan nama yang benar ya 🙌";
+      reply =
+        "Kita masih di langkah isi nama.\n\n" +
+        "Nama pemesan minimal 2 karakter. Balas dengan nama yang benar ya 🙌\n\n" +
+        "Ketik *BATAL* kalau mau berhenti.";
     } else {
       const confirmationSummary = renderTemplate(templates.confirmationPrompt, {
         business_name: context.businessName,
@@ -641,7 +803,9 @@ export async function POST(req: Request) {
       await clearState(sender, context.channelId);
       reply = templates.cancelMessage;
     } else {
-      reply = `${templates.invalidOptionMessage}\n\nBalas *YA* untuk konfirmasi atau *BATAL* untuk mengulang.`;
+      reply =
+        "Kita masih di langkah konfirmasi.\n\n" +
+        `${templates.invalidOptionMessage}\n\nBalas *YA* untuk konfirmasi atau *BATAL* untuk mengulang.`;
     }
   }
 
@@ -652,6 +816,7 @@ export async function POST(req: Request) {
       industry,
       tenantServices,
     });
+    reply = withCancelHint(reply);
   }
 
   await sendWhatsappMessage({

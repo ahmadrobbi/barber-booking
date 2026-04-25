@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 
 export type BookingRow = {
   id: number;
+  created_at?: string | null;
   customer_name: string | null;
   sender: string | null;
   layanan: string | null;
@@ -23,7 +24,7 @@ export async function getAllBookings() {
 
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, customer_name, sender, layanan, harga, jam, status, tanggal, user_id")
+    .select("id, created_at, customer_name, sender, layanan, harga, jam, status, tanggal, user_id")
     .eq("user_id", session.userId)
     .not("tanggal", "is", null)
     .order("tanggal", { ascending: false })
@@ -46,7 +47,7 @@ export async function getBookingsBySender(sender: string) {
 
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, customer_name, sender, layanan, harga, jam, status, tanggal, user_id")
+    .select("id, created_at, customer_name, sender, layanan, harga, jam, status, tanggal, user_id")
     .eq("user_id", session.userId)
     .eq("sender", sender)
     .order("tanggal", { ascending: false })
@@ -142,6 +143,15 @@ export function sortBookingsLatest(data: BookingRow[]) {
     const dateB = `${b.tanggal ?? ""}T${b.jam ?? "00:00"}:00`;
 
     return new Date(dateB).getTime() - new Date(dateA).getTime();
+  });
+}
+
+export function sortBookingsByCreatedAtDesc(data: BookingRow[]) {
+  return [...data].sort((a, b) => {
+    const createdAtA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const createdAtB = b.created_at ? new Date(b.created_at).getTime() : 0;
+
+    return createdAtB - createdAtA;
   });
 }
 

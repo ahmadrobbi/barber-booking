@@ -17,9 +17,9 @@ export default async function LoginPage() {
         <section className="flex flex-col justify-center">
           <Link
             href="/"
-            className="inline-flex w-fit items-center gap-2 text-sm font-medium text-amber-300/85 transition hover:text-amber-200"
+            className="inline-flex w-fit items-center gap-3 text-base font-semibold text-amber-300/90 transition hover:text-amber-200 md:text-lg"
           >
-            <span aria-hidden="true">←</span>
+            <span aria-hidden="true" className="text-lg md:text-xl">←</span>
             <span>Kembali ke Home</span>
           </Link>
           <h1 className="mt-6 max-w-xl text-4xl font-bold leading-tight md:text-6xl">

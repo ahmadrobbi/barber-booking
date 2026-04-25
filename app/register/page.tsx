@@ -16,9 +16,9 @@ export default async function RegisterPage() {
         <section className="flex flex-col justify-center">
           <Link
             href="/"
-            className="inline-flex w-fit items-center gap-2 text-sm font-medium text-blue-600 transition hover:text-blue-700"
+            className="inline-flex w-fit items-center gap-3 text-base font-semibold text-blue-600 transition hover:text-blue-700 md:text-lg"
           >
-            <span aria-hidden="true">←</span>
+            <span aria-hidden="true" className="text-lg md:text-xl">←</span>
             <span>Kembali ke Home</span>
           </Link>
           <h1 className="mt-6 max-w-xl text-4xl font-bold leading-tight md:text-6xl text-slate-900">
