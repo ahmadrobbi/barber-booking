@@ -119,6 +119,17 @@ export function RegistrationWizard() {
 
   return (
     <div className="w-full max-w-lg mx-auto">
+      {isSubmitting ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/25 px-6 backdrop-blur-sm">
+          <div className="rounded-[1.75rem] bg-white px-8 py-7 text-center shadow-2xl">
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 border-r-blue-600" />
+            <p className="mt-4 text-sm font-medium text-slate-700">
+              Membuat akun dan menyiapkan dashboard...
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex justify-between text-xs text-slate-500 mb-2 font-medium">
@@ -228,6 +239,7 @@ export function RegistrationWizard() {
                   key={ind.key}
                   type="button"
                   onClick={() => setSelectedIndustry(ind.key as IndustryKey)}
+                  disabled={isSubmitting}
                   className={`p-4 rounded-lg border-2 transition-all text-left ${
                     selectedIndustry === ind.key
                       ? "border-blue-600 bg-blue-50"

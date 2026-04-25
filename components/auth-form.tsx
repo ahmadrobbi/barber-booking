@@ -18,13 +18,26 @@ function SubmitButton({ mode }: { mode: "login" | "register" }) {
   const { pending } = useFormStatus();
 
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="w-full cursor-pointer rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-70"
-    >
-      {pending ? "Memproses..." : mode === "login" ? "Login Dashboard" : "Buat Akun"}
-    </button>
+    <>
+      {pending ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/25 px-6 backdrop-blur-sm">
+          <div className="rounded-[1.75rem] bg-white px-8 py-7 text-center shadow-2xl">
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 border-r-blue-600" />
+            <p className="mt-4 text-sm font-medium text-slate-700">
+              {mode === "login" ? "Masuk ke dashboard..." : "Membuat akun..."}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      <button
+        type="submit"
+        disabled={pending}
+        className="w-full cursor-pointer rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-70"
+      >
+        {pending ? "Memproses..." : mode === "login" ? "Login Dashboard" : "Buat Akun"}
+      </button>
+    </>
   );
 }
 

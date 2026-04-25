@@ -170,7 +170,14 @@ export function UserProfileForm({ user, initialProfile }: UserProfileFormProps) 
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-stone-900 mb-4">Jam Operasional</h3>
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-stone-900">Jam Operasional Default Bisnis</h3>
+          <p className="mt-2 max-w-3xl text-sm leading-7 text-stone-500">
+            Pengaturan ini dipakai sebagai default global. Jika sebuah cabang belum punya jam
+            operasional sendiri di menu <span className="font-medium text-stone-700">Cabang</span>,
+            sistem akan memakai jadwal default bisnis ini.
+          </p>
+        </div>
         <div className="space-y-3">
           {WEEKDAY_KEYS.map((day) => {
             const labelMap: Record<string, string> = {

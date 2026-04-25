@@ -22,7 +22,9 @@ export default async function ProfilePage() {
           Profile & Business Info
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-white/70">
-          Kelola informasi akun dan bisnis Anda. Data ini akan ditampilkan di landing page dan komunikasi dengan pelanggan.
+          Kelola informasi akun, profil bisnis, dan jam operasional default bisnis Anda. Jadwal ini
+          akan dipakai sebagai fallback jika sebuah cabang belum punya pengaturan jam operasional
+          sendiri.
         </p>
       </section>
 

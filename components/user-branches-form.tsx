@@ -92,6 +92,9 @@ export function UserBranchesForm({ initialBranches }: UserBranchesFormProps) {
       <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5 text-sm leading-7 text-stone-600">
         Tambahkan cabang yang akan dipakai pada flow booking multi-outlet. Untuk MVP saat ini, layanan masih tetap
         global per bisnis, tetapi setiap booking nantinya bisa diarahkan ke cabang yang dipilih pelanggan.
+        Jam operasional yang Anda isi di tiap cabang akan diprioritaskan saat chatbot menampilkan pilihan
+        tanggal dan jam. Jika sebuah cabang belum diatur, sistem akan fallback ke jam operasional default
+        bisnis di menu Profile.
       </div>
 
       <div className="space-y-4">
@@ -175,7 +178,12 @@ export function UserBranchesForm({ initialBranches }: UserBranchesFormProps) {
             </div>
 
             <div className="mt-5">
-              <p className="text-sm font-medium text-stone-800">Jam operasional cabang</p>
+              <div>
+                <p className="text-sm font-medium text-stone-800">Jam operasional cabang</p>
+                <p className="mt-1 text-sm leading-6 text-stone-500">
+                  Pengaturan ini khusus untuk cabang ini dan akan mengoverride jam operasional default bisnis.
+                </p>
+              </div>
               <div className="mt-3 space-y-3">
                 {WEEKDAY_KEYS.map((day) => {
                   const value = branch.business_hours[day];

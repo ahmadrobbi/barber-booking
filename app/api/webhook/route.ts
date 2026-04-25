@@ -146,6 +146,7 @@ async function getAvailableSlots(
     durationMinutes,
     userId: scope.userId,
     channelId: scope.channelId,
+    branchId: scope.branchId,
   });
 }
 
@@ -595,7 +596,6 @@ export async function POST(req: Request) {
       tenantServices,
       branches,
     });
-    reply = withCancelHint(reply);
   } else if (
     state &&
     branches.length > 0 &&
@@ -700,7 +700,6 @@ export async function POST(req: Request) {
       tenantServices,
       branches,
     });
-    reply = withCancelHint(reply);
   } else if (state.step === "pilih_layanan") {
     const industryServices = tenantServices;
     const service = getServiceBySelection(message, industryServices);
@@ -828,6 +827,7 @@ export async function POST(req: Request) {
         durationMinutes,
         userId: scope.userId,
         channelId: scope.channelId,
+        branchId: scope.branchId,
       }))) {
         reply =
           "Jam tersebut baru saja terisi. Pilih jam lain ya 🙏\n\n" +
@@ -899,6 +899,7 @@ export async function POST(req: Request) {
         durationMinutes: getServiceDuration(state.layanan),
         userId: scope.userId,
         channelId: scope.channelId,
+        branchId: scope.branchId,
       }))) {
         reply = "❌ Slot sudah diambil pelanggan lain. Ketik *halo* untuk mulai pilih ulang ya.";
       } else {
@@ -974,7 +975,6 @@ export async function POST(req: Request) {
       tenantServices,
       branches,
     });
-    reply = withCancelHint(reply);
   }
 
   await sendWhatsappMessage({

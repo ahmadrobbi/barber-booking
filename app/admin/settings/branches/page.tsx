@@ -19,6 +19,7 @@ export default async function BranchesSettingsPage() {
         <p className="mt-3 max-w-2xl text-sm leading-7 text-white/70">
           Kelola daftar cabang yang akan dipakai pada flow booking multi-outlet. Untuk MVP, layanan masih tetap
           sama di semua cabang, tetapi pelanggan nantinya bisa memilih outlet tujuan saat booking.
+          Jam operasional yang diisi di sini akan dipakai khusus untuk cabang tersebut.
         </p>
       </section>
 
