@@ -4,10 +4,15 @@ import { LandingPageForm } from "@/components/landing-page-form";
 
 export const dynamic = "force-dynamic";
 
-export default async function LandingPage() {
+export default async function LandingPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ success?: string }>;
+}) {
   await requireAdmin();
 
   const landingPage = await getUserLandingPage();
+  const params = (await searchParams) ?? {};
 
   return (
     <div className="space-y-6">
@@ -24,6 +29,11 @@ export default async function LandingPage() {
       </section>
 
       <section className="rounded-[2rem] bg-white p-6 shadow-xl md:p-8">
+        {params.success === "1" ? (
+          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            Pengaturan landing page berhasil disimpan.
+          </div>
+        ) : null}
         <LandingPageForm initialLandingPage={landingPage} />
       </section>
     </div>

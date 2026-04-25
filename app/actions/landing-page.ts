@@ -50,12 +50,10 @@ export async function updateLandingPage(
     if (!updatedLandingPage) {
       return formatError("Gagal memperbarui pengaturan landing page.");
     }
-
-    // Success - redirect back to landing page settings
-    redirect("/admin/landing?success=1");
-
   } catch (error) {
     console.error("Landing page update error:", error);
     return formatError("Terjadi kesalahan saat menyimpan perubahan. Silakan coba lagi.");
   }
+
+  redirect("/admin/landing?success=1");
 }
