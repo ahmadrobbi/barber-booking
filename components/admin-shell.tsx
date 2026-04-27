@@ -92,7 +92,7 @@ export function AdminShell({ businessName, userName, children }: AdminShellProps
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen((prev) => !prev)}
-                  className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-800 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm"
+                  className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-800 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm md:px-4 md:py-3"
                 >
                   <span className="hidden min-w-0 text-left md:block">
                     <span className="block font-semibold text-stone-900">{userName}</span>
@@ -101,7 +101,7 @@ export function AdminShell({ businessName, userName, children }: AdminShellProps
                   <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-stone-900 text-sm font-black text-amber-300">
                     {getInitials(userName)}
                   </span>
-                  <span className="text-stone-500">{userMenuOpen ? "▲" : "▼"}</span>
+                  <span className="hidden text-stone-500 md:inline">{userMenuOpen ? "▲" : "▼"}</span>
                 </button>
 
                 {userMenuOpen ? (
