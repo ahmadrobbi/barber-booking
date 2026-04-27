@@ -93,13 +93,6 @@ export default async function PublicLandingPage({ params }: LandingPageProps) {
         "Link booking dan WhatsApp-nya langsung kelihatan. Praktis buat yang mau booking cepat tanpa ribet.",
     },
   ];
-      quote: "Booking online-nya sangat mudah dan tidak perlu antri. Recommended banget!",
-    },
-    {
-      name: "Rian M.",
-      quote: "Harga terjangkau untuk kualitas pelayanan yang premium. Pasti balik lagi.",
-    },
-  ];
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50">
