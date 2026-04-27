@@ -3,7 +3,8 @@ import {
   completeBooking,
   confirmPendingBooking,
 } from "@/app/actions/admin-booking";
-import { BookingRow, formatBookingDate, formatPrice } from "@/lib/dashboard";
+import { BookingRow, formatBookingDate } from "@/lib/dashboard";
+import { formatPrice } from "@/lib/calendar-utils";
 import { BookingActionButton } from "@/components/booking-action-button";
 
 type AdminBookingTableProps = {

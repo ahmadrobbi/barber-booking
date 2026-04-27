@@ -5,12 +5,11 @@ import { getCurrentUserBranches } from "@/lib/user-branches";
 import {
   filterBookingsByBranchId,
   filterBookingsByMonthYear,
-  formatCalendarMonthYear,
   getAllBookings,
   getAvailableBookingYears,
   getFilterState,
-  sortBookingsLatest,
 } from "@/lib/dashboard";
+import { formatCalendarMonthYear, sortBookingsLatest } from "@/lib/calendar-utils";
 
 export const dynamic = "force-dynamic";
 

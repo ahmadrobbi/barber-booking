@@ -8,7 +8,7 @@ import {
   getMonthlyCalendarDays,
   groupBookingsByDateMap,
   sortBookingsLatest,
-} from "@/lib/dashboard";
+} from "@/lib/calendar-utils";
 
 type AdminBookingCalendarProps = {
   bookings: readonly BookingRow[];
