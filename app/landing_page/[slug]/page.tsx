@@ -135,47 +135,93 @@ export default async function PublicLandingPage({ params }: LandingPageProps) {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.18),_transparent_22%),linear-gradient(180deg,_#f8f4ec,_#ffffff)] px-6 py-8 text-stone-900 md:py-10">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-6 flex items-center justify-between gap-4 rounded-[1.75rem] border border-stone-200/80 bg-white/80 px-5 py-4 shadow-sm backdrop-blur">
-          <div className="flex items-center gap-4">
-            {landing.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={landing.logoUrl}
-                alt={landing.businessName}
-                className="h-14 w-14 rounded-2xl border border-stone-200 object-cover"
-              />
-            ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-950 text-lg font-bold text-amber-300">
-                {landing.businessName.slice(0, 2).toUpperCase()}
+        <section className="mb-8 rounded-[2.25rem] border border-stone-200 bg-white/95 p-8 shadow-2xl backdrop-blur-sm md:p-10">
+          <div className="grid gap-8 lg:grid-cols-[1.35fr_0.9fr] lg:items-center">
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                {landing.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={landing.logoUrl}
+                    alt={landing.businessName}
+                    className="h-16 w-16 rounded-3xl border border-stone-200 object-cover"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-stone-950 text-xl font-bold text-amber-300">
+                    {landing.businessName.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-stone-500">Profil Usaha</p>
+                  <h1 className="mt-2 text-4xl font-semibold tracking-tight text-stone-950 md:text-5xl">
+                    {landing.businessName}
+                  </h1>
+                </div>
               </div>
-            )}
-            <div>
-              <p className="text-xs uppercase tracking-[0.26em] text-stone-500">Profil Usaha</p>
-              <h1 className="mt-1 text-xl font-semibold text-stone-950 md:text-2xl">
-                {landing.businessName}
-              </h1>
+
+              <p className="max-w-3xl text-lg leading-8 text-stone-700 md:text-xl">
+                {landing.businessDescription}
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href={`/b/${landing.slug}`}
+                  className="inline-flex items-center justify-center rounded-3xl bg-stone-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-800"
+                >
+                  Booking Sekarang
+                </Link>
+                {whatsappLink ? (
+                  <a
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center rounded-3xl border border-stone-200 bg-white px-6 py-3 text-sm font-semibold text-stone-900 transition hover:border-amber-300 hover:bg-amber-50"
+                  >
+                    Chat WhatsApp
+                  </a>
+                ) : null}
+                {landing.websiteUrl ? (
+                  <a
+                    href={landing.websiteUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center rounded-3xl border border-stone-200 bg-white px-6 py-3 text-sm font-semibold text-stone-900 transition hover:border-amber-300 hover:bg-amber-50"
+                  >
+                    Kunjungi Website
+                  </a>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <div className="rounded-[2rem] border border-stone-200 bg-stone-950 p-6 text-white shadow-lg">
+                <p className="text-xs uppercase tracking-[0.28em] text-amber-300/80">Informasi Cepat</p>
+                <div className="mt-6 grid gap-4">
+                  <div className="rounded-[1.75rem] bg-white/10 p-4">
+                    <p className="text-xs uppercase tracking-[0.24em] text-stone-300">Cabang Aktif</p>
+                    <p className="mt-2 text-3xl font-semibold">{landing.branches.length}</p>
+                  </div>
+                  <div className="rounded-[1.75rem] bg-white/10 p-4">
+                    <p className="text-xs uppercase tracking-[0.24em] text-stone-300">Layanan Tersedia</p>
+                    <p className="mt-2 text-3xl font-semibold">{tenant.services.length}</p>
+                  </div>
+                  {landing.whatsappNumber ? (
+                    <div className="rounded-[1.75rem] bg-white/10 p-4">
+                      <p className="text-xs uppercase tracking-[0.24em] text-stone-300">WhatsApp</p>
+                      <p className="mt-2 text-3xl font-semibold">Siap Terhubung</p>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+              <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.28em] text-stone-500">Kekuatan Profil</p>
+                <p className="mt-4 text-sm leading-7 text-stone-600">
+                  Halaman ini dirancang untuk menampilkan bisnis Anda sebagai company profile modern yang mudah dibagikan ke pelanggan.
+                </p>
+              </div>
             </div>
           </div>
-
-          <div className="hidden items-center gap-3 md:flex">
-            <Link
-              href={`/b/${landing.slug}`}
-              className="inline-flex items-center justify-center rounded-2xl bg-stone-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 hover:shadow-sm"
-            >
-              Booking Sekarang
-            </Link>
-            {whatsappLink ? (
-              <a
-                href={whatsappLink}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center rounded-2xl border border-stone-200 bg-white px-5 py-3 text-sm font-semibold text-stone-800 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm"
-              >
-                Chat WhatsApp
-              </a>
-            ) : null}
-          </div>
-        </header>
+        </section>
 
         <BusinessLandingCarousel
           businessName={landing.businessName}

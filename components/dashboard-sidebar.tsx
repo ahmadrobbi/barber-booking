@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { logoutUser } from "@/app/actions/auth";
 
 type DashboardSidebarProps = {
   businessName: string;
@@ -207,25 +206,6 @@ export function DashboardSidebar({
               <span className="font-medium">Cabang</span>
             </Link>
           </nav>
-        </div>
-
-        <div className="mt-8 border-t border-white/10 pt-5">
-          {userName ? (
-            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-white/80">
-              <p className="font-semibold text-white">{userName}</p>
-              <p className="mt-1 text-white/55">Admin / Owner</p>
-            </div>
-          ) : null}
-
-          <form action={logoutUser} className="mt-4">
-            <button
-              type="submit"
-              onClick={onNavigate}
-              className="flex w-full cursor-pointer items-center justify-center rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-stone-950 transition hover:-translate-y-0.5 hover:bg-amber-200 hover:shadow-sm"
-            >
-              Logout
-            </button>
-          </form>
         </div>
       </div>
     </aside>

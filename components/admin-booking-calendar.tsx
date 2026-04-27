@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import {
   BookingRow,
   formatCalendarMonthYear,
@@ -20,11 +23,12 @@ export function AdminBookingCalendar({
   month,
   year,
 }: AdminBookingCalendarProps) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const calendarDays = getMonthlyCalendarDays(month, year);
   const bookingMap = groupBookingsByDateMap(sortBookingsLatest([...bookings]));
 
-  return (
-    <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+  const renderCalendarSection = (fullscreen = false) => (
+    <section className={`rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm ${fullscreen ? "min-h-[80vh]" : ""}`}>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Kalender Booking</p>
@@ -32,9 +36,18 @@ export function AdminBookingCalendar({
             Jadwal {formatCalendarMonthYear(month, year)}
           </h2>
         </div>
-        <p className="text-sm text-stone-500">
-          Setiap tanggal menampilkan booking terbaru lebih dulu.
-        </p>
+        <div className="flex flex-col gap-3 sm:items-end">
+          <p className="text-sm text-stone-500">
+            Setiap tanggal menampilkan booking terbaru lebih dulu.
+          </p>
+          <button
+            type="button"
+            onClick={() => setIsFullscreen((prev) => !prev)}
+            className="inline-flex items-center justify-center rounded-2xl border border-stone-200 bg-stone-900 px-4 py-3 text-sm font-semibold text-white transition hover:border-amber-300 hover:bg-amber-700"
+          >
+            {isFullscreen ? "Tutup full screen" : "Lihat full screen"}
+          </button>
+        </div>
       </div>
 
       <div className="mt-6 hidden grid-cols-7 gap-3 lg:grid">
@@ -195,6 +208,20 @@ export function AdminBookingCalendar({
           })}
       </div>
     </section>
+  );
+
+  return (
+    <>
+      {renderCalendarSection()}
+
+      {isFullscreen ? (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 sm:p-6">
+          <div className="mx-auto w-full max-w-7xl rounded-[2rem] bg-white p-6 shadow-2xl">
+            {renderCalendarSection(true)}
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
+import { logoutUser } from "@/app/actions/auth";
 
 type AdminShellProps = {
   businessName: string;
@@ -24,10 +25,11 @@ function getInitials(name: string) {
 
 export function AdminShell({ businessName, userName, children }: AdminShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#f5efe7] text-stone-900 md:flex">
-      <div className="hidden md:block">
+      <div className="hidden md:block md:sticky md:top-0 md:h-screen md:self-start">
         <DashboardSidebar businessName={businessName} userName={userName} />
       </div>
 
@@ -86,13 +88,42 @@ export function AdminShell({ businessName, userName, children }: AdminShellProps
                 Menu
               </button>
 
-              <Link
-                href="/admin/profile"
-                className="hidden cursor-pointer rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm md:block"
-              >
-                <span className="block font-semibold">{userName}</span>
-                <span className="block text-stone-500">Admin / Owner</span>
-              </Link>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setUserMenuOpen((prev) => !prev)}
+                  className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-800 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm"
+                >
+                  <span className="hidden min-w-0 text-left md:block">
+                    <span className="block font-semibold text-stone-900">{userName}</span>
+                    <span className="block text-xs text-stone-500">Admin / Owner</span>
+                  </span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-stone-900 text-sm font-black text-amber-300">
+                    {getInitials(userName)}
+                  </span>
+                  <span className="text-stone-500">{userMenuOpen ? "▲" : "▼"}</span>
+                </button>
+
+                {userMenuOpen ? (
+                  <div className="absolute right-0 z-30 mt-3 w-56 overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-2xl">
+                    <Link
+                      href="/admin/profile"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="block w-full px-4 py-3 text-left text-sm text-stone-700 transition hover:bg-stone-50"
+                    >
+                      Profil Owner
+                    </Link>
+                    <form action={logoutUser} className="border-t border-stone-100">
+                      <button
+                        type="submit"
+                        className="w-full px-4 py-3 text-left text-sm font-semibold text-stone-900 transition hover:bg-stone-50"
+                      >
+                        Clock Out
+                      </button>
+                    </form>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
 
