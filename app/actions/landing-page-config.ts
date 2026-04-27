@@ -20,7 +20,7 @@ export async function fetchLandingPageConfig(): Promise<{
     console.error("Error fetching landing page config:", error);
     return {
       config: { enabled: ["barbershop"], default: "barbershop" },
-      businessName: "BarberLink",
+      businessName: "BookLink",
     };
   }
 }

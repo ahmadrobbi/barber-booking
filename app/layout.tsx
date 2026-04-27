@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BarberLink | WhatsApp Booking untuk Barbershop",
+  title: "BookLink | Platform Booking WhatsApp untuk Semua Usaha",
   description:
-    "MVP booking barbershop dengan nomor WhatsApp milik bisnis sendiri, landing page publik, dan reminder otomatis.",
+    "Platform booking untuk barbershop, klinik, pijat, lapangan olahraga, dan usaha jasa lain. Gunakan nomor WhatsApp milik bisnis sendiri, buat landing page publik, dan kirim reminder otomatis.",
 };
 
 export default function RootLayout({

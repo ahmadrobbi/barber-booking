@@ -31,7 +31,7 @@ export async function generateMetadata({
 
   if (!landing) {
     return {
-      title: "Profil Usaha Tidak Ditemukan | BarberLink",
+      title: "Profil Usaha Tidak Ditemukan | BookLink",
       description: "Halaman profil usaha yang Anda cari tidak tersedia.",
     };
   }

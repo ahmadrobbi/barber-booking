@@ -15,8 +15,8 @@ const logoFont = Cinzel_Decorative({
 });
 
 export default function DynamicLandingPage() {
-  const platformBrand = "BarberLink";
-  const platformTagline = "WhatsApp Booking untuk Barbershop";
+  const platformBrand = "BookLink";
+  const platformTagline = "Platform Booking WhatsApp untuk Semua Usaha Jasa";
   const phone = "6287749105273";
   const message = encodeURIComponent("Halo, saya mau booking.");
   const waLink = `https://wa.me/${phone}?text=${message}`;
@@ -119,9 +119,9 @@ export default function DynamicLandingPage() {
           {
             eyebrow: "Nomor WA Anda Sendiri",
             title: "Terima Booking Barbershop Tanpa Ganti Channel",
-            description: "BarberLink membantu owner barbershop menerima booking dari nomor WhatsApp bisnis yang sudah dipakai sehari-hari, lengkap dengan landing page publik dan reminder otomatis.",
+            description: "BookLink membantu owner barbershop, klinik, pijat, lapangan olahraga, dan usaha jasa lainnya menerima booking dari nomor WhatsApp milik mereka sendiri, lengkap dengan landing page publik dan reminder otomatis.",
             image: "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=1800&q=80",
-            accent: "BarberLink",
+            accent: "BookLink",
             stats: ["Nomor WA Sendiri", "Landing Page Publik", "Reminder Otomatis"],
           },
           {
@@ -152,10 +152,10 @@ export default function DynamicLandingPage() {
             🚀
           </div>
           <h2 className={`${menuFont.className} mt-8 text-4xl font-bold uppercase md:text-5xl text-slate-900`}>
-            Booking Barbershop yang Lebih Ringkas
+            Booking untuk Semua Usaha Jasa yang Lebih Ringkas
           </h2>
           <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-slate-600">
-            Fokus MVP ini sederhana: owner barbershop tidak perlu pindah channel atau mengajari pelanggan pakai aplikasi baru. Semua tetap berjalan lewat WhatsApp bisnis mereka sendiri dan link booking publik yang mudah dibagikan.
+            Fokus MVP ini sederhana: owner tidak perlu pindah channel atau mengajari pelanggan pakai aplikasi baru. Semua tetap berjalan lewat WhatsApp bisnis mereka sendiri dan link booking publik yang mudah dibagikan. Cocok untuk barbershop, klinik, pijat, lapangan olahraga, dan segala industri yang butuh booking.
           </p>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 p-8 shadow-lg border border-blue-200">
@@ -194,7 +194,7 @@ export default function DynamicLandingPage() {
                 Free
               </div>
               <div className="mt-8 text-5xl font-bold text-slate-900">Rp 0</div>
-              <p className="mt-4 text-slate-600">Cocok untuk barbershop kecil yang ingin mulai menerima booking lewat WhatsApp tanpa biaya.</p>
+              <p className="mt-4 text-slate-600">Cocok untuk usaha jasa kecil (barbershop, klinik, pijat, dll) yang ingin mulai menerima booking lewat WhatsApp tanpa biaya.</p>
               <ul className="mt-8 space-y-3 text-slate-600">
                 <li>Landing page publik `/b/[slug]`</li>
                 <li>1 nomor WhatsApp bisnis</li>
@@ -214,7 +214,7 @@ export default function DynamicLandingPage() {
                 Pro
               </div>
               <div className="mt-8 text-5xl font-bold">Rp 149.000</div>
-              <p className="mt-4 text-slate-100">Untuk barbershop yang ingin lebih banyak kontrol, dukungan multi-cabang, dan insight operasional.</p>
+              <p className="mt-4 text-slate-100">Untuk usaha jasa yang sudah berkembang dan ingin lebih banyak kontrol, dukungan multi-cabang, dan insight operasional.</p>
               <ul className="mt-8 space-y-3 text-slate-100/90">
                 <li>Multi-branch siap pakai</li>
                 <li>Unlimited layanan & durasi</li>
@@ -234,7 +234,7 @@ export default function DynamicLandingPage() {
                 Enterprise
               </div>
               <div className="mt-8 text-5xl font-bold text-slate-900">Coming Soon</div>
-              <p className="mt-4 text-slate-600">Enterprise akan diluncurkan setelah MVP diuji, dengan AI CS dan custom workflow untuk bisnis besar.</p>
+              <p className="mt-4 text-slate-600">Enterprise akan diluncurkan setelah MVP diuji, dengan AI CS dan custom workflow untuk bisnis dan industri yang lebih kompleks.</p>
               <ul className="mt-8 space-y-3 text-slate-600">
                 <li>AI CS / chatbot dukungan pelanggan</li>
                 <li>Custom integrasi dan SLA</li>
@@ -338,7 +338,7 @@ export default function DynamicLandingPage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
             <h2 className={`${menuFont.className} text-4xl font-bold md:text-5xl text-slate-900 uppercase`}>
-              Mengapa Pilih BarberLink?
+              Mengapa Pilih BookLink?
             </h2>
             <p className="mt-4 text-lg text-slate-600">
               Fitur inti yang memang dibutuhkan untuk validasi MVP harian
@@ -408,10 +408,10 @@ export default function DynamicLandingPage() {
           <section>
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <span className="text-2xl">📅</span>
-              BarberLink
+              BookLink
             </h3>
             <p className="text-sm text-slate-300 leading-relaxed mb-4">
-              MVP booking barbershop yang membantu owner memakai nomor WhatsApp bisnis sendiri untuk menerima booking dan mengirim reminder otomatis.
+              Platform booking untuk semua usaha jasa yang membantu owner memakai nomor WhatsApp bisnis sendiri untuk menerima booking dan mengirim reminder otomatis.
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-slate-400 hover:text-white transition">📘 Facebook</a>
@@ -450,7 +450,7 @@ export default function DynamicLandingPage() {
         <div className="mt-12 border-t border-slate-700 pt-8 px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-slate-400">
-              © {new Date().getFullYear()} BarberLink. MVP booking barbershop berbasis WhatsApp.
+              © {new Date().getFullYear()} BookLink. Platform booking untuk semua usaha jasa berbasis WhatsApp.
             </p>
             <div className="flex gap-6 text-sm text-slate-400">
               <a href="/privacy" className="hover:text-white transition">Privacy Policy</a>
