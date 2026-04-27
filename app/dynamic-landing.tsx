@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Barlow_Condensed, Cinzel_Decorative } from "next/font/google";
 import { HomeHeroCarousel } from "@/components/home-hero-carousel";
 
@@ -16,7 +17,7 @@ const logoFont = Cinzel_Decorative({
 
 export default function DynamicLandingPage() {
   const platformBrand = "BookLink";
-  const platformTagline = "Platform Booking WhatsApp untuk Semua Usaha Jasa";
+  const platformTagline = "Platform Booking untuk Semua Usaha Jasa";
   const phone = "6287749105273";
   const message = encodeURIComponent("Halo, saya mau booking.");
   const waLink = `https://wa.me/${phone}?text=${message}`;
@@ -36,9 +37,14 @@ export default function DynamicLandingPage() {
         <nav className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
           <div className="flex items-center justify-between gap-4 lg:gap-8">
             <a href="#home" className="flex shrink-0 items-center gap-3 pr-4">
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-lg font-bold shadow-lg">
-                📅
-              </span>
+              <Image
+                src="/logo.svg"
+                alt="BookLink Logo"
+                width={48}
+                height={48}
+                priority
+                className="rounded-full shadow-lg"
+              />
               <span>
                 <strong
                   className={`${logoFont.className} block text-xl leading-tight tracking-wide md:text-2xl text-slate-900`}
