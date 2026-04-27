@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AntriFlow | WhatsApp Booking untuk Barbershop",
+  title: "BarberLink | WhatsApp Booking untuk Barbershop",
   description:
     "MVP booking barbershop dengan nomor WhatsApp milik bisnis sendiri, landing page publik, dan reminder otomatis.",
 };

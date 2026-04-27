@@ -169,9 +169,9 @@ export async function getBusinessName(): Promise<string> {
       .eq("key", "business_name")
       .maybeSingle();
 
-    return typeof data?.value_json === "string" ? data.value_json : "AntriFlow";
+    return typeof data?.value_json === "string" ? data.value_json : "BarberLink";
   } catch {
-    return "AntriFlow";
+    return "BarberLink";
   }
 }
 
@@ -181,7 +181,7 @@ export async function getBusinessName(): Promise<string> {
 export async function getCurrentUserBusinessName(): Promise<string> {
   try {
     const session = await getSession();
-    if (!session) return "AntriFlow";
+    if (!session) return "BarberLink";
 
     const supabase = createAdminSupabase();
     const { data, error } = await supabase

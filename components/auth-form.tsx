@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import type { AuthFormState } from "@/lib/auth-form-state";
 import { initialAuthFormState } from "@/lib/auth-form-state";
+import { PageSpinner } from "@/components/page-spinner";
 
 type AuthFormProps = {
   action: (
@@ -20,14 +21,10 @@ function SubmitButton({ mode }: { mode: "login" | "register" }) {
   return (
     <>
       {pending ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/25 px-6 backdrop-blur-sm">
-          <div className="rounded-[1.75rem] bg-white px-8 py-7 text-center shadow-2xl">
-            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 border-r-blue-600" />
-            <p className="mt-4 text-sm font-medium text-slate-700">
-              {mode === "login" ? "Masuk ke dashboard..." : "Membuat akun..."}
-            </p>
-          </div>
-        </div>
+        <PageSpinner
+          label={mode === "login" ? "Masuk ke dashboard..." : "Membuat akun..."}
+          fullScreen={false}
+        />
       ) : null}
 
       <button
@@ -118,12 +115,12 @@ export function AuthForm({ action, mode }: AuthFormProps) {
       <SubmitButton mode={mode} />
 
       <p className="text-center text-sm text-slate-600">
-        {isRegister ? "Sudah punya akun?" : "Akses dashboard hanya untuk admin."} {" "}
+        {isRegister ? "Sudah punya akun?" : "Belum punya akun?"} {" "}
         <Link
-          href="/login"
+          href={isRegister ? "/login" : "/register"}
           className="font-medium text-blue-600 transition hover:text-blue-500"
         >
-          {isRegister ? "Login di sini" : "Login admin"}
+          {isRegister ? "Login di sini" : "Daftar sekarang"}
         </Link>
       </p>
     </form>

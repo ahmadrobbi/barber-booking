@@ -15,7 +15,7 @@ const logoFont = Cinzel_Decorative({
 });
 
 export default function DynamicLandingPage() {
-  const platformBrand = "AntriFlow";
+  const platformBrand = "BarberLink";
   const platformTagline = "WhatsApp Booking untuk Barbershop";
   const phone = "6287749105273";
   const message = encodeURIComponent("Halo, saya mau booking.");
@@ -24,8 +24,9 @@ export default function DynamicLandingPage() {
   const navItems = [
     { href: "#home", label: "Home" },
     { href: "#platform", label: "Produk" },
+    { href: "#pricing", label: "Harga" },
     { href: "#industries", label: "Use Case" },
-    { href: "#features", label: "Features" },
+    { href: "#features", label: "Fitur" },
     { href: "#contact", label: "Contact" },
   ] as const;
 
@@ -118,9 +119,9 @@ export default function DynamicLandingPage() {
           {
             eyebrow: "Nomor WA Anda Sendiri",
             title: "Terima Booking Barbershop Tanpa Ganti Channel",
-            description: "AntriFlow membantu owner barbershop menerima booking dari nomor WhatsApp bisnis yang sudah dipakai sehari-hari, lengkap dengan landing page publik dan reminder otomatis.",
+            description: "BarberLink membantu owner barbershop menerima booking dari nomor WhatsApp bisnis yang sudah dipakai sehari-hari, lengkap dengan landing page publik dan reminder otomatis.",
             image: "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=1800&q=80",
-            accent: "AntriFlow",
+            accent: "BarberLink",
             stats: ["Nomor WA Sendiri", "Landing Page Publik", "Reminder Otomatis"],
           },
           {
@@ -171,6 +172,77 @@ export default function DynamicLandingPage() {
               <div className="text-4xl mb-4">🔔</div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Reminder dan Status Dasar</h3>
               <p className="text-slate-600 leading-relaxed">Owner bisa mengonfirmasi atau membatalkan booking dari dashboard, lalu pelanggan mendapat pesan WhatsApp yang jelas dan tepat waktu.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="scroll-mt-24 bg-slate-50 py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="text-center mb-12">
+            <h2 className={`${menuFont.className} text-4xl font-bold md:text-5xl text-slate-900 uppercase`}>
+              Harga yang Jelas untuk MVP</h2>
+            <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
+              Fokus saat ini pada dua tier utama: gratis untuk barbershop baru, dan Pro untuk owner yang butuh fitur lebih untuk skala dan kontrol WA.
+            </p>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-3">
+            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+              <div className="inline-flex rounded-full bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">
+                Free
+              </div>
+              <div className="mt-8 text-5xl font-bold text-slate-900">Rp 0</div>
+              <p className="mt-4 text-slate-600">Cocok untuk barbershop kecil yang ingin mulai menerima booking lewat WhatsApp tanpa biaya.</p>
+              <ul className="mt-8 space-y-3 text-slate-600">
+                <li>Landing page publik `/b/[slug]`</li>
+                <li>1 nomor WhatsApp bisnis</li>
+                <li>Dashboard booking dasar</li>
+                <li>Reminder WhatsApp otomatis</li>
+              </ul>
+              <Link
+                href="/register"
+                className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                Daftar Gratis
+              </Link>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-blue-600 to-indigo-600 p-8 shadow-xl text-white">
+              <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white">
+                Pro
+              </div>
+              <div className="mt-8 text-5xl font-bold">Rp 149.000</div>
+              <p className="mt-4 text-slate-100">Untuk barbershop yang ingin lebih banyak kontrol, dukungan multi-cabang, dan insight operasional.</p>
+              <ul className="mt-8 space-y-3 text-slate-100/90">
+                <li>Multi-branch siap pakai</li>
+                <li>Unlimited layanan & durasi</li>
+                <li>Laporan booking dan omzet</li>
+                <li>Prioritas setup dan support</li>
+              </ul>
+              <Link
+                href="/register"
+                className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+              >
+                Upgrade ke Pro
+              </Link>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm opacity-80">
+              <div className="inline-flex rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900">
+                Enterprise
+              </div>
+              <div className="mt-8 text-5xl font-bold text-slate-900">Coming Soon</div>
+              <p className="mt-4 text-slate-600">Enterprise akan diluncurkan setelah MVP diuji, dengan AI CS dan custom workflow untuk bisnis besar.</p>
+              <ul className="mt-8 space-y-3 text-slate-600">
+                <li>AI CS / chatbot dukungan pelanggan</li>
+                <li>Custom integrasi dan SLA</li>
+                <li>Pelaporan lanjutan</li>
+              </ul>
+              <div className="mt-8 rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 text-center">
+                Tertunda untuk fase berikutnya
+              </div>
             </div>
           </div>
         </div>
@@ -266,7 +338,7 @@ export default function DynamicLandingPage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
             <h2 className={`${menuFont.className} text-4xl font-bold md:text-5xl text-slate-900 uppercase`}>
-              Mengapa Pilih AntriFlow?
+              Mengapa Pilih BarberLink?
             </h2>
             <p className="mt-4 text-lg text-slate-600">
               Fitur inti yang memang dibutuhkan untuk validasi MVP harian
@@ -336,7 +408,7 @@ export default function DynamicLandingPage() {
           <section>
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <span className="text-2xl">📅</span>
-              AntriFlow
+              BarberLink
             </h3>
             <p className="text-sm text-slate-300 leading-relaxed mb-4">
               MVP booking barbershop yang membantu owner memakai nomor WhatsApp bisnis sendiri untuk menerima booking dan mengirim reminder otomatis.
@@ -378,7 +450,7 @@ export default function DynamicLandingPage() {
         <div className="mt-12 border-t border-slate-700 pt-8 px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-slate-400">
-              © {new Date().getFullYear()} AntriFlow. MVP booking barbershop berbasis WhatsApp.
+              © {new Date().getFullYear()} BarberLink. MVP booking barbershop berbasis WhatsApp.
             </p>
             <div className="flex gap-6 text-sm text-slate-400">
               <a href="/privacy" className="hover:text-white transition">Privacy Policy</a>

@@ -1,6 +1,6 @@
-# AntriFlow MVP
+# BarberLink MVP
 
-AntriFlow adalah MVP booking `barbershop` yang berfokus pada satu hasil utama: owner bisa memakai `nomor WhatsApp bisnis sendiri` sebagai bot untuk menerima booking, mengelola jadwal, dan mengirim reminder otomatis.
+BarberLink adalah MVP booking `barbershop` yang berfokus pada satu hasil utama: owner bisa memakai `nomor WhatsApp bisnis sendiri` sebagai bot untuk menerima booking, mengelola jadwal, dan mengirim reminder otomatis.
 
 ## Fokus Produk Saat Ini
 
