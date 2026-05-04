@@ -168,6 +168,12 @@ export default async function AdminPage({
               Setting Webhook
             </Link>
             <Link
+              href="/admin/settings/webhook-official"
+              className="cursor-pointer rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-700 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm"
+            >
+              Setting Official
+            </Link>
+            <Link
               href="/admin/profile"
               className="cursor-pointer rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-700 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm"
             >

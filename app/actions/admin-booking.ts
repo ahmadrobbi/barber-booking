@@ -65,6 +65,9 @@ async function notifyBookingStatus(status: "confirmed" | "cancelled", booking: B
     target: booking.sender,
     message: buildStatusMessage(status, booking),
     token: context.token,
+    provider: context.chatbotProvider,
+    officialAccessToken: context.officialAccessToken,
+    officialPhoneNumberId: context.officialPhoneNumberId,
   });
 }
 

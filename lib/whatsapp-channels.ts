@@ -15,6 +15,10 @@ export type WhatsappChannel = {
   device_name: string | null;
   fonnte_device_token: string | null;
   webhook_secret: string | null;
+  chatbot_provider: "fonnte" | "official" | null;
+  official_phone_number_id: string | null;
+  official_access_token: string | null;
+  official_verify_token: string | null;
   industry: IndustryKey | null;
   is_active: boolean | null;
   is_default: boolean | null;
@@ -30,7 +34,11 @@ export type WhatsappRuntimeContext = {
   deviceNumber: string | null;
   businessName: string;
   industry: IndustryKey;
+  chatbotProvider: "fonnte" | "official";
   token: string | null;
+  officialAccessToken: string | null;
+  officialPhoneNumberId: string | null;
+  officialVerifyToken: string | null;
   templates: ReturnType<typeof mergeChatbotTemplates>;
   isLegacyFallback: boolean;
 };
@@ -61,6 +69,16 @@ function mapChannelRow(row: unknown): WhatsappChannel | null {
     fonnte_device_token:
       typeof row.fonnte_device_token === "string" ? row.fonnte_device_token : null,
     webhook_secret: typeof row.webhook_secret === "string" ? row.webhook_secret : null,
+    chatbot_provider:
+      row.chatbot_provider === "official" || row.chatbot_provider === "fonnte"
+        ? row.chatbot_provider
+        : null,
+    official_phone_number_id:
+      typeof row.official_phone_number_id === "string" ? row.official_phone_number_id : null,
+    official_access_token:
+      typeof row.official_access_token === "string" ? row.official_access_token : null,
+    official_verify_token:
+      typeof row.official_verify_token === "string" ? row.official_verify_token : null,
     industry: typeof row.industry === "string" ? (row.industry as IndustryKey) : null,
     is_active: typeof row.is_active === "boolean" ? row.is_active : null,
     is_default: typeof row.is_default === "boolean" ? row.is_default : null,
@@ -78,7 +96,7 @@ async function getChannelByQuery(column: "id" | "device_number", value: string) 
     const { data, error } = await supabase
       .from("whatsapp_channels")
       .select(
-        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, industry, is_active, is_default, template_overrides"
+        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, chatbot_provider, official_phone_number_id, official_access_token, official_verify_token, industry, is_active, is_default, template_overrides"
       )
       .eq(column, value)
       .eq("is_active", true)
@@ -131,7 +149,7 @@ export async function getDefaultWhatsappChannelByUserId(userId: string | null | 
     const { data, error } = await supabase
       .from("whatsapp_channels")
       .select(
-        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, industry, is_active, is_default, template_overrides, created_at, updated_at"
+        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, chatbot_provider, official_phone_number_id, official_access_token, official_verify_token, industry, is_active, is_default, template_overrides, created_at, updated_at"
       )
       .eq("user_id", userId)
       .eq("is_active", true)
@@ -161,6 +179,37 @@ export async function getWhatsappChannelByDevice(deviceNumber: string | null | u
   return getChannelByQuery("device_number", sanitized);
 }
 
+export async function getWhatsappChannelByOfficialPhoneNumberId(
+  phoneNumberId: string | null | undefined
+) {
+  const sanitized = typeof phoneNumberId === "string" ? phoneNumberId.trim() : "";
+
+  if (!sanitized) {
+    return null;
+  }
+
+  try {
+    const supabase = createAdminSupabase();
+    const { data, error } = await supabase
+      .from("whatsapp_channels")
+      .select(
+        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, chatbot_provider, official_phone_number_id, official_access_token, official_verify_token, industry, is_active, is_default, template_overrides"
+      )
+      .eq("official_phone_number_id", sanitized)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (error && error.code !== "PGRST116" && error.code !== "42P01") {
+      throw new Error(error.message);
+    }
+
+    return mapChannelRow(data);
+  } catch (error) {
+    console.warn("Failed to load WhatsApp channel by official phone number id:", error);
+    return null;
+  }
+}
+
 export async function getWhatsappChannelById(channelId: string | null | undefined) {
   if (!channelId) {
     return null;
@@ -181,7 +230,7 @@ export async function getCurrentUserWhatsappChannels() {
     const { data, error } = await supabase
       .from("whatsapp_channels")
       .select(
-        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, industry, is_active, is_default, template_overrides, created_at, updated_at"
+        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, chatbot_provider, official_phone_number_id, official_access_token, official_verify_token, industry, is_active, is_default, template_overrides, created_at, updated_at"
       )
       .eq("user_id", session.userId)
       .order("is_default", { ascending: false })
@@ -199,23 +248,30 @@ export async function getCurrentUserWhatsappChannels() {
 }
 
 export async function resolveWhatsappRuntimeContext(
-  deviceNumber: string | null | undefined
+  identity: { deviceNumber?: string | null; officialPhoneNumberId?: string | null }
 ): Promise<WhatsappRuntimeContext> {
   const globalTemplates = await getGlobalChatbotTemplates();
   const config = await getIndustryConfig();
-  const channel = await getWhatsappChannelByDevice(deviceNumber);
+  const channel = identity.officialPhoneNumberId
+    ? await getWhatsappChannelByOfficialPhoneNumberId(identity.officialPhoneNumberId)
+    : await getWhatsappChannelByDevice(identity.deviceNumber ?? null);
   const industry = channel?.industry ?? config.default;
   const industryTemplates = INDUSTRIES[industry]?.templates;
   const businessName = await getBusinessNameByUserId(channel?.user_id);
+  const chatbotProvider = channel?.chatbot_provider ?? (identity.officialPhoneNumberId ? "official" : "fonnte");
 
   return {
     channel,
     channelId: channel?.id ?? null,
     userId: channel?.user_id ?? null,
-    deviceNumber: sanitizeDeviceNumber(deviceNumber),
+    deviceNumber: sanitizeDeviceNumber(identity.deviceNumber ?? channel?.device_number ?? null),
     businessName,
     industry,
+    chatbotProvider,
     token: channel?.fonnte_device_token ?? null,
+    officialAccessToken: channel?.official_access_token ?? null,
+    officialPhoneNumberId: channel?.official_phone_number_id ?? null,
+    officialVerifyToken: channel?.official_verify_token ?? null,
     templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),
     isLegacyFallback: !channel,
   };
@@ -246,7 +302,11 @@ export async function resolveWhatsappContextFromBooking(booking: {
     deviceNumber: channel?.device_number ?? null,
     businessName,
     industry,
+    chatbotProvider: channel?.chatbot_provider ?? "fonnte",
     token: channel?.fonnte_device_token ?? null,
+    officialAccessToken: channel?.official_access_token ?? null,
+    officialPhoneNumberId: channel?.official_phone_number_id ?? null,
+    officialVerifyToken: channel?.official_verify_token ?? null,
     templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),
     isLegacyFallback: !channel,
   } satisfies WhatsappRuntimeContext;
@@ -256,7 +316,41 @@ export async function sendWhatsappMessage(params: {
   target: string;
   message: string;
   token: string | null;
+  provider?: "fonnte" | "official";
+  officialAccessToken?: string | null;
+  officialPhoneNumberId?: string | null;
 }) {
+  if ((params.provider ?? "fonnte") === "official") {
+    if (!params.officialAccessToken || !params.officialPhoneNumberId) {
+      throw new Error("Missing official WhatsApp credentials for outbound message.");
+    }
+
+    const graphVersion = process.env.WHATSAPP_OFFICIAL_GRAPH_VERSION || "v25.0";
+    const response = await fetch(
+      `https://graph.facebook.com/${graphVersion}/${params.officialPhoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${params.officialAccessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: params.target,
+          type: "text",
+          text: { body: params.message },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Official WhatsApp send failed with ${response.status}: ${errorText}`);
+    }
+
+    return response;
+  }
+
   if (!params.token) {
     throw new Error("Missing Fonnte token for outbound WhatsApp message.");
   }

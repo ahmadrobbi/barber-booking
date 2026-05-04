@@ -44,6 +44,7 @@ type ParsedWebhookPayload = {
   incomingMessage: string;
   sender: string;
   device: string | null;
+  officialPhoneNumberId: string | null;
   webhookSecret: string | null;
 };
 
@@ -318,10 +319,37 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
 
   try {
     const body = await req.json();
+
+    const officialValue = body?.entry?.[0]?.changes?.[0]?.value ?? body?.value ?? body;
+    const officialPhoneNumberId =
+      officialValue?.metadata?.phone_number_id ||
+      officialValue?.phone_number_id ||
+      body?.phone_number_id ||
+      null;
+
+    const officialMessage =
+      officialValue?.messages?.[0]?.text?.body ||
+      officialValue?.messages?.[0]?.body ||
+      officialValue?.message?.text?.body ||
+      officialValue?.message?.body ||
+      body?.message?.text ||
+      body?.message ||
+      body?.text ||
+      "";
+
+    const officialSender =
+      officialValue?.contacts?.[0]?.wa_id ||
+      officialValue?.messages?.[0]?.from ||
+      body?.from ||
+      body?.sender ||
+      "";
+
     return {
-      incomingMessage: body.message?.text || body.message || body.text || "",
-      sender: normalizeSender(body.sender || body.from || ""),
+      incomingMessage: officialMessage,
+      sender: normalizeSender(officialSender),
       device: body.device || body.number || body.device_number || null,
+      officialPhoneNumberId:
+        typeof officialPhoneNumberId === "string" ? officialPhoneNumberId.trim() : null,
       webhookSecret:
         body.webhook_secret ||
         body.secret ||
@@ -337,6 +365,7 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
       incomingMessage: params.get("message") || params.get("text") || "",
       sender: normalizeSender(params.get("sender") || params.get("from") || ""),
       device: params.get("device") || params.get("number") || params.get("device_number"),
+      officialPhoneNumberId: params.get("phone_number_id"),
       webhookSecret:
         params.get("webhook_secret") ||
         params.get("secret") ||
@@ -346,6 +375,28 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
         null,
     };
   }
+}
+
+function isMetaWebhookVerificationRequest(url: URL) {
+  return (
+    url.searchParams.get("hub.mode") === "subscribe" &&
+    typeof url.searchParams.get("hub.challenge") === "string" &&
+    !!url.searchParams.get("hub.verify_token")
+  );
+}
+
+function getMetaVerificationToken(req: Request) {
+  const url = new URL(req.url);
+  return (
+    url.searchParams.get("hub.verify_token") ||
+    req.headers.get("x-webhook-verify-token") ||
+    null
+  );
+}
+
+function getMetaChallenge(req: Request) {
+  const url = new URL(req.url);
+  return url.searchParams.get("hub.challenge");
 }
 
 function isValidWebhookSecret(context: WhatsappRuntimeContext, providedSecret: string | null) {
@@ -408,6 +459,17 @@ async function resetToGreetingState({
   return renderTemplate(context.templates.greeting, {
     business_name: context.businessName,
     service_list: getServiceOptionsText(tenantServices),
+  });
+}
+
+async function sendReply(context: WhatsappRuntimeContext, target: string, message: string) {
+  return sendWhatsappMessage({
+    target,
+    message,
+    token: context.token,
+    provider: context.chatbotProvider,
+    officialAccessToken: context.officialAccessToken,
+    officialPhoneNumberId: context.officialPhoneNumberId,
   });
 }
 
@@ -534,10 +596,14 @@ async function buildCurrentStepReply({
 }
 
 export async function POST(req: Request) {
-  const { incomingMessage, sender, device, webhookSecret } = await parseWebhookPayload(req);
-  const context = await resolveWhatsappRuntimeContext(device);
+  const { incomingMessage, sender, device, officialPhoneNumberId, webhookSecret } =
+    await parseWebhookPayload(req);
+  const context = await resolveWhatsappRuntimeContext({
+    deviceNumber: device,
+    officialPhoneNumberId,
+  });
 
-  if (!device) {
+  if (!device && !officialPhoneNumberId) {
     return Response.json({ status: "missing device" }, { status: 400 });
   }
 
@@ -554,7 +620,13 @@ export async function POST(req: Request) {
   }
 
   if (!context.token) {
-    return Response.json({ status: "missing token" }, { status: 500 });
+    if (context.chatbotProvider === "official") {
+      if (!context.officialAccessToken || !context.officialPhoneNumberId) {
+        return Response.json({ status: "missing official token" }, { status: 500 });
+      }
+    } else {
+      return Response.json({ status: "missing token" }, { status: 500 });
+    }
   }
 
   const rawMessage = incomingMessage.trim();
@@ -932,11 +1004,7 @@ export async function POST(req: Request) {
           }
 
           await clearState(sender, context.channelId);
-          await sendWhatsappMessage({
-            target: sender,
-            message: reply,
-            token: context.token,
-          });
+          await sendReply(context, sender, reply);
 
           return Response.json({
             status: "booking_failed",
@@ -977,16 +1045,38 @@ export async function POST(req: Request) {
     });
   }
 
-  await sendWhatsappMessage({
-    target: sender,
-    message: reply,
-    token: context.token,
-  });
+  await sendReply(context, sender, reply);
 
   return Response.json({
     status: "ok",
     channelId: context.channelId,
     userId: context.userId,
     legacy: false,
+  });
+}
+
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+
+  if (!isMetaWebhookVerificationRequest(url)) {
+    return Response.json({ status: "webhook_endpoint_active" });
+  }
+
+  const verifyToken = getMetaVerificationToken(req);
+  const challenge = getMetaChallenge(req);
+  const officialPhoneNumberId = url.searchParams.get("phone_number_id");
+  const context = await resolveWhatsappRuntimeContext({
+    officialPhoneNumberId: officialPhoneNumberId ?? undefined,
+  });
+
+  const expectedToken = context.officialVerifyToken?.trim();
+
+  if (!expectedToken || verifyToken?.trim() !== expectedToken) {
+    return Response.json({ status: "invalid verify token" }, { status: 403 });
+  }
+
+  return new Response(challenge ?? "", {
+    status: 200,
+    headers: { "Content-Type": "text/plain" },
   });
 }
