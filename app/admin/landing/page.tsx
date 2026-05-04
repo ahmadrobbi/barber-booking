@@ -29,6 +29,11 @@ export default async function LandingPage({
   const landingPage = await getUserLandingPage();
   const params = (await searchParams) ?? {};
   const appUrl = getAppUrl();
+  const publicLandingPageHref = landingPage?.custom_domain
+    ? `https://${landingPage.custom_domain}`
+    : landingPage?.subdomain
+    ? `/landing_page/${landingPage.subdomain}`
+    : null;
 
   return (
     <div className="space-y-6">
@@ -48,9 +53,9 @@ export default async function LandingPage({
               <span className="font-medium text-white"> /b/[slug]</span> tanpa perlu subdomain dulu.
             </p>
           </div>
-          {landingPage?.subdomain || landingPage?.custom_domain ? (
+          {publicLandingPageHref ? (
             <a
-              href={landingPage?.custom_domain ? `https://${landingPage.custom_domain}` : `${appUrl}/landing_page/${landingPage.subdomain}`}
+              href={publicLandingPageHref}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center justify-center rounded-3xl bg-amber-400 px-6 py-3 text-sm font-semibold text-stone-950 transition hover:bg-amber-300"

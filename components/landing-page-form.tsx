@@ -15,11 +15,11 @@ export function LandingPageForm({ initialLandingPage, appUrl }: LandingPageFormP
   const publicProfilePath = initialLandingPage?.custom_domain
     ? `https://${initialLandingPage.custom_domain}`
     : initialLandingPage?.subdomain
-    ? `${appUrl}/landing_page/${initialLandingPage.subdomain}`
-    : `${appUrl}/landing_page/namabisnis`;
+    ? `/landing_page/${initialLandingPage.subdomain}`
+    : `/landing_page/namabisnis`;
   const publicBookingPath = initialLandingPage?.subdomain
-    ? `${appUrl}/b/${initialLandingPage.subdomain}`
-    : `${appUrl}/b/namabisnis`;
+    ? `/b/${initialLandingPage.subdomain}`
+    : `/b/namabisnis`;
 
   return (
     <form action={action} className="space-y-6 overflow-x-hidden">
