@@ -1,11 +1,10 @@
+import { saveWhatsappChannel, deleteWhatsappChannel } from "@/app/actions/whatsapp-channels";
 import { AdminQueryFeedbackAlert } from "@/components/admin-query-feedback-alert";
-import {
-  deleteWhatsappChannel,
-  saveWhatsappChannel,
-} from "@/app/actions/whatsapp-channels";
+import { ConnectChannelButton } from "@/components/connect-channel-button";
 import { requireAdmin } from "@/lib/auth";
 import { getAvailableIndustries } from "@/lib/industries";
 import { getCurrentUserWhatsappChannels, type WhatsappChannel } from "@/lib/whatsapp-channels";
+import { getOfficialWhatsAppConfig } from "@/lib/whatsapp-official";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +22,14 @@ function getAppUrl() {
   return "http://localhost:3000";
 }
 
+function buildCallbackUrl(appUrl: string, phoneNumberId: string | null) {
+  if (!phoneNumberId) {
+    return `${appUrl}/api/webhook`;
+  }
+
+  return `${appUrl}/api/webhook?phone_number_id=${encodeURIComponent(phoneNumberId)}`;
+}
+
 export default async function WebhookOfficialSettingsPage({
   searchParams,
 }: {
@@ -30,11 +37,11 @@ export default async function WebhookOfficialSettingsPage({
 }) {
   const user = await requireAdmin();
   const params = await searchParams;
-
   const appUrl = getAppUrl();
-  const webhookUrl = `${appUrl}/api/webhook`;
   const channels = await getCurrentUserWhatsappChannels();
+  const officialConfig = getOfficialWhatsAppConfig();
   const industries = getAvailableIndustries();
+
   const emptyChannel: WhatsappChannel = {
     id: "",
     user_id: user.id,
@@ -55,6 +62,7 @@ export default async function WebhookOfficialSettingsPage({
   };
 
   const channelForms = [...channels, emptyChannel];
+  const callbackUrl = buildCallbackUrl(appUrl, null);
 
   return (
     <div className="grid gap-6">
@@ -67,26 +75,27 @@ export default async function WebhookOfficialSettingsPage({
         <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Setting</p>
         <h1 className="mt-3 text-3xl font-semibold">Webhook WA API Official</h1>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-stone-600">
-          Menu ini dipakai khusus untuk chatbot WhatsApp official. Endpoint yang dipakai sama, tetapi Meta
-          akan melakukan verifikasi `hub.challenge` dan balasan chat keluar lewat access token official.
-          Reminder tetap memakai Fonnte dulu.
+          Cukup isi nomor WhatsApp bisnis. Backend akan mencari `phone_number_id`, menyiapkan verify token,
+          dan memakai credential official yang sudah disimpan di server. User tidak perlu lihat access token.
         </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl bg-stone-50 p-4">
-            <p className="text-sm text-stone-500">Webhook URL dasar</p>
+            <p className="text-sm text-stone-500">Callback URL</p>
             <p className="mt-2 break-all rounded-xl bg-white px-4 py-3 font-mono text-sm text-stone-900">
-              {webhookUrl}
+              {callbackUrl}
             </p>
             <p className="mt-2 text-xs leading-6 text-stone-500">
-              Untuk official callback, tambahkan `?phone_number_id=...` sesuai channel yang kamu simpan.
+              Setelah channel disimpan, URL per channel akan muncul otomatis dengan `phone_number_id`.
             </p>
           </div>
 
           <div className="rounded-2xl bg-stone-50 p-4">
-            <p className="text-sm text-stone-500">Reminder Endpoint</p>
-            <p className="mt-2 break-all rounded-xl bg-white px-4 py-3 font-mono text-sm text-stone-900">
-              {`${appUrl}/api/reminder`}
+            <p className="text-sm text-stone-500">Backend Status</p>
+            <p className="mt-2 text-sm leading-7 text-stone-700">
+              {officialConfig.accessToken && officialConfig.wabaId && officialConfig.verifyToken
+                ? "Backend official siap. User hanya perlu input nomor WA."
+                : "Backend official belum lengkap. Set env WHATSAPP_OFFICIAL_ACCESS_TOKEN, WHATSAPP_OFFICIAL_WABA_ID, dan WHATSAPP_OFFICIAL_VERIFY_TOKEN."}
             </p>
           </div>
         </div>
@@ -95,11 +104,10 @@ export default async function WebhookOfficialSettingsPage({
       <section className="rounded-[2rem] border border-stone-200 bg-[#fff8ef] p-6 shadow-sm">
         <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Checklist</p>
         <div className="mt-5 space-y-4 text-sm leading-7 text-stone-700">
-          <p>1. Pasang `Webhook URL` ini di dashboard Meta WhatsApp Cloud API.</p>
-          <p>2. Isi `verify token` yang sama di dashboard Meta dan di field channel ini.</p>
-          <p>3. Isi `phone number ID` dan `access token` official untuk bot chatbot.</p>
-          <p>4. Tetap isi `Token Fonnte` karena reminder booking masih dikirim lewat Fonnte.</p>
-          <p>5. Kalau ingin ubah template balasan chatbot, buka menu Fonnte lama untuk template override.</p>
+          <p>1. Masukkan nomor WhatsApp bisnis yang sudah terdaftar di Meta.</p>
+          <p>2. Backend akan mencocokkan nomor itu dengan phone number yang tersedia di WABA server.</p>
+          <p>3. Reminder tetap pakai Fonnte, jadi flow lama tidak terganggu.</p>
+          <p>4. Template chatbot tetap diatur dari menu template, bukan dari form ini.</p>
         </div>
       </section>
 
@@ -109,8 +117,8 @@ export default async function WebhookOfficialSettingsPage({
             <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Channels</p>
             <h2 className="mt-3 text-2xl font-semibold">Nomor Chatbot Official</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-stone-600">
-              Channel official dipakai untuk inbound webhook Meta dan reply chatbot. Reminder tidak ikut pindah,
-              jadi token Fonnte tetap wajib diisi.
+              Form ini sengaja dibuat sesederhana mungkin. Input utamanya hanya nomor WA bisnis. Channel lama
+              juga bisa dikonversi ke official dari halaman ini.
             </p>
           </div>
           <div className="rounded-2xl bg-stone-50 px-4 py-3 text-sm text-stone-700">
@@ -122,7 +130,7 @@ export default async function WebhookOfficialSettingsPage({
           {channelForms.map((channel, index) => {
             const isNew = !channel.id;
             const officialWebhookUrl = channel.official_phone_number_id
-              ? `${appUrl}/api/webhook?phone_number_id=${encodeURIComponent(channel.official_phone_number_id)}`
+              ? buildCallbackUrl(appUrl, channel.official_phone_number_id)
               : null;
 
             return (
@@ -136,12 +144,16 @@ export default async function WebhookOfficialSettingsPage({
                       {isNew ? "Tambah Official Channel" : `Channel ${index + 1}`}
                     </p>
                     <h3 className="mt-1 text-lg font-semibold text-stone-900">
-                      {channel.device_name || channel.official_phone_number_id || channel.device_number || "Channel baru"}
+                      {channel.device_name || channel.device_number || "Channel baru"}
                     </h3>
                   </div>
                   {!isNew && (
                     <div className="flex flex-wrap items-center gap-2 text-xs text-stone-600">
-                      <span className="rounded-full bg-sky-100 px-3 py-1 font-semibold text-sky-800">
+                      <span className={`rounded-full px-3 py-1 font-semibold ${
+                        channel.chatbot_provider === "official"
+                          ? "bg-sky-100 text-sky-800"
+                          : "bg-stone-200 text-stone-700"
+                      }`}>
                         {channel.chatbot_provider === "official" ? "Official" : "Fonnte"}
                       </span>
                       {channel.is_default ? (
@@ -149,46 +161,31 @@ export default async function WebhookOfficialSettingsPage({
                           Default
                         </span>
                       ) : null}
-                      {!channel.is_active ? (
-                        <span className="rounded-full bg-stone-200 px-3 py-1 font-semibold text-stone-700">
-                          Nonaktif
-                        </span>
-                      ) : null}
                     </div>
                   )}
-                  </div>
+                </div>
 
-                  <div className="rounded-2xl border border-stone-200 bg-white p-4 text-sm text-stone-700">
-                    <p className="text-stone-500">Official callback URL</p>
-                    {officialWebhookUrl ? (
-                      <p className="mt-2 break-all rounded-xl bg-stone-50 px-4 py-3 font-mono text-sm text-stone-900">
-                        {officialWebhookUrl}
-                      </p>
-                    ) : (
-                      <p className="mt-2 text-stone-600">
-                        Simpan channel dulu untuk membuat callback URL unik untuk Meta.
-                      </p>
-                    )}
-                  </div>
+                <div className="mt-4 rounded-2xl border border-stone-200 bg-white p-4 text-sm text-stone-700">
+                  <p className="text-stone-500">Official callback URL</p>
+                  {officialWebhookUrl ? (
+                    <p className="mt-2 break-all rounded-xl bg-stone-50 px-4 py-3 font-mono text-sm text-stone-900">
+                      {officialWebhookUrl}
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-stone-600">
+                      Simpan channel dulu agar backend bisa menampilkan callback URL unik.
+                    </p>
+                  )}
+                </div>
 
                 <form action={saveWhatsappChannel} className="mt-5 space-y-5">
                   <input type="hidden" name="id" value={channel.id} />
                   <input type="hidden" name="chatbot_provider" value="official" />
+                  <input type="hidden" name="redirect_to" value="/admin/settings/webhook-official" />
 
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-4">
                     <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-stone-700">Nama channel</span>
-                      <input
-                        name="device_name"
-                        type="text"
-                        defaultValue={channel.device_name ?? ""}
-                        placeholder="Contoh: WA Official Klinik"
-                        className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-stone-700">Device number</span>
+                      <span className="mb-2 block text-sm font-medium text-stone-700">Nomor WhatsApp bisnis</span>
                       <input
                         name="device_number"
                         type="text"
@@ -198,92 +195,62 @@ export default async function WebhookOfficialSettingsPage({
                         required
                       />
                     </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-stone-700">Token Fonnte</span>
-                      <input
-                        name="fonnte_device_token"
-                        type="password"
-                        defaultValue={channel.fonnte_device_token ?? ""}
-                        placeholder="Tetap dipakai untuk reminder"
-                        className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400"
-                        required
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-stone-700">Industry default</span>
-                      <select
-                        name="industry"
-                        defaultValue={channel.industry ?? "barbershop"}
-                        className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400"
-                      >
-                        {industries.map((industry) => (
-                          <option key={industry.key} value={industry.key}>
-                            {industry.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="block md:col-span-2">
-                      <span className="mb-2 block text-sm font-medium text-stone-700">Official phone number ID</span>
-                      <input
-                        name="official_phone_number_id"
-                        type="text"
-                        defaultValue={channel.official_phone_number_id ?? ""}
-                        placeholder="Contoh: 123456789012345"
-                        className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400"
-                        required={isNew}
-                      />
-                    </label>
-
-                    <label className="block md:col-span-2">
-                      <span className="mb-2 block text-sm font-medium text-stone-700">Official access token</span>
-                      <input
-                        name="official_access_token"
-                        type="password"
-                        defaultValue={channel.official_access_token ?? ""}
-                        placeholder="Bearer token dari Meta"
-                        className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400"
-                        required={isNew}
-                      />
-                    </label>
-
-                    <label className="block md:col-span-2">
-                      <span className="mb-2 block text-sm font-medium text-stone-700">Official verify token</span>
-                      <input
-                        name="official_verify_token"
-                        type="text"
-                        defaultValue={channel.official_verify_token ?? ""}
-                        placeholder="Dipakai saat Meta verifikasi webhook"
-                        className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400"
-                        required={isNew}
-                      />
-                    </label>
                   </div>
 
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <label className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-800">
-                      <input
-                        type="checkbox"
-                        name="is_active"
-                        defaultChecked={channel.is_active ?? true}
-                        className="h-4 w-4 rounded border-stone-300 text-amber-500 focus:ring-amber-400"
-                      />
-                      Channel aktif
-                    </label>
+                  <details className="rounded-[1.5rem] border border-dashed border-stone-300 bg-white p-4">
+                    <summary className="cursor-pointer text-sm font-semibold text-stone-800">
+                      Pengaturan lanjutan
+                    </summary>
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-stone-700">Nama channel opsional</span>
+                        <input
+                          name="device_name"
+                          type="text"
+                          defaultValue={channel.device_name ?? ""}
+                          placeholder="Contoh: CS Official"
+                          className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400"
+                        />
+                      </label>
 
-                    <label className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-800">
-                      <input
-                        type="checkbox"
-                        name="is_default"
-                        defaultChecked={channel.is_default ?? false}
-                        className="h-4 w-4 rounded border-stone-300 text-amber-500 focus:ring-amber-400"
-                      />
-                      Jadikan default channel user ini
-                    </label>
-                  </div>
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-stone-700">Industry default</span>
+                        <select
+                          name="industry"
+                          defaultValue={channel.industry ?? "barbershop"}
+                          className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400"
+                        >
+                          {industries.map((industry) => (
+                            <option key={industry.key} value={industry.key}>
+                              {industry.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <div className="grid gap-3 md:col-span-2 md:grid-cols-2">
+                        <label className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800">
+                          <input
+                            type="checkbox"
+                            name="is_active"
+                            defaultChecked={channel.is_active ?? true}
+                            className="h-4 w-4 rounded border-stone-300 text-amber-500 focus:ring-amber-400"
+                          />
+                          Channel aktif
+                        </label>
+
+                        <label className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800">
+                          <input
+                            type="checkbox"
+                            name="is_default"
+                            defaultChecked={channel.is_default ?? false}
+                            className="h-4 w-4 rounded border-stone-300 text-amber-500 focus:ring-amber-400"
+                          />
+                          Jadikan default channel user ini
+                        </label>
+                      </div>
+                    </div>
+                  </details>
 
                   <div className="flex flex-col gap-3 md:flex-row md:justify-between">
                     {!isNew ? (
@@ -296,33 +263,25 @@ export default async function WebhookOfficialSettingsPage({
                       </button>
                     ) : (
                       <div className="text-sm text-stone-500">
-                        Simpan form ini untuk menambahkan official channel baru.
+                        Simpan form ini untuk menambahkan channel official baru.
                       </div>
                     )}
 
-                    <button
-                      type="submit"
-                      className="cursor-pointer rounded-2xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 hover:shadow-sm"
-                    >
-                      {isNew ? "Tambah Official Channel" : "Simpan Channel"}
-                    </button>
+                    <ConnectChannelButton
+                      label={
+                        isNew
+                          ? "Hubungkan Nomor"
+                          : channel.chatbot_provider === "official"
+                            ? "Simpan Official"
+                            : "Konversi ke Official"
+                      }
+                    />
                   </div>
                 </form>
               </div>
             );
           })}
         </div>
-      </section>
-
-      <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
-        <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Next Step</p>
-        <p className="mt-3 text-sm leading-7 text-stone-600">
-          Untuk ubah template balasan chatbot, buka menu{" "}
-          <a className="font-semibold text-stone-900 underline" href="/admin/settings/webhook">
-            Webhook Fonnte
-          </a>{" "}
-          lalu edit template override yang sudah ada.
-        </p>
       </section>
     </div>
   );

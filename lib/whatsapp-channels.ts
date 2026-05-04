@@ -7,6 +7,7 @@ import {
 } from "@/lib/chatbot";
 import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
 import { getIndustryConfig } from "@/lib/industry-config";
+import { getOfficialWhatsAppConfig } from "@/lib/whatsapp-official";
 
 export type WhatsappChannel = {
   id: string;
@@ -250,6 +251,7 @@ export async function getCurrentUserWhatsappChannels() {
 export async function resolveWhatsappRuntimeContext(
   identity: { deviceNumber?: string | null; officialPhoneNumberId?: string | null }
 ): Promise<WhatsappRuntimeContext> {
+  const officialConfig = getOfficialWhatsAppConfig();
   const globalTemplates = await getGlobalChatbotTemplates();
   const config = await getIndustryConfig();
   const channel = identity.officialPhoneNumberId
@@ -268,10 +270,10 @@ export async function resolveWhatsappRuntimeContext(
     businessName,
     industry,
     chatbotProvider,
-    token: channel?.fonnte_device_token ?? null,
-    officialAccessToken: channel?.official_access_token ?? null,
-    officialPhoneNumberId: channel?.official_phone_number_id ?? null,
-    officialVerifyToken: channel?.official_verify_token ?? null,
+    token: channel?.fonnte_device_token ?? process.env.FONNTE_TOKEN?.trim() ?? null,
+    officialAccessToken: channel?.official_access_token ?? officialConfig.accessToken,
+    officialPhoneNumberId: channel?.official_phone_number_id ?? identity.officialPhoneNumberId ?? null,
+    officialVerifyToken: channel?.official_verify_token ?? officialConfig.verifyToken,
     templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),
     isLegacyFallback: !channel,
   };
@@ -282,6 +284,7 @@ export async function resolveWhatsappContextFromBooking(booking: {
   industry?: string | null;
   user_id?: string | null;
 }) {
+  const officialConfig = getOfficialWhatsAppConfig();
   const globalTemplates = await getGlobalChatbotTemplates();
   const channel =
     (await getWhatsappChannelById(booking.channel_id ?? null)) ??
@@ -303,10 +306,10 @@ export async function resolveWhatsappContextFromBooking(booking: {
     businessName,
     industry,
     chatbotProvider: channel?.chatbot_provider ?? "fonnte",
-    token: channel?.fonnte_device_token ?? null,
-    officialAccessToken: channel?.official_access_token ?? null,
+    token: channel?.fonnte_device_token ?? process.env.FONNTE_TOKEN?.trim() ?? null,
+    officialAccessToken: channel?.official_access_token ?? officialConfig.accessToken,
     officialPhoneNumberId: channel?.official_phone_number_id ?? null,
-    officialVerifyToken: channel?.official_verify_token ?? null,
+    officialVerifyToken: channel?.official_verify_token ?? officialConfig.verifyToken,
     templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),
     isLegacyFallback: !channel,
   } satisfies WhatsappRuntimeContext;
@@ -321,17 +324,21 @@ export async function sendWhatsappMessage(params: {
   officialPhoneNumberId?: string | null;
 }) {
   if ((params.provider ?? "fonnte") === "official") {
-    if (!params.officialAccessToken || !params.officialPhoneNumberId) {
+    const officialConfig = getOfficialWhatsAppConfig();
+    const accessToken = params.officialAccessToken || officialConfig.accessToken;
+    const phoneNumberId = params.officialPhoneNumberId;
+
+    if (!accessToken || !phoneNumberId) {
       throw new Error("Missing official WhatsApp credentials for outbound message.");
     }
 
-    const graphVersion = process.env.WHATSAPP_OFFICIAL_GRAPH_VERSION || "v25.0";
+    const graphVersion = officialConfig.graphVersion;
     const response = await fetch(
-      `https://graph.facebook.com/${graphVersion}/${params.officialPhoneNumberId}/messages`,
+      `https://graph.facebook.com/${graphVersion}/${phoneNumberId}/messages`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${params.officialAccessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -351,14 +358,16 @@ export async function sendWhatsappMessage(params: {
     return response;
   }
 
-  if (!params.token) {
+  const fonnteToken = params.token || process.env.FONNTE_TOKEN?.trim() || "";
+
+  if (!fonnteToken) {
     throw new Error("Missing Fonnte token for outbound WhatsApp message.");
   }
 
   const response = await fetch("https://api.fonnte.com/send", {
     method: "POST",
     headers: {
-      Authorization: params.token,
+      Authorization: fonnteToken,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({

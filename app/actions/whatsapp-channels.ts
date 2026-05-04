@@ -9,13 +9,14 @@ import {
 } from "@/lib/chatbot";
 import { getAvailableIndustries, type IndustryKey } from "@/lib/industries";
 import { createAdminSupabase } from "@/lib/supabase";
+import {
+  normalizeWhatsappBusinessNumber,
+  resolveOfficialPhoneNumberIdByBusinessNumber,
+  getOfficialWhatsAppConfig,
+} from "@/lib/whatsapp-official";
 
 function normalizeText(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";
-}
-
-function normalizeDeviceNumber(value: string) {
-  return value.replace(/[^\d]/g, "");
 }
 
 function getBooleanFlag(formData: FormData, key: string) {
@@ -31,6 +32,15 @@ function getIndustryValue(value: string): IndustryKey {
 
 function getProviderValue(value: string): "fonnte" | "official" {
   return value === "official" ? "official" : "fonnte";
+}
+
+function getRedirectTarget(formData: FormData) {
+  const raw = normalizeText(formData.get("redirect_to"));
+  if (raw.startsWith("/admin/settings/")) {
+    return raw;
+  }
+
+  return "/admin/settings/webhook";
 }
 
 function buildTemplateOverrides(formData: FormData): ChatbotTemplateOverrides {
@@ -51,12 +61,12 @@ function hasTemplateOverrideFields(formData: FormData) {
   );
 }
 
-function toStatusUrl(kind: "success" | "error", message: string) {
-  return `/admin/settings/webhook?${kind}=${encodeURIComponent(message)}`;
+function toStatusUrl(kind: "success" | "error", message: string, redirectTo: string) {
+  return `${redirectTo}?${kind}=${encodeURIComponent(message)}`;
 }
 
-function redirectWithStatus(kind: "success" | "error", message: string): never {
-  redirect(toStatusUrl(kind, message));
+function redirectWithStatus(kind: "success" | "error", message: string, redirectTo = "/admin/settings/webhook"): never {
+  redirect(toStatusUrl(kind, message, redirectTo));
 }
 
 function isRedirectError(error: unknown) {
@@ -92,6 +102,7 @@ async function ensureDeviceNumberAvailable(params: {
   userId: string;
   deviceNumber: string;
   currentId: string;
+  redirectTo: string;
 }) {
   const { data, error } = await params.supabase
     .from("whatsapp_channels")
@@ -99,7 +110,7 @@ async function ensureDeviceNumberAvailable(params: {
     .eq("device_number", params.deviceNumber);
 
   if (error) {
-    redirectWithStatus("error", mapChannelErrorMessage(error.message));
+    redirectWithStatus("error", mapChannelErrorMessage(error.message), params.redirectTo);
   }
 
   const rows = Array.isArray(data) ? data : [];
@@ -108,7 +119,8 @@ async function ensureDeviceNumberAvailable(params: {
   if (conflictingRow) {
     redirectWithStatus(
       "error",
-      "Nomor device sudah dipakai channel lain. Hapus atau ubah channel lama terlebih dulu."
+      "Nomor device sudah dipakai channel lain. Hapus atau ubah channel lama terlebih dulu.",
+      params.redirectTo
     );
   }
 }
@@ -117,6 +129,7 @@ async function ensureOfficialPhoneNumberAvailable(params: {
   supabase: ReturnType<typeof createAdminSupabase>;
   officialPhoneNumberId: string;
   currentId: string;
+  redirectTo: string;
 }) {
   const { data, error } = await params.supabase
     .from("whatsapp_channels")
@@ -124,7 +137,7 @@ async function ensureOfficialPhoneNumberAvailable(params: {
     .eq("official_phone_number_id", params.officialPhoneNumberId);
 
   if (error) {
-    redirectWithStatus("error", mapChannelErrorMessage(error.message));
+    redirectWithStatus("error", mapChannelErrorMessage(error.message), params.redirectTo);
   }
 
   const rows = Array.isArray(data) ? data : [];
@@ -133,7 +146,8 @@ async function ensureOfficialPhoneNumberAvailable(params: {
   if (conflictingRow) {
     redirectWithStatus(
       "error",
-      "Phone number ID official sudah dipakai channel lain. Hapus atau ubah channel lama terlebih dulu."
+      "Phone number ID official sudah dipakai channel lain. Hapus atau ubah channel lama terlebih dulu.",
+      params.redirectTo
     );
   }
 }
@@ -142,10 +156,12 @@ export async function saveWhatsappChannel(formData: FormData) {
   try {
     const user = await requireAdmin();
     const supabase = createAdminSupabase();
+    const officialConfig = getOfficialWhatsAppConfig();
+    const redirectTo = getRedirectTarget(formData);
 
     const id = normalizeText(formData.get("id"));
-    const deviceNumber = normalizeDeviceNumber(normalizeText(formData.get("device_number")));
-    const deviceName = normalizeText(formData.get("device_name"));
+    const deviceNumber = normalizeWhatsappBusinessNumber(normalizeText(formData.get("device_number")));
+    let deviceName = normalizeText(formData.get("device_name"));
     const fonnteToken = normalizeText(formData.get("fonnte_device_token"));
     const webhookSecret = normalizeText(formData.get("webhook_secret"));
     const hasWebhookSecretField = formData.has("webhook_secret");
@@ -168,21 +184,15 @@ export async function saveWhatsappChannel(formData: FormData) {
       userId: user.id,
       deviceNumber,
       currentId: id,
+      redirectTo,
     });
-
-    if (officialPhoneNumberId) {
-      await ensureOfficialPhoneNumberAvailable({
-        supabase,
-        officialPhoneNumberId,
-        currentId: id,
-      });
-    }
 
     let resolvedToken = fonnteToken;
     let resolvedWebhookSecret = webhookSecret;
     let resolvedOfficialAccessToken = officialAccessToken;
     let resolvedOfficialVerifyToken = officialVerifyToken;
     let resolvedOfficialPhoneNumberId = officialPhoneNumberId;
+    let existingToken = "";
 
     if (id) {
       const existing = await supabase
@@ -195,10 +205,11 @@ export async function saveWhatsappChannel(formData: FormData) {
         .maybeSingle();
 
       if (existing.error && existing.error.code !== "PGRST116") {
-        redirectWithStatus("error", mapChannelErrorMessage(existing.error.message));
+        redirectWithStatus("error", mapChannelErrorMessage(existing.error.message), redirectTo);
       }
 
-      resolvedToken = existing.data?.fonnte_device_token ?? "";
+      existingToken = existing.data?.fonnte_device_token ?? "";
+      resolvedToken = existingToken;
       if (!resolvedOfficialPhoneNumberId) {
         resolvedOfficialPhoneNumberId = existing.data?.official_phone_number_id ?? "";
       }
@@ -220,12 +231,12 @@ export async function saveWhatsappChannel(formData: FormData) {
         const existingTemplates = await supabase
           .from("whatsapp_channels")
           .select("template_overrides")
-          .eq("id", id)
-          .eq("user_id", user.id)
-          .maybeSingle();
+        .eq("id", id)
+        .eq("user_id", user.id)
+        .maybeSingle();
 
         if (existingTemplates.error && existingTemplates.error.code !== "PGRST116") {
-          redirectWithStatus("error", mapChannelErrorMessage(existingTemplates.error.message));
+          redirectWithStatus("error", mapChannelErrorMessage(existingTemplates.error.message), redirectTo);
         }
 
         const storedTemplates = existingTemplates.data?.template_overrides;
@@ -235,22 +246,47 @@ export async function saveWhatsappChannel(formData: FormData) {
       }
     }
 
-    if (!resolvedToken) {
-      redirectWithStatus("error", "Token Fonnte wajib diisi.");
+    if (chatbotProvider === "official") {
+      if (!officialConfig.accessToken || !officialConfig.wabaId || !officialConfig.verifyToken) {
+        redirectWithStatus(
+          "error",
+          "Backend official belum siap. Isi WHATSAPP_OFFICIAL_ACCESS_TOKEN, WHATSAPP_OFFICIAL_WABA_ID, dan WHATSAPP_OFFICIAL_VERIFY_TOKEN di server.",
+          redirectTo
+        );
+      }
+
+      const officialIdentity = await resolveOfficialPhoneNumberIdByBusinessNumber(deviceNumber);
+      resolvedOfficialPhoneNumberId = officialIdentity.phoneNumberId;
+      resolvedOfficialAccessToken = officialConfig.accessToken;
+      resolvedOfficialVerifyToken = officialConfig.verifyToken;
+      if (!deviceName) {
+        deviceName = officialIdentity.verifiedName ? `${officialIdentity.verifiedName} Official` : deviceNumber;
+      }
+
+      await ensureOfficialPhoneNumberAvailable({
+        supabase,
+        officialPhoneNumberId: resolvedOfficialPhoneNumberId,
+        currentId: id,
+        redirectTo,
+      });
+    } else {
+      await ensureDeviceNumberAvailable({
+        supabase,
+        userId: user.id,
+        deviceNumber,
+        currentId: id,
+        redirectTo,
+      });
     }
 
-    if (chatbotProvider === "official") {
-      if (!resolvedOfficialPhoneNumberId) {
-        redirectWithStatus("error", "Phone number ID official wajib diisi untuk chatbot official.");
-      }
+    resolvedToken = resolvedToken || existingToken || process.env.FONNTE_TOKEN?.trim() || "";
 
-      if (!resolvedOfficialAccessToken) {
-        redirectWithStatus("error", "Access token official wajib diisi untuk chatbot official.");
-      }
-
-      if (!resolvedOfficialVerifyToken) {
-        redirectWithStatus("error", "Verify token official wajib diisi untuk chatbot official.");
-      }
+    if (!resolvedToken) {
+      redirectWithStatus(
+        "error",
+        "Backend reminder belum siap. Isi token Fonnte di server atau channel ini.",
+        redirectTo
+      );
     }
 
     if (isDefault) {
@@ -260,7 +296,7 @@ export async function saveWhatsappChannel(formData: FormData) {
         .eq("user_id", user.id);
 
       if (resetDefaultError) {
-        redirectWithStatus("error", mapChannelErrorMessage(resetDefaultError.message));
+        redirectWithStatus("error", mapChannelErrorMessage(resetDefaultError.message), redirectTo);
       }
     }
 
@@ -303,7 +339,7 @@ export async function saveWhatsappChannel(formData: FormData) {
         deviceNumber,
         error: error.message,
       });
-      redirectWithStatus("error", mapChannelErrorMessage(error.message));
+      redirectWithStatus("error", mapChannelErrorMessage(error.message), redirectTo);
     }
 
     if (!data?.id) {
@@ -314,19 +350,21 @@ export async function saveWhatsappChannel(formData: FormData) {
       });
       redirectWithStatus(
         "error",
-        "Perubahan channel tidak tersimpan. Coba reload halaman lalu simpan lagi."
+        "Perubahan channel tidak tersimpan. Coba reload halaman lalu simpan lagi.",
+        redirectTo
       );
     }
 
     revalidatePath("/admin/settings/webhook");
-    redirectWithStatus("success", id ? "Channel berhasil diperbarui." : "Channel berhasil ditambahkan.");
+    revalidatePath("/admin/settings/webhook-official");
+    redirectWithStatus("success", id ? "Channel berhasil diperbarui." : "Channel berhasil ditambahkan.", redirectTo);
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     }
 
     const message = error instanceof Error ? error.message : "Terjadi kesalahan saat menyimpan channel.";
-    redirectWithStatus("error", mapChannelErrorMessage(message));
+    redirectWithStatus("error", mapChannelErrorMessage(message), getRedirectTarget(formData));
   }
 }
 
@@ -335,9 +373,10 @@ export async function deleteWhatsappChannel(formData: FormData) {
     const user = await requireAdmin();
     const supabase = createAdminSupabase();
     const id = normalizeText(formData.get("id"));
+    const redirectTo = getRedirectTarget(formData);
 
     if (!id) {
-      redirectWithStatus("error", "Channel tidak ditemukan.");
+      redirectWithStatus("error", "Channel tidak ditemukan.", redirectTo);
     }
 
     const { error } = await supabase
@@ -352,17 +391,18 @@ export async function deleteWhatsappChannel(formData: FormData) {
         channelId: id,
         error: error.message,
       });
-      redirectWithStatus("error", mapChannelErrorMessage(error.message));
+      redirectWithStatus("error", mapChannelErrorMessage(error.message), redirectTo);
     }
 
     revalidatePath("/admin/settings/webhook");
-    redirectWithStatus("success", "Channel berhasil dihapus.");
+    revalidatePath("/admin/settings/webhook-official");
+    redirectWithStatus("success", "Channel berhasil dihapus.", redirectTo);
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     }
 
     const message = error instanceof Error ? error.message : "Terjadi kesalahan saat menghapus channel.";
-    redirectWithStatus("error", mapChannelErrorMessage(message));
+    redirectWithStatus("error", mapChannelErrorMessage(message), getRedirectTarget(formData));
   }
 }

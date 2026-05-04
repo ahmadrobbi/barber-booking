@@ -19,9 +19,13 @@ Isi environment berikut sebelum menjalankan aplikasi:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `AUTH_SECRET` atau `SESSION_SECRET`
 - `NEXT_PUBLIC_APP_URL`
+- `WHATSAPP_OFFICIAL_ACCESS_TOKEN`
+- `WHATSAPP_OFFICIAL_WABA_ID`
+- `WHATSAPP_OFFICIAL_VERIFY_TOKEN`
 
 Catatan:
-- `FONNTE_TOKEN` bukan lagi sumber utama untuk flow tenant-aware. Token utama disimpan per channel di `whatsapp_channels.fonnte_device_token`.
+- `FONNTE_TOKEN` dipakai sebagai fallback backend untuk reminder bila token per channel belum diisi.
+- WhatsApp official chatbot memakai credential backend. User cukup input nomor WhatsApp bisnis di dashboard.
 - Jika `AUTH_SECRET` tidak diisi, aplikasi akan fallback ke variabel lain yang kurang ideal. Untuk production, selalu isi `AUTH_SECRET`.
 
 ## Jalankan Lokal
