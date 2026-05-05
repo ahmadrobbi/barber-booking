@@ -598,6 +598,14 @@ async function buildCurrentStepReply({
 export async function POST(req: Request) {
   const { incomingMessage, sender, device, officialPhoneNumberId, webhookSecret } =
     await parseWebhookPayload(req);
+
+  console.log("[whatsapp-webhook] incoming", {
+    sender: sender || null,
+    device: device || null,
+    officialPhoneNumberId: officialPhoneNumberId || null,
+    messagePreview: incomingMessage ? incomingMessage.slice(0, 120) : "",
+  });
+
   const context = await resolveWhatsappRuntimeContext({
     deviceNumber: device,
     officialPhoneNumberId,
@@ -608,14 +616,28 @@ export async function POST(req: Request) {
   }
 
   if (!context.channel) {
+    console.warn("[whatsapp-webhook] unknown channel", {
+      sender: sender || null,
+      device: device || null,
+      officialPhoneNumberId: officialPhoneNumberId || null,
+    });
     return Response.json({ status: "unknown device" }, { status: 404 });
   }
 
   if (!sender) {
+    console.warn("[whatsapp-webhook] missing sender", {
+      device: device || null,
+      officialPhoneNumberId: officialPhoneNumberId || null,
+    });
     return Response.json({ status: "no sender" });
   }
 
   if (!isValidWebhookSecret(context, webhookSecret)) {
+    console.warn("[whatsapp-webhook] invalid webhook secret", {
+      sender,
+      device: device || null,
+      officialPhoneNumberId: officialPhoneNumberId || null,
+    });
     return Response.json({ status: "invalid secret" }, { status: 403 });
   }
 
@@ -1045,7 +1067,20 @@ export async function POST(req: Request) {
     });
   }
 
+  console.log("[whatsapp-webhook] reply prepared", {
+    sender,
+    channelId: context.channelId,
+    provider: context.chatbotProvider,
+    replyPreview: reply.slice(0, 160),
+  });
+
   await sendReply(context, sender, reply);
+
+  console.log("[whatsapp-webhook] reply sent", {
+    sender,
+    channelId: context.channelId,
+    provider: context.chatbotProvider,
+  });
 
   return Response.json({
     status: "ok",
