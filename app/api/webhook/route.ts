@@ -46,6 +46,7 @@ type ParsedWebhookPayload = {
   device: string | null;
   officialPhoneNumberId: string | null;
   webhookSecret: string | null;
+  messageId: string | null;
 };
 
 type GreetingParams = {
@@ -321,6 +322,12 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
     const body = await req.json();
 
     const officialValue = body?.entry?.[0]?.changes?.[0]?.value ?? body?.value ?? body;
+    const officialMessageId =
+      officialValue?.messages?.[0]?.id ||
+      officialValue?.statuses?.[0]?.id ||
+      body?.message_id ||
+      body?.messageId ||
+      null;
     const officialPhoneNumberId =
       officialValue?.metadata?.phone_number_id ||
       officialValue?.phone_number_id ||
@@ -350,6 +357,7 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
       device: body.device || body.number || body.device_number || null,
       officialPhoneNumberId:
         typeof officialPhoneNumberId === "string" ? officialPhoneNumberId.trim() : null,
+      messageId: typeof officialMessageId === "string" ? officialMessageId.trim() : null,
       webhookSecret:
         body.webhook_secret ||
         body.secret ||
@@ -366,6 +374,7 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
       sender: normalizeSender(params.get("sender") || params.get("from") || ""),
       device: params.get("device") || params.get("number") || params.get("device_number"),
       officialPhoneNumberId: params.get("phone_number_id"),
+      messageId: params.get("message_id"),
       webhookSecret:
         params.get("webhook_secret") ||
         params.get("secret") ||
@@ -417,6 +426,12 @@ function getRuntimeScope(context: WhatsappRuntimeContext): BookingScope {
   };
 }
 
+function isOfficialReplyDryRun() {
+  const value = process.env.WHATSAPP_OFFICIAL_TEST_MODE?.trim().toLowerCase();
+
+  return value === "1" || value === "true" || value === "yes" || value === "on";
+}
+
 async function resetToGreetingState({
   sender,
   context,
@@ -463,6 +478,16 @@ async function resetToGreetingState({
 }
 
 async function sendReply(context: WhatsappRuntimeContext, target: string, message: string) {
+  if (context.chatbotProvider === "official" && isOfficialReplyDryRun()) {
+    console.log("[whatsapp-webhook] official reply dry run", {
+      target,
+      channelId: context.channelId,
+      preview: message.slice(0, 160),
+    });
+
+    return { dryRun: true as const };
+  }
+
   return sendWhatsappMessage({
     target,
     message,
@@ -596,13 +621,14 @@ async function buildCurrentStepReply({
 }
 
 export async function POST(req: Request) {
-  const { incomingMessage, sender, device, officialPhoneNumberId, webhookSecret } =
+  const { incomingMessage, sender, device, officialPhoneNumberId, webhookSecret, messageId } =
     await parseWebhookPayload(req);
 
   console.log("[whatsapp-webhook] incoming", {
     sender: sender || null,
     device: device || null,
     officialPhoneNumberId: officialPhoneNumberId || null,
+    messageId: messageId || null,
     messagePreview: incomingMessage ? incomingMessage.slice(0, 120) : "",
   });
 
@@ -628,8 +654,50 @@ export async function POST(req: Request) {
     console.warn("[whatsapp-webhook] missing sender", {
       device: device || null,
       officialPhoneNumberId: officialPhoneNumberId || null,
+      messageId: messageId || null,
     });
     return Response.json({ status: "no sender" });
+  }
+
+  if (messageId) {
+    const dedupeKey = `whatsapp_webhook_message:${messageId}`;
+    try {
+      const supabase = getSupabase();
+      const { data: existingDedupe } = await supabase
+        .from("app_settings")
+        .select("key")
+        .eq("key", dedupeKey)
+        .maybeSingle();
+
+      if (existingDedupe) {
+        console.log("[whatsapp-webhook] duplicate message ignored", {
+          sender,
+          messageId,
+        });
+        return Response.json({
+          status: "duplicate_ignored",
+          channelId: context.channelId,
+          userId: context.userId,
+          legacy: false,
+        });
+      }
+
+      await supabase.from("app_settings").insert({
+        key: dedupeKey,
+        value_json: {
+          sender,
+          device: device || null,
+          officialPhoneNumberId: officialPhoneNumberId || null,
+          createdAt: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      console.warn("[whatsapp-webhook] dedupe store failed", {
+        sender,
+        messageId,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
   }
 
   if (!isValidWebhookSecret(context, webhookSecret)) {
@@ -637,6 +705,7 @@ export async function POST(req: Request) {
       sender,
       device: device || null,
       officialPhoneNumberId: officialPhoneNumberId || null,
+      messageId: messageId || null,
     });
     return Response.json({ status: "invalid secret" }, { status: 403 });
   }
@@ -1075,13 +1144,21 @@ export async function POST(req: Request) {
   });
 
   try {
-    await sendReply(context, sender, reply);
+    const delivery = await sendReply(context, sender, reply);
 
-    console.log("[whatsapp-webhook] reply sent", {
-      sender,
-      channelId: context.channelId,
-      provider: context.chatbotProvider,
-    });
+    if (delivery && typeof delivery === "object" && "dryRun" in delivery) {
+      console.log("[whatsapp-webhook] reply skipped in test mode", {
+        sender,
+        channelId: context.channelId,
+        provider: context.chatbotProvider,
+      });
+    } else {
+      console.log("[whatsapp-webhook] reply sent", {
+        sender,
+        channelId: context.channelId,
+        provider: context.chatbotProvider,
+      });
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown send error";
     console.error("[whatsapp-webhook] reply send failed", {
