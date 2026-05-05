@@ -1074,13 +1074,33 @@ export async function POST(req: Request) {
     replyPreview: reply.slice(0, 160),
   });
 
-  await sendReply(context, sender, reply);
+  try {
+    await sendReply(context, sender, reply);
 
-  console.log("[whatsapp-webhook] reply sent", {
-    sender,
-    channelId: context.channelId,
-    provider: context.chatbotProvider,
-  });
+    console.log("[whatsapp-webhook] reply sent", {
+      sender,
+      channelId: context.channelId,
+      provider: context.chatbotProvider,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown send error";
+    console.error("[whatsapp-webhook] reply send failed", {
+      sender,
+      channelId: context.channelId,
+      provider: context.chatbotProvider,
+      error: message,
+    });
+
+    return Response.json(
+      {
+        status: "reply_send_failed",
+        channelId: context.channelId,
+        userId: context.userId,
+        legacy: false,
+      },
+      { status: 200 }
+    );
+  }
 
   return Response.json({
     status: "ok",
