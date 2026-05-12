@@ -30,6 +30,11 @@ function buildCallbackUrl(appUrl: string, phoneNumberId: string | null) {
   return `${appUrl}/api/webhook?phone_number_id=${encodeURIComponent(phoneNumberId)}`;
 }
 
+function isTruthyEnv(value: string | undefined | null) {
+  const normalized = value?.trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+}
+
 export default async function WebhookOfficialSettingsPage({
   searchParams,
 }: {
@@ -41,6 +46,33 @@ export default async function WebhookOfficialSettingsPage({
   const channels = await getCurrentUserWhatsappChannels();
   const officialConfig = getOfficialWhatsAppConfig();
   const industries = getAvailableIndustries();
+  const isOfficialEnvReady = Boolean(
+    officialConfig.accessToken && officialConfig.wabaId && officialConfig.verifyToken
+  );
+  const isOfficialTestModeActive = isTruthyEnv(process.env.WHATSAPP_OFFICIAL_TEST_MODE);
+  const officialChannels = channels.filter(
+    (channel) => channel.chatbot_provider === "official" && channel.is_active
+  );
+  const activeOfficialChannelWithPhoneNumberId = officialChannels.find(
+    (channel) => channel.official_phone_number_id
+  );
+  const finalCallbackUrl = activeOfficialChannelWithPhoneNumberId?.official_phone_number_id
+    ? buildCallbackUrl(appUrl, activeOfficialChannelWithPhoneNumberId.official_phone_number_id)
+    : null;
+  const likelyFailurePoints = [
+    !isOfficialEnvReady
+      ? "Backend official belum siap. Isi `WHATSAPP_OFFICIAL_ACCESS_TOKEN`, `WHATSAPP_OFFICIAL_WABA_ID`, dan `WHATSAPP_OFFICIAL_VERIFY_TOKEN` di server."
+      : null,
+    isOfficialTestModeActive
+      ? "Mode test official masih aktif, jadi reply akan sengaja di-skip."
+      : null,
+    officialChannels.length === 0
+      ? "Belum ada channel official aktif di database."
+      : null,
+    officialChannels.length > 0 && !activeOfficialChannelWithPhoneNumberId
+      ? "Channel official aktif belum punya `phone_number_id`, jadi routing callback belum lengkap."
+      : null,
+  ].filter(Boolean) as string[];
 
   const emptyChannel: WhatsappChannel = {
     id: "",
@@ -93,12 +125,93 @@ export default async function WebhookOfficialSettingsPage({
           <div className="rounded-2xl bg-stone-50 p-4">
             <p className="text-sm text-stone-500">Backend Status</p>
             <p className="mt-2 text-sm leading-7 text-stone-700">
-              {officialConfig.accessToken && officialConfig.wabaId && officialConfig.verifyToken
+              {isOfficialEnvReady
                 ? "Backend official siap. User hanya perlu input nomor WA."
                 : "Backend official belum lengkap. Set env WHATSAPP_OFFICIAL_ACCESS_TOKEN, WHATSAPP_OFFICIAL_WABA_ID, dan WHATSAPP_OFFICIAL_VERIFY_TOKEN."}
             </p>
           </div>
         </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Diagnostics</p>
+            <h2 className="mt-3 text-2xl font-semibold">Status Realistis Official</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-stone-600">
+              Ini dibuat untuk cek cepat kenapa webhook official belum membalas. Kalau salah satu status
+              di bawah merah atau kosong, biasanya di situlah masalahnya.
+            </p>
+          </div>
+          <div className="rounded-2xl bg-stone-50 px-4 py-3 text-sm text-stone-700">
+            Official aktif: <strong>{officialChannels.length}</strong>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <article className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
+            <p className="text-sm text-stone-500">Env ready</p>
+            <p className={`mt-3 text-2xl font-semibold ${isOfficialEnvReady ? "text-emerald-700" : "text-red-700"}`}>
+              {isOfficialEnvReady ? "Siap" : "Belum"}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">
+              Harus ada `WHATSAPP_OFFICIAL_ACCESS_TOKEN`, `WHATSAPP_OFFICIAL_WABA_ID`, dan
+              `WHATSAPP_OFFICIAL_VERIFY_TOKEN`.
+            </p>
+          </article>
+
+          <article className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
+            <p className="text-sm text-stone-500">Test mode</p>
+            <p className={`mt-3 text-2xl font-semibold ${isOfficialTestModeActive ? "text-amber-700" : "text-emerald-700"}`}>
+              {isOfficialTestModeActive ? "Aktif" : "Nonaktif"}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">
+              Kalau aktif, reply official sengaja tidak dikirim. Ini sering bikin terlihat seperti webhook
+              tidak jalan padahal hanya mode test.
+            </p>
+          </article>
+
+          <article className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
+            <p className="text-sm text-stone-500">Channel official ditemukan</p>
+            <p className={`mt-3 text-2xl font-semibold ${officialChannels.length > 0 ? "text-emerald-700" : "text-red-700"}`}>
+              {officialChannels.length > 0 ? `${officialChannels.length} aktif` : "Belum ada"}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">
+              Routing official bergantung pada channel yang aktif dan cocok dengan `phone_number_id`.
+            </p>
+          </article>
+
+          <article className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
+            <p className="text-sm text-stone-500">Callback URL final</p>
+            {finalCallbackUrl ? (
+              <p className="mt-3 break-all rounded-xl bg-white px-4 py-3 font-mono text-sm text-stone-900">
+                {finalCallbackUrl}
+              </p>
+            ) : (
+              <p className="mt-3 rounded-xl bg-white px-4 py-3 text-sm leading-6 text-stone-600">
+                Belum ada channel official aktif yang punya `phone_number_id`. URL final belum bisa dibentuk.
+              </p>
+            )}
+          </article>
+        </div>
+
+        {likelyFailurePoints.length > 0 ? (
+          <div className="mt-6 rounded-[1.5rem] border border-amber-200 bg-amber-50 p-5">
+            <p className="text-sm uppercase tracking-[0.24em] text-amber-700">Titik gagal paling mungkin</p>
+            <ul className="mt-4 space-y-3 text-sm leading-6 text-stone-700">
+              {likelyFailurePoints.map((item) => (
+                <li key={item} className="rounded-2xl bg-white px-4 py-3">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <div className="mt-6 rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5 text-sm leading-6 text-emerald-900">
+            Secara konfigurasi, jalur official terlihat lengkap. Kalau masih belum balas, fokus cek subscription
+            webhook Meta, event yang masuk, dan log endpoint `/api/webhook`.
+          </div>
+        )}
       </section>
 
       <section className="rounded-[2rem] border border-stone-200 bg-[#fff8ef] p-6 shadow-sm">
