@@ -57,7 +57,6 @@ export function AdminShell({ businessName, userName, children }: AdminShellProps
             </div>
             <DashboardSidebar
               businessName={businessName}
-              userName={userName}
               className="min-h-full border-b-0 border-r-0"
               onNavigate={() => setMobileMenuOpen(false)}
             />

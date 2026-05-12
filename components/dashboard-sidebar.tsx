@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 
 type DashboardSidebarProps = {
   businessName: string;
-  userName?: string;
   className?: string;
   onNavigate?: () => void;
 };
@@ -25,7 +24,6 @@ function getInitials(name: string) {
 
 export function DashboardSidebar({
   businessName,
-  userName,
   className,
   onNavigate,
 }: DashboardSidebarProps) {
@@ -33,7 +31,7 @@ export function DashboardSidebar({
 
   return (
     <aside
-      className={`w-full border-b border-white/10 bg-[#16110d] text-white md:min-h-screen md:w-64 md:border-b-0 md:border-r ${className ?? ""}`}
+      className={`flex h-full min-h-0 w-full flex-col border-b border-white/10 bg-[#16110d] text-white md:min-h-screen md:w-64 md:border-b-0 md:border-r ${className ?? ""}`}
     >
       <div className="border-b border-white/10 px-5 py-5">
         <div className="flex items-center gap-4">
@@ -49,7 +47,7 @@ export function DashboardSidebar({
         </div>
       </div>
 
-      <div className="px-3 py-5">
+      <div className="sidebar-scrollbar flex-1 min-h-0 overflow-y-auto px-3 py-5">
         <div>
           <p className="px-3 text-xs uppercase tracking-[0.28em] text-white/35">
             Menu
