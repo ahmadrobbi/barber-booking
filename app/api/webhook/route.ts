@@ -41,12 +41,15 @@ type BookingScope = {
 };
 
 type ParsedWebhookPayload = {
+  eventType: "message" | "status" | "unknown";
   incomingMessage: string;
   sender: string;
   device: string | null;
   officialPhoneNumberId: string | null;
   webhookSecret: string | null;
   messageId: string | null;
+  deliveryStatus: string | null;
+  statusRecipientId: string | null;
 };
 
 type GreetingParams = {
@@ -322,9 +325,10 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
     const body = await req.json();
 
     const officialValue = body?.entry?.[0]?.changes?.[0]?.value ?? body?.value ?? body;
+    const officialStatus = officialValue?.statuses?.[0] ?? null;
     const officialMessageId =
       officialValue?.messages?.[0]?.id ||
-      officialValue?.statuses?.[0]?.id ||
+      officialStatus?.id ||
       body?.message_id ||
       body?.messageId ||
       null;
@@ -350,14 +354,23 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
       body?.from ||
       body?.sender ||
       "";
+    const eventType: ParsedWebhookPayload["eventType"] = officialStatus
+      ? "status"
+      : officialValue?.messages?.[0]
+        ? "message"
+        : "unknown";
 
     return {
+      eventType,
       incomingMessage: officialMessage,
       sender: normalizeSender(officialSender),
       device: body.device || body.number || body.device_number || null,
       officialPhoneNumberId:
         typeof officialPhoneNumberId === "string" ? officialPhoneNumberId.trim() : null,
       messageId: typeof officialMessageId === "string" ? officialMessageId.trim() : null,
+      deliveryStatus: typeof officialStatus?.status === "string" ? officialStatus.status : null,
+      statusRecipientId:
+        typeof officialStatus?.recipient_id === "string" ? officialStatus.recipient_id : null,
       webhookSecret:
         body.webhook_secret ||
         body.secret ||
@@ -370,11 +383,14 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
     const text = await req.text();
     const params = new URLSearchParams(text);
     return {
+      eventType: "unknown",
       incomingMessage: params.get("message") || params.get("text") || "",
       sender: normalizeSender(params.get("sender") || params.get("from") || ""),
       device: params.get("device") || params.get("number") || params.get("device_number"),
       officialPhoneNumberId: params.get("phone_number_id"),
       messageId: params.get("message_id"),
+      deliveryStatus: params.get("status"),
+      statusRecipientId: params.get("recipient_id"),
       webhookSecret:
         params.get("webhook_secret") ||
         params.get("secret") ||
@@ -621,8 +637,36 @@ async function buildCurrentStepReply({
 }
 
 export async function POST(req: Request) {
-  const { incomingMessage, sender, device, officialPhoneNumberId, webhookSecret, messageId } =
+  const {
+    eventType,
+    incomingMessage,
+    sender,
+    device,
+    officialPhoneNumberId,
+    webhookSecret,
+    messageId,
+    deliveryStatus,
+    statusRecipientId,
+  } =
     await parseWebhookPayload(req);
+
+  if (eventType === "status") {
+    console.log("[whatsapp-webhook] delivery status", {
+      officialPhoneNumberId: officialPhoneNumberId || null,
+      messageId: messageId || null,
+      recipientId: statusRecipientId || null,
+      status: deliveryStatus || null,
+    });
+
+    return Response.json({
+      status: "status_event_logged",
+      officialPhoneNumberId: officialPhoneNumberId || null,
+      messageId: messageId || null,
+      recipientId: statusRecipientId || null,
+      deliveryStatus: deliveryStatus || null,
+      legacy: false,
+    });
+  }
 
   console.log("[whatsapp-webhook] incoming", {
     sender: sender || null,
