@@ -30,7 +30,7 @@ export function AdminShell({ businessName, userName, children }: AdminShellProps
   return (
     <div className="min-h-screen bg-[#f5efe7] text-stone-900 md:flex">
       <div className="hidden md:block md:sticky md:top-0 md:h-screen md:self-start">
-        <DashboardSidebar businessName={businessName} userName={userName} />
+        <DashboardSidebar businessName={businessName} />
       </div>
 
       {mobileMenuOpen ? (
