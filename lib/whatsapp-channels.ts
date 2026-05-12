@@ -271,7 +271,7 @@ export async function resolveWhatsappRuntimeContext(
     industry,
     chatbotProvider,
     token: channel?.fonnte_device_token ?? process.env.FONNTE_TOKEN?.trim() ?? null,
-    officialAccessToken: channel?.official_access_token ?? officialConfig.accessToken,
+    officialAccessToken: officialConfig.accessToken ?? channel?.official_access_token ?? null,
     officialPhoneNumberId: channel?.official_phone_number_id ?? identity.officialPhoneNumberId ?? null,
     officialVerifyToken: channel?.official_verify_token ?? officialConfig.verifyToken,
     templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),
@@ -307,7 +307,7 @@ export async function resolveWhatsappContextFromBooking(booking: {
     industry,
     chatbotProvider: channel?.chatbot_provider ?? "fonnte",
     token: channel?.fonnte_device_token ?? process.env.FONNTE_TOKEN?.trim() ?? null,
-    officialAccessToken: channel?.official_access_token ?? officialConfig.accessToken,
+    officialAccessToken: officialConfig.accessToken ?? channel?.official_access_token ?? null,
     officialPhoneNumberId: channel?.official_phone_number_id ?? null,
     officialVerifyToken: channel?.official_verify_token ?? officialConfig.verifyToken,
     templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),
@@ -325,7 +325,7 @@ export async function sendWhatsappMessage(params: {
 }) {
   if ((params.provider ?? "fonnte") === "official") {
     const officialConfig = getOfficialWhatsAppConfig();
-    const accessToken = params.officialAccessToken || officialConfig.accessToken;
+    const accessToken = officialConfig.accessToken || params.officialAccessToken;
     const phoneNumberId = params.officialPhoneNumberId;
 
     if (!accessToken || !phoneNumberId) {
