@@ -664,6 +664,7 @@ export async function POST(req: Request) {
     messageId,
     deliveryStatus,
     statusRecipientId,
+    payloadKeys,
   } =
     await parseWebhookPayload(req);
 
