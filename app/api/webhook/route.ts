@@ -42,6 +42,10 @@ type BookingScope = {
 
 type ParsedWebhookPayload = {
   eventType: "message" | "status" | "unknown";
+  payloadKeys: string[];
+  hasMessages: boolean;
+  hasStatuses: boolean;
+  hasContacts: boolean;
   incomingMessage: string;
   sender: string;
   device: string | null;
@@ -86,6 +90,10 @@ function normalizeSender(value: string | null | undefined) {
 
 function normalizeCustomerName(value: string) {
   return value.replace(/\s+/g, " ").trim();
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isCancelMessage(message: string) {
@@ -326,6 +334,7 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
 
     const officialValue = body?.entry?.[0]?.changes?.[0]?.value ?? body?.value ?? body;
     const officialStatus = officialValue?.statuses?.[0] ?? null;
+    const payloadKeys = isRecord(officialValue) ? Object.keys(officialValue) : [];
     const officialMessageId =
       officialValue?.messages?.[0]?.id ||
       officialStatus?.id ||
@@ -362,6 +371,10 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
 
     return {
       eventType,
+      payloadKeys,
+      hasMessages: Boolean(officialValue?.messages?.length),
+      hasStatuses: Boolean(officialValue?.statuses?.length),
+      hasContacts: Boolean(officialValue?.contacts?.length),
       incomingMessage: officialMessage,
       sender: normalizeSender(officialSender),
       device: body.device || body.number || body.device_number || null,
@@ -384,6 +397,10 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
     const params = new URLSearchParams(text);
     return {
       eventType: "unknown",
+      payloadKeys: Array.from(params.keys()),
+      hasMessages: params.has("message") || params.has("text"),
+      hasStatuses: params.has("status"),
+      hasContacts: params.has("sender") || params.has("from"),
       incomingMessage: params.get("message") || params.get("text") || "",
       sender: normalizeSender(params.get("sender") || params.get("from") || ""),
       device: params.get("device") || params.get("number") || params.get("device_number"),
@@ -667,6 +684,16 @@ export async function POST(req: Request) {
       legacy: false,
     });
   }
+
+  console.log("[whatsapp-webhook] payload diag", {
+    eventType,
+    officialPhoneNumberId: officialPhoneNumberId || null,
+    messageId: messageId || null,
+    hasMessages: Boolean(incomingMessage),
+    hasStatuses: deliveryStatus !== null,
+    hasContacts: Boolean(sender),
+    payloadKeys: payloadKeys.slice(0, 12),
+  });
 
   console.log("[whatsapp-webhook] incoming", {
     sender: sender || null,
