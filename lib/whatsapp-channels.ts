@@ -20,6 +20,8 @@ export type WhatsappChannel = {
   official_phone_number_id: string | null;
   official_access_token: string | null;
   official_verify_token: string | null;
+  official_message_template_name: string | null;
+  official_message_template_language: string | null;
   industry: IndustryKey | null;
   is_active: boolean | null;
   is_default: boolean | null;
@@ -40,6 +42,8 @@ export type WhatsappRuntimeContext = {
   officialAccessToken: string | null;
   officialPhoneNumberId: string | null;
   officialVerifyToken: string | null;
+  officialMessageTemplateName: string | null;
+  officialMessageTemplateLanguage: string | null;
   templates: ReturnType<typeof mergeChatbotTemplates>;
   isLegacyFallback: boolean;
 };
@@ -80,6 +84,14 @@ function mapChannelRow(row: unknown): WhatsappChannel | null {
       typeof row.official_access_token === "string" ? row.official_access_token : null,
     official_verify_token:
       typeof row.official_verify_token === "string" ? row.official_verify_token : null,
+    official_message_template_name:
+      typeof row.official_message_template_name === "string"
+        ? row.official_message_template_name
+        : null,
+    official_message_template_language:
+      typeof row.official_message_template_language === "string"
+        ? row.official_message_template_language
+        : null,
     industry: typeof row.industry === "string" ? (row.industry as IndustryKey) : null,
     is_active: typeof row.is_active === "boolean" ? row.is_active : null,
     is_default: typeof row.is_default === "boolean" ? row.is_default : null,
@@ -97,7 +109,7 @@ async function getChannelByQuery(column: "id" | "device_number", value: string) 
     const { data, error } = await supabase
       .from("whatsapp_channels")
       .select(
-        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, chatbot_provider, official_phone_number_id, official_access_token, official_verify_token, industry, is_active, is_default, template_overrides"
+        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, chatbot_provider, official_phone_number_id, official_access_token, official_verify_token, official_message_template_name, official_message_template_language, industry, is_active, is_default, template_overrides"
       )
       .eq(column, value)
       .eq("is_active", true)
@@ -150,7 +162,7 @@ export async function getDefaultWhatsappChannelByUserId(userId: string | null | 
     const { data, error } = await supabase
       .from("whatsapp_channels")
       .select(
-        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, chatbot_provider, official_phone_number_id, official_access_token, official_verify_token, industry, is_active, is_default, template_overrides, created_at, updated_at"
+        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, chatbot_provider, official_phone_number_id, official_access_token, official_verify_token, official_message_template_name, official_message_template_language, industry, is_active, is_default, template_overrides, created_at, updated_at"
       )
       .eq("user_id", userId)
       .eq("is_active", true)
@@ -194,7 +206,7 @@ export async function getWhatsappChannelByOfficialPhoneNumberId(
     const { data, error } = await supabase
       .from("whatsapp_channels")
       .select(
-        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, chatbot_provider, official_phone_number_id, official_access_token, official_verify_token, industry, is_active, is_default, template_overrides"
+        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, chatbot_provider, official_phone_number_id, official_access_token, official_verify_token, official_message_template_name, official_message_template_language, industry, is_active, is_default, template_overrides"
       )
       .eq("official_phone_number_id", sanitized)
       .eq("is_active", true)
@@ -231,7 +243,7 @@ export async function getCurrentUserWhatsappChannels() {
     const { data, error } = await supabase
       .from("whatsapp_channels")
       .select(
-        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, chatbot_provider, official_phone_number_id, official_access_token, official_verify_token, industry, is_active, is_default, template_overrides, created_at, updated_at"
+        "id, user_id, device_number, device_name, fonnte_device_token, webhook_secret, chatbot_provider, official_phone_number_id, official_access_token, official_verify_token, official_message_template_name, official_message_template_language, industry, is_active, is_default, template_overrides, created_at, updated_at"
       )
       .eq("user_id", session.userId)
       .order("is_default", { ascending: false })
@@ -274,6 +286,8 @@ export async function resolveWhatsappRuntimeContext(
     officialAccessToken: channel?.official_access_token ?? officialConfig.accessToken ?? null,
     officialPhoneNumberId: channel?.official_phone_number_id ?? identity.officialPhoneNumberId ?? null,
     officialVerifyToken: channel?.official_verify_token ?? officialConfig.verifyToken,
+    officialMessageTemplateName: channel?.official_message_template_name ?? null,
+    officialMessageTemplateLanguage: channel?.official_message_template_language ?? "en_US",
     templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),
     isLegacyFallback: !channel,
   };
@@ -310,6 +324,8 @@ export async function resolveWhatsappContextFromBooking(booking: {
     officialAccessToken: channel?.official_access_token ?? officialConfig.accessToken ?? null,
     officialPhoneNumberId: channel?.official_phone_number_id ?? null,
     officialVerifyToken: channel?.official_verify_token ?? officialConfig.verifyToken,
+    officialMessageTemplateName: channel?.official_message_template_name ?? null,
+    officialMessageTemplateLanguage: channel?.official_message_template_language ?? "en_US",
     templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),
     isLegacyFallback: !channel,
   } satisfies WhatsappRuntimeContext;
@@ -322,6 +338,11 @@ export async function sendWhatsappMessage(params: {
   provider?: "fonnte" | "official";
   officialAccessToken?: string | null;
   officialPhoneNumberId?: string | null;
+  officialTemplate?: {
+    name: string;
+    languageCode?: string;
+    bodyParameters?: Array<string | number | null | undefined>;
+  } | null;
 }) {
   if ((params.provider ?? "fonnte") === "official") {
     const officialConfig = getOfficialWhatsAppConfig();
@@ -341,12 +362,39 @@ export async function sendWhatsappMessage(params: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          to: params.target,
-          type: "text",
-          text: { body: params.message },
-        }),
+        body: JSON.stringify(
+          params.officialTemplate
+            ? {
+                messaging_product: "whatsapp",
+                to: params.target,
+                type: "template",
+                template: {
+                  name: params.officialTemplate.name,
+                  language: {
+                    code: params.officialTemplate.languageCode || "en_US",
+                  },
+                  ...(params.officialTemplate.bodyParameters?.length
+                    ? {
+                        components: [
+                          {
+                            type: "body",
+                            parameters: params.officialTemplate.bodyParameters.map((value) => ({
+                              type: "text",
+                              text: value === null || value === undefined ? "" : String(value),
+                            })),
+                          },
+                        ],
+                      }
+                    : {}),
+                },
+              }
+            : {
+                messaging_product: "whatsapp",
+                to: params.target,
+                type: "text",
+                text: { body: params.message },
+              }
+        ),
       }
     );
 

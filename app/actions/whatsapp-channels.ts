@@ -168,6 +168,10 @@ export async function saveWhatsappChannel(formData: FormData) {
     const officialPhoneNumberId = normalizeText(formData.get("official_phone_number_id"));
     const officialAccessToken = normalizeText(formData.get("official_access_token"));
     const officialVerifyToken = normalizeText(formData.get("official_verify_token"));
+    const officialMessageTemplateName = normalizeText(formData.get("official_message_template_name"));
+    const officialMessageTemplateLanguage = normalizeText(
+      formData.get("official_message_template_language")
+    );
     const chatbotProvider = getProviderValue(normalizeText(formData.get("chatbot_provider")));
     const industry = getIndustryValue(normalizeText(formData.get("industry")));
     const isActive = getBooleanFlag(formData, "is_active");
@@ -191,6 +195,8 @@ export async function saveWhatsappChannel(formData: FormData) {
     let resolvedWebhookSecret = webhookSecret;
     let resolvedOfficialAccessToken = officialAccessToken;
     let resolvedOfficialVerifyToken = officialVerifyToken;
+    let resolvedOfficialMessageTemplateName = officialMessageTemplateName;
+    let resolvedOfficialMessageTemplateLanguage = officialMessageTemplateLanguage;
     let resolvedOfficialPhoneNumberId = officialPhoneNumberId;
     let existingToken = "";
 
@@ -198,7 +204,7 @@ export async function saveWhatsappChannel(formData: FormData) {
       const existing = await supabase
         .from("whatsapp_channels")
         .select(
-          "fonnte_device_token, webhook_secret, official_phone_number_id, official_access_token, official_verify_token"
+          "fonnte_device_token, webhook_secret, official_phone_number_id, official_access_token, official_verify_token, official_message_template_name, official_message_template_language"
         )
         .eq("id", id)
         .eq("user_id", user.id)
@@ -218,6 +224,14 @@ export async function saveWhatsappChannel(formData: FormData) {
       }
       if (!resolvedOfficialVerifyToken) {
         resolvedOfficialVerifyToken = existing.data?.official_verify_token ?? "";
+      }
+      if (!resolvedOfficialMessageTemplateName) {
+        resolvedOfficialMessageTemplateName =
+          existing.data?.official_message_template_name ?? "";
+      }
+      if (!resolvedOfficialMessageTemplateLanguage) {
+        resolvedOfficialMessageTemplateLanguage =
+          existing.data?.official_message_template_language ?? "en_US";
       }
 
       if (!hasWebhookSecretField) {
@@ -313,6 +327,9 @@ export async function saveWhatsappChannel(formData: FormData) {
           ? resolvedOfficialAccessToken || officialConfig.accessToken || null
           : resolvedOfficialAccessToken || null,
       official_verify_token: resolvedOfficialVerifyToken || null,
+      official_message_template_name: resolvedOfficialMessageTemplateName || null,
+      official_message_template_language:
+        resolvedOfficialMessageTemplateLanguage || "en_US",
       industry,
       is_active: isActive,
       is_default: isDefault,

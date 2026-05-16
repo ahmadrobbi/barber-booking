@@ -1,9 +1,6 @@
 import { renderTemplate } from "@/lib/chatbot";
 import { createAdminSupabase } from "@/lib/supabase";
-import {
-  resolveWhatsappContextFromBooking,
-  sendWhatsappMessage,
-} from "@/lib/whatsapp-channels";
+import { resolveWhatsappContextFromBooking, sendWhatsappMessage } from "@/lib/whatsapp-channels";
 
 function getSupabase() {
   return createAdminSupabase();
@@ -54,6 +51,9 @@ export async function GET() {
             target: item.sender,
             message,
             token: context.token,
+            provider: context.chatbotProvider,
+            officialAccessToken: context.officialAccessToken,
+            officialPhoneNumberId: context.officialPhoneNumberId,
           });
 
           await getSupabase()

@@ -85,6 +85,8 @@ export default async function WebhookOfficialSettingsPage({
     official_phone_number_id: "",
     official_access_token: "",
     official_verify_token: "",
+    official_message_template_name: "",
+    official_message_template_language: "en_US",
     industry: "barbershop",
     is_active: true,
     is_default: channels.length === 0,
@@ -219,8 +221,13 @@ export default async function WebhookOfficialSettingsPage({
         <div className="mt-5 space-y-4 text-sm leading-7 text-stone-700">
           <p>1. Masukkan nomor WhatsApp bisnis yang sudah terdaftar di Meta.</p>
           <p>2. Backend akan mencocokkan nomor itu dengan phone number yang tersedia di WABA server.</p>
-          <p>3. Reminder tetap pakai Fonnte, jadi flow lama tidak terganggu.</p>
-          <p>4. Template chatbot tetap diatur dari menu template, bukan dari form ini.</p>
+          <p>3. Template chatbot tetap diatur dari menu template, bukan dari form ini.</p>
+        </div>
+
+        <div className="mt-6 rounded-[1.5rem] border border-sky-200 bg-sky-50 p-5 text-sm leading-7 text-sky-950">
+          Template official bersifat berbeda dari template chatbot biasa. Template WhatsApp resmi harus
+          sudah disetujui Meta dulu, lalu dipanggil dengan nama template dan kode bahasa. Untuk balasan
+          chat normal di dalam window percakapan, sistem tetap bisa pakai teks biasa.
         </div>
       </section>
 
@@ -339,6 +346,39 @@ export default async function WebhookOfficialSettingsPage({
                             </option>
                           ))}
                         </select>
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-stone-700">
+                          Official template name
+                        </span>
+                        <input
+                          name="official_message_template_name"
+                          type="text"
+                          defaultValue={channel.official_message_template_name ?? ""}
+                          placeholder="contoh: booking_reminder"
+                          className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400"
+                        />
+                        <p className="mt-2 text-xs leading-5 text-stone-500">
+                          Pakai nama template yang sudah approved di Meta WhatsApp Manager.
+                          Jika template punya body parameters, aplikasi akan mengirim nilainya sesuai urutan placeholder.
+                        </p>
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-stone-700">
+                          Official template language
+                        </span>
+                        <input
+                          name="official_message_template_language"
+                          type="text"
+                          defaultValue={channel.official_message_template_language ?? "en_US"}
+                          placeholder="en_US"
+                          className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400"
+                        />
+                        <p className="mt-2 text-xs leading-5 text-stone-500">
+                          Contoh: `en_US`, `id`, atau kode bahasa yang disetujui untuk template.
+                        </p>
                       </label>
 
                       <div className="grid gap-3 md:col-span-2 md:grid-cols-2">

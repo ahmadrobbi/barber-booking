@@ -76,6 +76,8 @@ type StepReplyParams = {
 };
 
 const RECENT_MESSAGE_DEDUPE_WINDOW_MS = 15_000;
+const RECENT_OUTBOUND_ECHO_WINDOW_MS = 60_000;
+const RECENT_OUTBOUND_ECHO_LOOKBACK_BUCKETS = 3;
 
 function getSupabase() {
   return createAdminSupabase();
@@ -393,6 +395,105 @@ async function shouldIgnoreRecentDuplicateMessage(params: {
   return false;
 }
 
+function buildRecentOutboundEchoKey(params: {
+  sender: string;
+  channelId: string | null;
+  officialPhoneNumberId: string | null;
+  message: string;
+  bucket: number;
+}) {
+  const normalizedMessage = params.message.trim().toLowerCase().replace(/\s+/g, " ");
+  const messageKey = Buffer.from(normalizedMessage).toString("base64url");
+  const channelKey = params.channelId ?? params.officialPhoneNumberId ?? "global";
+
+  return `whatsapp_webhook_outbound:${channelKey}:${params.sender}:${messageKey}:${params.bucket}`;
+}
+
+async function shouldIgnoreRecentOutboundEcho(params: {
+  sender: string;
+  channelId: string | null;
+  officialPhoneNumberId: string | null;
+  message: string;
+}) {
+  const normalizedMessage = params.message.trim().toLowerCase().replace(/\s+/g, " ");
+
+  if (!normalizedMessage) {
+    return false;
+  }
+
+  const currentBucket = Math.floor(Date.now() / RECENT_OUTBOUND_ECHO_WINDOW_MS);
+  const bucketCandidates = Array.from(
+    { length: RECENT_OUTBOUND_ECHO_LOOKBACK_BUCKETS },
+    (_, index) => currentBucket - index
+  ).filter((bucket) => bucket >= 0);
+  const keys = bucketCandidates.map((bucket) =>
+    buildRecentOutboundEchoKey({
+      sender: params.sender,
+      channelId: params.channelId,
+      officialPhoneNumberId: params.officialPhoneNumberId,
+      message: normalizedMessage,
+      bucket,
+    })
+  );
+
+  const { data, error } = await getSupabase().from("app_settings").select("key").in("key", keys);
+
+  if (error) {
+    console.warn("[whatsapp-webhook] outbound echo lookup failed", {
+      sender: params.sender,
+      channelId: params.channelId,
+      officialPhoneNumberId: params.officialPhoneNumberId,
+      error: error.message,
+    });
+    return false;
+  }
+
+  return Boolean(data?.length);
+}
+
+async function recordRecentOutboundEcho(params: {
+  sender: string;
+  channelId: string | null;
+  officialPhoneNumberId: string | null;
+  message: string;
+}) {
+  const normalizedMessage = params.message.trim().toLowerCase().replace(/\s+/g, " ");
+
+  if (!normalizedMessage) {
+    return;
+  }
+
+  const bucket = Math.floor(Date.now() / RECENT_OUTBOUND_ECHO_WINDOW_MS);
+  const dedupeKey = buildRecentOutboundEchoKey({
+    sender: params.sender,
+    channelId: params.channelId,
+    officialPhoneNumberId: params.officialPhoneNumberId,
+    message: normalizedMessage,
+    bucket,
+  });
+
+  const { error } = await getSupabase().from("app_settings").insert({
+    key: dedupeKey,
+    value_json: {
+      sender: params.sender,
+      channelId: params.channelId,
+      officialPhoneNumberId: params.officialPhoneNumberId,
+      message: normalizedMessage,
+      createdAt: new Date().toISOString(),
+      bucket,
+    },
+  });
+
+  if (error && error.code !== "23505") {
+    console.warn("[whatsapp-webhook] outbound echo store failed", {
+      sender: params.sender,
+      channelId: params.channelId,
+      officialPhoneNumberId: params.officialPhoneNumberId,
+      error: error.message,
+    });
+  }
+}
+
 async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> {
   const url = new URL(req.url);
 
@@ -588,7 +689,7 @@ async function sendReply(context: WhatsappRuntimeContext, target: string, messag
     return { dryRun: true as const };
   }
 
-  return sendWhatsappMessage({
+  const delivery = await sendWhatsappMessage({
     target,
     message,
     token: context.token,
@@ -596,6 +697,17 @@ async function sendReply(context: WhatsappRuntimeContext, target: string, messag
     officialAccessToken: context.officialAccessToken,
     officialPhoneNumberId: context.officialPhoneNumberId,
   });
+
+  if (context.chatbotProvider === "official") {
+    await recordRecentOutboundEcho({
+      sender: target,
+      channelId: context.channelId,
+      officialPhoneNumberId: context.officialPhoneNumberId,
+      message,
+    });
+  }
+
+  return delivery;
 }
 
 async function buildCurrentStepReply({
@@ -796,6 +908,32 @@ export async function POST(req: Request) {
       messageId: messageId || null,
     });
     return Response.json({ status: "no sender" });
+  }
+
+  if (
+    eventType === "message" &&
+    incomingMessage &&
+    (await shouldIgnoreRecentOutboundEcho({
+      sender,
+      channelId: context.channelId,
+      officialPhoneNumberId,
+      message: incomingMessage,
+    }))
+  ) {
+    console.log("[whatsapp-webhook] outbound echo ignored", {
+      sender,
+      channelId: context.channelId,
+      officialPhoneNumberId: officialPhoneNumberId || null,
+      messageId: messageId || null,
+      messagePreview: incomingMessage.slice(0, 120),
+    });
+
+    return Response.json({
+      status: "outbound_echo_ignored",
+      channelId: context.channelId,
+      userId: context.userId,
+      legacy: false,
+    });
   }
 
   if (
