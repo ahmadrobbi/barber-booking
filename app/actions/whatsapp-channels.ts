@@ -271,8 +271,12 @@ export async function saveWhatsappChannel(formData: FormData) {
 
       const officialIdentity = await resolveOfficialPhoneNumberIdByBusinessNumber(deviceNumber);
       resolvedOfficialPhoneNumberId = officialIdentity.phoneNumberId;
-      resolvedOfficialAccessToken = officialConfig.accessToken;
-      resolvedOfficialVerifyToken = officialConfig.verifyToken;
+      if (!resolvedOfficialAccessToken) {
+        resolvedOfficialAccessToken = officialConfig.accessToken;
+      }
+      if (!resolvedOfficialVerifyToken) {
+        resolvedOfficialVerifyToken = officialConfig.verifyToken;
+      }
       if (!deviceName) {
         deviceName = officialIdentity.verifiedName ? `${officialIdentity.verifiedName} Official` : deviceNumber;
       }
