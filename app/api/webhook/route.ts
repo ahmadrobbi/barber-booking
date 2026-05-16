@@ -912,6 +912,23 @@ export async function POST(req: Request) {
     return Response.json({ status: "no sender" });
   }
 
+  if (eventType === "message" && !incomingMessage.trim()) {
+    console.log("[whatsapp-webhook] ignored empty text message", {
+      sender,
+      channelId: context.channelId,
+      officialPhoneNumberId: officialPhoneNumberId || null,
+      messageId: messageId || null,
+      payloadKeys: payloadKeys.slice(0, 12),
+    });
+
+    return Response.json({
+      status: "ignored_empty_text_message",
+      channelId: context.channelId,
+      userId: context.userId,
+      legacy: false,
+    });
+  }
+
   if (eventType === "unknown") {
     console.log("[whatsapp-webhook] ignored non-text event", {
       sender,
