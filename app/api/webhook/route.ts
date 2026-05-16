@@ -827,27 +827,7 @@ export async function POST(req: Request) {
   if (messageId) {
     const dedupeKey = `whatsapp_webhook_message:${messageId}`;
     try {
-      const supabase = getSupabase();
-      const { data: existingDedupe } = await supabase
-        .from("app_settings")
-        .select("key")
-        .eq("key", dedupeKey)
-        .maybeSingle();
-
-      if (existingDedupe) {
-        console.log("[whatsapp-webhook] duplicate message ignored", {
-          sender,
-          messageId,
-        });
-        return Response.json({
-          status: "duplicate_ignored",
-          channelId: context.channelId,
-          userId: context.userId,
-          legacy: false,
-        });
-      }
-
-      await supabase.from("app_settings").insert({
+      const { error: dedupeInsertError } = await getSupabase().from("app_settings").insert({
         key: dedupeKey,
         value_json: {
           sender,
@@ -856,6 +836,23 @@ export async function POST(req: Request) {
           createdAt: new Date().toISOString(),
         },
       });
+
+      if (dedupeInsertError) {
+        if (dedupeInsertError.code === "23505") {
+          console.log("[whatsapp-webhook] duplicate message ignored", {
+            sender,
+            messageId,
+          });
+          return Response.json({
+            status: "duplicate_ignored",
+            channelId: context.channelId,
+            userId: context.userId,
+            legacy: false,
+          });
+        }
+
+        throw new Error(dedupeInsertError.message);
+      }
     } catch (error) {
       console.warn("[whatsapp-webhook] dedupe store failed", {
         sender,
