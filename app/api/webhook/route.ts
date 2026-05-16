@@ -333,12 +333,13 @@ function buildRecentMessageDedupeKey(params: {
   channelId: string | null;
   officialPhoneNumberId: string | null;
   message: string;
+  bucket: number;
 }) {
   const normalizedMessage = params.message.trim().toLowerCase().replace(/\s+/g, " ");
   const messageKey = Buffer.from(normalizedMessage).toString("base64url");
   const channelKey = params.channelId ?? params.officialPhoneNumberId ?? "global";
 
-  return `whatsapp_webhook_recent:${channelKey}:${params.sender}:${messageKey}`;
+  return `whatsapp_webhook_recent:${channelKey}:${params.sender}:${messageKey}:${params.bucket}`;
 }
 
 async function shouldIgnoreRecentDuplicateMessage(params: {
@@ -353,50 +354,16 @@ async function shouldIgnoreRecentDuplicateMessage(params: {
     return false;
   }
 
+  const bucket = Math.floor(Date.now() / RECENT_MESSAGE_DEDUPE_WINDOW_MS);
   const dedupeKey = buildRecentMessageDedupeKey({
     sender: params.sender,
     channelId: params.channelId,
     officialPhoneNumberId: params.officialPhoneNumberId,
     message: normalizedMessage,
+    bucket,
   });
 
-  const supabase = getSupabase();
-  const { data, error } = await supabase
-    .from("app_settings")
-    .select("value_json, updated_at")
-    .eq("key", dedupeKey)
-    .maybeSingle();
-
-  if (error && error.code !== "PGRST116") {
-    console.warn("[whatsapp-webhook] recent duplicate check failed", {
-      sender: params.sender,
-      channelId: params.channelId,
-      officialPhoneNumberId: params.officialPhoneNumberId,
-      error: error.message,
-    });
-    return false;
-  }
-
-  if (data) {
-    const storedValue = data.value_json as
-      | { createdAt?: string }
-      | string
-      | boolean
-      | number
-      | null;
-    const storedCreatedAt =
-      typeof storedValue === "object" && storedValue !== null && "createdAt" in storedValue
-        ? storedValue.createdAt
-        : null;
-    const createdAt = storedCreatedAt ?? data.updated_at;
-    const createdAtMs = createdAt ? new Date(createdAt).getTime() : NaN;
-
-    if (Number.isFinite(createdAtMs) && Date.now() - createdAtMs < RECENT_MESSAGE_DEDUPE_WINDOW_MS) {
-      return true;
-    }
-  }
-
-  const { error: upsertError } = await supabase.from("app_settings").upsert({
+  const { error } = await getSupabase().from("app_settings").insert({
     key: dedupeKey,
     value_json: {
       sender: params.sender,
@@ -404,17 +371,24 @@ async function shouldIgnoreRecentDuplicateMessage(params: {
       officialPhoneNumberId: params.officialPhoneNumberId,
       message: normalizedMessage,
       createdAt: new Date().toISOString(),
+      bucket,
     },
   });
 
-  if (upsertError) {
-    console.warn("[whatsapp-webhook] recent duplicate marker failed", {
-      sender: params.sender,
-      channelId: params.channelId,
-      officialPhoneNumberId: params.officialPhoneNumberId,
-      error: upsertError.message,
-    });
+  if (!error) {
+    return false;
   }
+
+  if (error.code === "23505") {
+    return true;
+  }
+
+  console.warn("[whatsapp-webhook] recent duplicate claim failed", {
+    sender: params.sender,
+    channelId: params.channelId,
+    officialPhoneNumberId: params.officialPhoneNumberId,
+    error: error.message,
+  });
 
   return false;
 }
