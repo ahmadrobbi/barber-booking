@@ -533,7 +533,9 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
       "";
     const eventType: ParsedWebhookPayload["eventType"] = officialStatus
       ? "status"
-      : officialValue?.messages?.[0]
+      : officialMessage
+        ? "message"
+        : officialValue?.messages?.[0]
         ? "message"
         : "unknown";
 
@@ -908,6 +910,23 @@ export async function POST(req: Request) {
       messageId: messageId || null,
     });
     return Response.json({ status: "no sender" });
+  }
+
+  if (eventType === "unknown") {
+    console.log("[whatsapp-webhook] ignored non-text event", {
+      sender,
+      channelId: context.channelId,
+      officialPhoneNumberId: officialPhoneNumberId || null,
+      messageId: messageId || null,
+      payloadKeys: payloadKeys.slice(0, 12),
+    });
+
+    return Response.json({
+      status: "ignored_non_text_event",
+      channelId: context.channelId,
+      userId: context.userId,
+      legacy: false,
+    });
   }
 
   if (
