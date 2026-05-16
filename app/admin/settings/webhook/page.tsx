@@ -50,6 +50,8 @@ export default async function WebhookSettingsPage({
     official_phone_number_id: "",
     official_access_token: "",
     official_verify_token: "",
+    official_message_template_name: "",
+    official_message_template_language: "en_US",
     industry: "barbershop",
     is_active: true,
     is_default: channels.length === 0,
