@@ -135,6 +135,57 @@ export default async function WebhookOfficialSettingsPage({
         </div>
       </section>
 
+      <section className="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+        <p className="text-sm uppercase tracking-[0.28em] text-emerald-700">Checklist Siap Deploy</p>
+        <h2 className="mt-3 text-2xl font-semibold text-emerald-950">Official chatbot checklist</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-7 text-emerald-900/80">
+          Pakai urutan ini setiap kali kita mau test atau deploy ulang. Dua titik paling sering gagal ada di
+          channel database dan verification Meta.
+        </p>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <article className="rounded-[1.5rem] border border-emerald-200 bg-white p-5">
+            <p className="text-sm font-semibold text-emerald-900">1. Channel official aktif di DB</p>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-stone-700">
+              <li>Channel punya `chatbot_provider = official`.</li>
+              <li>`official_phone_number_id` terisi dan cocok dengan Meta.</li>
+              <li>`is_active` bernilai true.</li>
+              <li>Kalau ada cabang/user lain, pastikan channel ini tersimpan untuk user yang benar.</li>
+            </ul>
+          </article>
+
+          <article className="rounded-[1.5rem] border border-emerald-200 bg-white p-5">
+            <p className="text-sm font-semibold text-emerald-900">2. Callback URL Meta</p>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-stone-700">
+              <li>Callback URL harus mengarah ke `/api/webhook?phone_number_id=...`.</li>
+              <li>`phone_number_id` harus sama persis dengan yang dipakai channel.</li>
+              <li>Verify token di Meta harus sama dengan `WHATSAPP_OFFICIAL_VERIFY_TOKEN`.</li>
+              <li>Pastikan subscription webhook Meta masih aktif setelah deploy.</li>
+            </ul>
+          </article>
+
+          <article className="rounded-[1.5rem] border border-emerald-200 bg-white p-5">
+            <p className="text-sm font-semibold text-emerald-900">3. Env backend resmi</p>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-stone-700">
+              <li>`WHATSAPP_OFFICIAL_ACCESS_TOKEN` terpasang di server.</li>
+              <li>`WHATSAPP_OFFICIAL_WABA_ID` terpasang di server.</li>
+              <li>`WHATSAPP_OFFICIAL_VERIFY_TOKEN` terpasang di server.</li>
+              <li>Mode test official dimatikan jika kamu mau reply benar-benar terkirim.</li>
+            </ul>
+          </article>
+
+          <article className="rounded-[1.5rem] border border-emerald-200 bg-white p-5">
+            <p className="text-sm font-semibold text-emerald-900">4. Uji alur chatbot</p>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-stone-700">
+              <li>Kirim `halo` dari nomor test yang sudah terdaftar.</li>
+              <li>Pastikan log masuk ke `/api/webhook` dan tidak berhenti di `unknown channel`.</li>
+              <li>Balas `menu`, pilih layanan, tanggal, jam, lalu nama untuk cek state flow.</li>
+              <li>Test satu kali booking sampai step konfirmasi.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
       <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>

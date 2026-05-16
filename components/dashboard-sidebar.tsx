@@ -150,24 +150,6 @@ export function DashboardSidebar({
               <span className="font-medium">Landing Page</span>
             </Link>
             <Link
-              href="/admin/settings/webhook"
-              onClick={onNavigate}
-              className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
-                pathname === "/admin/settings/webhook"
-                  ? "bg-amber-300 text-stone-950"
-                  : "text-white/75 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <span
-                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
-                  pathname === "/admin/settings/webhook" ? "bg-stone-950/10" : "bg-white/5"
-                }`}
-              >
-                FN
-              </span>
-              <span className="font-medium">Webhook Fonnte</span>
-            </Link>
-            <Link
               href="/admin/settings/webhook-official"
               onClick={onNavigate}
               className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
@@ -184,6 +166,24 @@ export function DashboardSidebar({
                 OF
               </span>
               <span className="font-medium">Webhook Official</span>
+            </Link>
+            <Link
+              href="/admin/settings/webhook"
+              onClick={onNavigate}
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
+                pathname === "/admin/settings/webhook"
+                  ? "bg-amber-300 text-stone-950"
+                  : "text-white/75 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
+                  pathname === "/admin/settings/webhook" ? "bg-stone-950/10" : "bg-white/5"
+                }`}
+              >
+                FN
+              </span>
+              <span className="font-medium">Webhook Legacy</span>
             </Link>
             <Link
               href="/admin/settings/services"

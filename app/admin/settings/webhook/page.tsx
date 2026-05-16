@@ -70,12 +70,17 @@ export default async function WebhookSettingsPage({
       />
       <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
         <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Setting</p>
-        <h1 className="mt-3 text-3xl font-semibold">Webhook Fonnte</h1>
+        <h1 className="mt-3 text-3xl font-semibold">Webhook Legacy Fonnte</h1>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-stone-600">
-          Gunakan halaman ini untuk menghubungkan banyak device Fonnte ke akun user ini. Webhook tetap satu endpoint,
-          lalu sistem akan merutekan pesan berdasarkan `device` yang dikirim Fonnte dan memverifikasi `webhook secret`
-          bila secret diisi pada channel.
+          Halaman ini dipertahankan untuk kompatibilitas lama. Untuk operasional baru, kami sarankan memakai
+          WhatsApp official di halaman official. Webhook tetap satu endpoint, lalu sistem akan merutekan pesan
+          berdasarkan `device` yang dikirim Fonnte dan memverifikasi `webhook secret` bila secret diisi pada channel.
         </p>
+
+        <div className="mt-6 rounded-[1.5rem] border border-amber-200 bg-amber-50 p-5 text-sm leading-7 text-amber-950">
+          Fonnte sedang di-hold sementara. Jangan buat channel baru di sini untuk flow utama. Pakai halaman
+          official sebagai jalur aktif, dan gunakan halaman ini hanya kalau kamu masih perlu membaca channel lama.
+        </div>
 
         <div className="mt-6 space-y-4">
           <div className="rounded-2xl bg-stone-50 p-4">
@@ -100,7 +105,7 @@ export default async function WebhookSettingsPage({
             <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Channels</p>
             <h2 className="mt-3 text-2xl font-semibold">Nomor Bot Per User</h2>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-stone-600">
-              Tiap channel mewakili satu device Fonnte. `Device number` harus sama dengan field `device`
+              Tiap channel mewakili satu device Fonnte lama. `Device number` harus sama dengan field `device`
               yang masuk di webhook Fonnte. Token per channel dipakai untuk balasan chat dan reminder.
             </p>
           </div>
@@ -286,20 +291,20 @@ export default async function WebhookSettingsPage({
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <section className="rounded-[2rem] border border-stone-200 bg-[#fff8ef] p-6 shadow-sm">
-          <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Checklist</p>
-          <div className="mt-5 space-y-4 text-sm leading-7 text-stone-700">
-            <p>1. Tempel <strong>Webhook URL</strong> di dashboard Fonnte pada pengaturan callback/webhook.</p>
-            <p>2. Isi <strong>device number</strong>, <strong>token</strong>, dan bila perlu <strong>webhook secret</strong> untuk setiap nomor bot yang ingin dipakai user ini.</p>
-            <p>3. Jika channel memiliki secret, kirim secret yang sama dari provider lewat header, query string, atau body webhook.</p>
-            <p>4. Jika domain berubah, halaman ini akan membantu kamu melihat endpoint baru yang harus dipasang ulang di Fonnte.</p>
-            <p>5. Endpoint reminder bisa dipakai untuk pengecekan manual bila kamu ingin menguji pengiriman pengingat di luar cron.</p>
-          </div>
+      <section className="rounded-[2rem] border border-stone-200 bg-[#fff8ef] p-6 shadow-sm">
+        <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Checklist</p>
+        <div className="mt-5 space-y-4 text-sm leading-7 text-stone-700">
+          <p>1. Tempel <strong>Webhook URL</strong> di dashboard Fonnte hanya jika kamu masih memelihara channel lama.</p>
+          <p>2. Isi <strong>device number</strong>, <strong>token</strong>, dan bila perlu <strong>webhook secret</strong> untuk setiap nomor bot yang ingin dipakai user ini.</p>
+          <p>3. Jika channel memiliki secret, kirim secret yang sama dari provider lewat header, query string, atau body webhook.</p>
+          <p>4. Jika domain berubah, halaman ini akan membantu kamu melihat endpoint baru yang harus dipasang ulang di Fonnte.</p>
+          <p>5. Endpoint reminder bisa dipakai untuk pengecekan manual bila kamu ingin menguji pengiriman pengingat di luar cron.</p>
+        </div>
 
-          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            Status token global saat render: <strong>{process.env.FONNTE_TOKEN ? "tersedia" : "belum terpasang"}</strong>. Untuk flow tenant-aware, balasan chat dan reminder sekarang mengandalkan token per channel.
-          </div>
-        </section>
+        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          Status token global saat render: <strong>{process.env.FONNTE_TOKEN ? "tersedia" : "belum terpasang"}</strong>. Untuk flow tenant-aware, balasan chat dan reminder sekarang mengandalkan token per channel. Jalur aktif sekarang adalah official.
+        </div>
+      </section>
 
         <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
           <p className="text-sm uppercase tracking-[0.28em] text-stone-500">Chatbot Flow</p>

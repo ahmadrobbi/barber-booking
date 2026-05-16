@@ -2,18 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Barlow_Condensed, Cinzel_Decorative } from "next/font/google";
 import { HomeHeroCarousel } from "@/components/home-hero-carousel";
-
-const menuFont = Barlow_Condensed({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
-
-const logoFont = Cinzel_Decorative({
-  subsets: ["latin"],
-  weight: ["700"],
-});
 
 export default function DynamicLandingPage() {
   const platformBrand = "BookLink";
@@ -47,7 +36,7 @@ export default function DynamicLandingPage() {
               />
               <span>
                 <strong
-                  className={`${logoFont.className} block text-xl leading-tight tracking-wide md:text-2xl text-slate-900`}
+                  className="font-display block text-xl leading-tight tracking-wide text-slate-900 md:text-2xl"
                 >
                   {platformBrand}
                 </strong>
@@ -57,9 +46,7 @@ export default function DynamicLandingPage() {
               </span>
             </a>
 
-            <div
-              className={`${menuFont.className} hidden flex-1 items-center justify-end gap-7 text-lg tracking-wide lg:flex xl:gap-9`}
-            >
+            <div className="font-nav hidden flex-1 items-center justify-end gap-7 text-lg tracking-wide lg:flex xl:gap-9">
               {navItems.map((item) => (
                 <a
                   key={item.href}
@@ -103,9 +90,7 @@ export default function DynamicLandingPage() {
               </Link>
             </div>
 
-            <div
-              className={`${menuFont.className} flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-slate-200 pt-3 text-base tracking-wide`}
-            >
+            <div className="font-nav flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-slate-200 pt-3 text-base tracking-wide">
               {navItems.map((item) => (
                 <a
                   key={item.href}
@@ -147,7 +132,7 @@ export default function DynamicLandingPage() {
             stats: ["Status Booking", "Konfirmasi WA", "Anti Bentrok Slot"],
           },
         ]}
-        menuFontClassName={menuFont.className}
+        menuFontClassName="font-nav"
         waLink={waLink}
       />
 
@@ -157,7 +142,7 @@ export default function DynamicLandingPage() {
           <div className="mx-auto inline-flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 text-5xl shadow-lg">
             🚀
           </div>
-          <h2 className={`${menuFont.className} mt-8 text-4xl font-bold uppercase md:text-5xl text-slate-900`}>
+          <h2 className="font-nav mt-8 text-4xl font-bold uppercase text-slate-900 md:text-5xl">
             Booking untuk Semua Usaha Jasa yang Lebih Ringkas
           </h2>
           <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-slate-600">
@@ -187,8 +172,9 @@ export default function DynamicLandingPage() {
       <section id="pricing" className="scroll-mt-24 bg-slate-50 py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-12">
-            <h2 className={`${menuFont.className} text-4xl font-bold md:text-5xl text-slate-900 uppercase`}>
-              Harga yang Jelas untuk MVP</h2>
+            <h2 className="font-nav text-4xl font-bold uppercase text-slate-900 md:text-5xl">
+              Harga yang Jelas untuk MVP
+            </h2>
             <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
               Fokus saat ini pada dua tier utama: gratis untuk barbershop baru, dan Pro untuk owner yang butuh fitur lebih untuk skala dan kontrol WA.
             </p>
@@ -258,7 +244,7 @@ export default function DynamicLandingPage() {
       <section id="industries" className="scroll-mt-24 bg-gradient-to-br from-slate-50 to-slate-100 py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-12">
-            <h2 className={`${menuFont.className} text-4xl font-bold md:text-5xl text-slate-900 uppercase`}>
+            <h2 className="font-nav text-4xl font-bold uppercase text-slate-900 md:text-5xl">
               Cocok untuk Operasional Barbershop
             </h2>
             <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
@@ -343,7 +329,7 @@ export default function DynamicLandingPage() {
       <section id="features" className="scroll-mt-24 bg-white py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
-            <h2 className={`${menuFont.className} text-4xl font-bold md:text-5xl text-slate-900 uppercase`}>
+            <h2 className="font-nav text-4xl font-bold uppercase text-slate-900 md:text-5xl">
               Mengapa Pilih BookLink?
             </h2>
             <p className="mt-4 text-lg text-slate-600">

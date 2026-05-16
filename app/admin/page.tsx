@@ -162,16 +162,16 @@ export default async function AdminPage({
           <p className="text-sm text-stone-500">Akses Cepat</p>
           <div className="mt-3 flex flex-wrap gap-3">
             <Link
-              href="/admin/settings/webhook"
+              href="/admin/settings/webhook-official"
               className="cursor-pointer rounded-2xl bg-stone-900 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 hover:shadow-sm"
             >
-              Setting Webhook
+              Setting Official
             </Link>
             <Link
-              href="/admin/settings/webhook-official"
+              href="/admin/settings/webhook"
               className="cursor-pointer rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-700 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-50 hover:shadow-sm"
             >
-              Setting Official
+              Legacy Fonnte
             </Link>
             <Link
               href="/admin/profile"
