@@ -75,6 +75,8 @@ type StepReplyParams = {
   industry: IndustryKey;
 };
 
+const RECENT_MESSAGE_DEDUPE_WINDOW_MS = 15_000;
+
 function getSupabase() {
   return createAdminSupabase();
 }
@@ -324,6 +326,97 @@ async function clearState(sender: string, channelId: string | null) {
   let query = getSupabase().from("user_sessions").delete().eq("sender", sender);
   query = channelId ? query.eq("channel_id", channelId) : query.is("channel_id", null);
   await query;
+}
+
+function buildRecentMessageDedupeKey(params: {
+  sender: string;
+  channelId: string | null;
+  officialPhoneNumberId: string | null;
+  message: string;
+}) {
+  const normalizedMessage = params.message.trim().toLowerCase().replace(/\s+/g, " ");
+  const messageKey = Buffer.from(normalizedMessage).toString("base64url");
+  const channelKey = params.channelId ?? params.officialPhoneNumberId ?? "global";
+
+  return `whatsapp_webhook_recent:${channelKey}:${params.sender}:${messageKey}`;
+}
+
+async function shouldIgnoreRecentDuplicateMessage(params: {
+  sender: string;
+  channelId: string | null;
+  officialPhoneNumberId: string | null;
+  message: string;
+}) {
+  const normalizedMessage = params.message.trim().toLowerCase().replace(/\s+/g, " ");
+
+  if (!normalizedMessage) {
+    return false;
+  }
+
+  const dedupeKey = buildRecentMessageDedupeKey({
+    sender: params.sender,
+    channelId: params.channelId,
+    officialPhoneNumberId: params.officialPhoneNumberId,
+    message: normalizedMessage,
+  });
+
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("app_settings")
+    .select("value_json, updated_at")
+    .eq("key", dedupeKey)
+    .maybeSingle();
+
+  if (error && error.code !== "PGRST116") {
+    console.warn("[whatsapp-webhook] recent duplicate check failed", {
+      sender: params.sender,
+      channelId: params.channelId,
+      officialPhoneNumberId: params.officialPhoneNumberId,
+      error: error.message,
+    });
+    return false;
+  }
+
+  if (data) {
+    const storedValue = data.value_json as
+      | { createdAt?: string }
+      | string
+      | boolean
+      | number
+      | null;
+    const storedCreatedAt =
+      typeof storedValue === "object" && storedValue !== null && "createdAt" in storedValue
+        ? storedValue.createdAt
+        : null;
+    const createdAt = storedCreatedAt ?? data.updated_at;
+    const createdAtMs = createdAt ? new Date(createdAt).getTime() : NaN;
+
+    if (Number.isFinite(createdAtMs) && Date.now() - createdAtMs < RECENT_MESSAGE_DEDUPE_WINDOW_MS) {
+      return true;
+    }
+  }
+
+  const { error: upsertError } = await supabase.from("app_settings").upsert({
+    key: dedupeKey,
+    value_json: {
+      sender: params.sender,
+      channelId: params.channelId,
+      officialPhoneNumberId: params.officialPhoneNumberId,
+      message: normalizedMessage,
+      createdAt: new Date().toISOString(),
+    },
+  });
+
+  if (upsertError) {
+    console.warn("[whatsapp-webhook] recent duplicate marker failed", {
+      sender: params.sender,
+      channelId: params.channelId,
+      officialPhoneNumberId: params.officialPhoneNumberId,
+      error: upsertError.message,
+    });
+  }
+
+  return false;
 }
 
 async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> {
@@ -729,6 +822,32 @@ export async function POST(req: Request) {
       messageId: messageId || null,
     });
     return Response.json({ status: "no sender" });
+  }
+
+  if (
+    eventType === "message" &&
+    incomingMessage &&
+    (await shouldIgnoreRecentDuplicateMessage({
+      sender,
+      channelId: context.channelId,
+      officialPhoneNumberId,
+      message: incomingMessage,
+    }))
+  ) {
+    console.log("[whatsapp-webhook] recent duplicate ignored", {
+      sender,
+      channelId: context.channelId,
+      officialPhoneNumberId: officialPhoneNumberId || null,
+      messageId: messageId || null,
+      messagePreview: incomingMessage.slice(0, 120),
+    });
+
+    return Response.json({
+      status: "recent_duplicate_ignored",
+      channelId: context.channelId,
+      userId: context.userId,
+      legacy: false,
+    });
   }
 
   if (messageId) {
