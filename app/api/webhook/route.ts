@@ -518,8 +518,16 @@ async function parseWebhookPayload(req: Request): Promise<ParsedWebhookPayload> 
     const officialMessage =
       officialValue?.messages?.[0]?.text?.body ||
       officialValue?.messages?.[0]?.body ||
+      officialValue?.messages?.[0]?.interactive?.button_reply?.title ||
+      officialValue?.messages?.[0]?.interactive?.list_reply?.title ||
+      officialValue?.messages?.[0]?.button?.text ||
+      officialValue?.messages?.[0]?.caption ||
       officialValue?.message?.text?.body ||
       officialValue?.message?.body ||
+      officialValue?.message?.interactive?.button_reply?.title ||
+      officialValue?.message?.interactive?.list_reply?.title ||
+      officialValue?.message?.button?.text ||
+      officialValue?.message?.caption ||
       body?.message?.text ||
       body?.message ||
       body?.text ||
