@@ -309,7 +309,9 @@ export async function saveWhatsappChannel(formData: FormData) {
       chatbot_provider: chatbotProvider,
       official_phone_number_id: resolvedOfficialPhoneNumberId || null,
       official_access_token:
-        chatbotProvider === "official" ? officialConfig.accessToken || null : resolvedOfficialAccessToken || null,
+        chatbotProvider === "official"
+          ? resolvedOfficialAccessToken || officialConfig.accessToken || null
+          : resolvedOfficialAccessToken || null,
       official_verify_token: resolvedOfficialVerifyToken || null,
       industry,
       is_active: isActive,
