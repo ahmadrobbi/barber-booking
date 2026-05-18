@@ -11,6 +11,11 @@ import {
 import { type IndustryKey, getAvailableIndustries } from "@/lib/industries";
 import { isBookingSlotConflict } from "@/lib/booking-conflicts";
 import { getServicesForUser } from "@/lib/bookings";
+import {
+  buildAiAssistantContext,
+  generateAiAssistantDecision,
+  generateAiFaqReply,
+} from "@/lib/ai-booking-assistant";
 import { getAvailableSlotsForDate, isSlotAvailable } from "@/lib/scheduling";
 import { createAdminSupabase } from "@/lib/supabase";
 import { getBranchesForUser, type UserBranch } from "@/lib/user-branches";
@@ -106,6 +111,20 @@ function isCancelMessage(message: string) {
 
 function isContinueMessage(message: string) {
   return ["lanjut", "lanjutkan", "opsi", "pilihan", "ulang"].includes(message);
+}
+
+function isLikelyFaqMessage(message: string) {
+  const normalized = message.trim().toLowerCase();
+
+  if (!normalized) {
+    return false;
+  }
+
+  if (normalized.includes("?")) {
+    return true;
+  }
+
+  return /(\bberapa\b|\balamat\b|\bcabang\b|\blokasi\b|\bharga\b|\blibur\b|\bjam buka\b|\bkontak\b|\bwa\b|\bwhatsapp\b|\binstagram\b|\bpromo\b|\bdurasi\b|\bjadwal\b|\breschedule\b|\bbatal\b)/i.test(normalized);
 }
 
 function withCancelHint(message: string) {
@@ -688,6 +707,135 @@ async function resetToGreetingState({
   });
 }
 
+function buildBookingStateSummary(params: {
+  state: SessionState;
+  branches: UserBranch[];
+  tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
+}) {
+  const branchName = getSelectedBranch(params.branches, params.state.branch_id)?.name ?? null;
+  const serviceName =
+    params.tenantServices.find((service) => service.name === params.state.layanan)?.name ?? null;
+
+  return [
+    params.state.step ? `step: ${params.state.step}` : null,
+    branchName ? `cabang: ${branchName}` : null,
+    serviceName ? `layanan: ${serviceName}` : null,
+    params.state.tanggal ? `tanggal: ${params.state.tanggal}` : null,
+    params.state.jam ? `jam: ${params.state.jam}` : null,
+    params.state.customer_name ? `nama: ${params.state.customer_name}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+async function getRichFaqReply(params: {
+  context: WhatsappRuntimeContext;
+  industry: IndustryKey;
+  rawMessage: string;
+  state?: SessionState | null;
+  tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
+  branches: UserBranch[];
+}) {
+  if (!params.context.userId) {
+    return null;
+  }
+
+  const aiContext = await buildAiAssistantContext({
+    userId: params.context.userId,
+    industry: params.industry,
+  });
+
+  return generateAiFaqReply({
+    context: aiContext,
+    message: params.rawMessage,
+    bookingStateSummary: params.state
+      ? buildBookingStateSummary({
+          state: params.state,
+          branches: params.branches,
+          tenantServices: params.tenantServices,
+        })
+      : null,
+  });
+}
+
+async function maybeGetInFlowFaqReply(params: {
+  context: WhatsappRuntimeContext;
+  industry: IndustryKey;
+  rawMessage: string;
+  state: SessionState;
+  tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
+  branches: UserBranch[];
+}) {
+  if (!isLikelyFaqMessage(params.rawMessage)) {
+    return null;
+  }
+
+  const richFaqReply = await getRichFaqReply({
+    context: params.context,
+    industry: params.industry,
+    rawMessage: params.rawMessage,
+    state: params.state,
+    tenantServices: params.tenantServices,
+    branches: params.branches,
+  });
+
+  return richFaqReply?.reply ?? null;
+}
+
+async function getAiFallbackReply(params: {
+  sender: string;
+  context: WhatsappRuntimeContext;
+  industry: IndustryKey;
+  tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
+  branches: UserBranch[];
+  rawMessage: string;
+}) {
+  if (!params.context.userId) {
+    return null;
+  }
+
+  const aiContext = await buildAiAssistantContext({
+    userId: params.context.userId,
+    industry: params.industry,
+  });
+  const decision = await generateAiAssistantDecision({
+    context: aiContext,
+    message: params.rawMessage,
+  });
+
+  if (!decision) {
+    return null;
+  }
+
+  if (decision.intent === "faq" && decision.reply) {
+    const richFaqReply = await getRichFaqReply({
+      context: params.context,
+      industry: params.industry,
+      rawMessage: params.rawMessage,
+      tenantServices: params.tenantServices,
+      branches: params.branches,
+    });
+
+    return richFaqReply?.reply || decision.reply;
+  }
+
+  if (decision.intent === "handoff" && decision.reply) {
+    return decision.reply;
+  }
+
+  if (decision.intent === "booking_start" || decision.shouldStartBooking) {
+    return resetToGreetingState({
+      sender: params.sender,
+      context: params.context,
+      industry: params.industry,
+      tenantServices: params.tenantServices,
+      branches: params.branches,
+    });
+  }
+
+  return null;
+}
+
 async function sendReply(context: WhatsappRuntimeContext, target: string, message: string) {
   if (context.chatbotProvider === "official" && isOfficialReplyDryRun()) {
     console.log("[whatsapp-webhook] official reply dry run", {
@@ -1173,9 +1321,20 @@ export async function POST(req: Request) {
     const selectedBranch = getBranchBySelection(message, branches);
 
     if (!selectedBranch) {
-      reply = withCancelHint(
-        `Kita masih di langkah pilih cabang.\n\nPilihan belum sesuai. Balas dengan nomor cabang yang tersedia ya 🙌\n\n${getBranchOptionsText(branches)}`
-      );
+      const faqReply = await maybeGetInFlowFaqReply({
+        context,
+        industry,
+        rawMessage,
+        state,
+        tenantServices,
+        branches,
+      });
+
+      reply =
+        faqReply ||
+        withCancelHint(
+          `Kita masih di langkah pilih cabang.\n\nPilihan belum sesuai. Balas dengan nomor cabang yang tersedia ya 🙌\n\n${getBranchOptionsText(branches)}`
+        );
     } else {
       await saveState({
         sender,
@@ -1200,24 +1359,44 @@ export async function POST(req: Request) {
       );
     }
   } else if (!state) {
-    reply = await resetToGreetingState({
-      sender,
-      context,
-      industry,
-      tenantServices,
-      branches,
-    });
+    reply =
+      (await getAiFallbackReply({
+        sender,
+        context,
+        industry,
+        tenantServices,
+        branches,
+        rawMessage,
+      })) ??
+      (await resetToGreetingState({
+        sender,
+        context,
+        industry,
+        tenantServices,
+        branches,
+      }));
   } else if (state.step === "pilih_layanan") {
     const industryServices = tenantServices;
     const service = getServiceBySelection(message, industryServices);
     const selectedBranch = getSelectedBranch(branches, state.branch_id);
 
     if (!service) {
-      reply = withCancelHint(
-        `Kita masih di langkah pilih layanan.\n\n` +
-          `${selectedBranch ? `Cabang terpilih: *${selectedBranch.name}*\n\n` : ""}` +
-          `${templates.invalidOptionMessage}\n\n${getServiceOptionsText(industryServices)}`
-      );
+      const faqReply = await maybeGetInFlowFaqReply({
+        context,
+        industry,
+        rawMessage,
+        state,
+        tenantServices,
+        branches,
+      });
+
+      reply =
+        faqReply ||
+        withCancelHint(
+          `Kita masih di langkah pilih layanan.\n\n` +
+            `${selectedBranch ? `Cabang terpilih: *${selectedBranch.name}*\n\n` : ""}` +
+            `${templates.invalidOptionMessage}\n\n${getServiceOptionsText(industryServices)}`
+        );
     } else {
       const dateOptions = await getAvailableDateOptions({
         baseDate: today,
@@ -1263,14 +1442,24 @@ export async function POST(req: Request) {
     const selectedBranch = getSelectedBranch(branches, state.branch_id);
 
     if (!selectedDate) {
+      const faqReply = await maybeGetInFlowFaqReply({
+        context,
+        industry,
+        rawMessage,
+        state,
+        tenantServices,
+        branches,
+      });
+
       reply =
-        dateOptions.length > 0
+        faqReply ||
+        (dateOptions.length > 0
           ? withCancelHint(
               `Kita masih di langkah pilih tanggal.\n\n` +
                 `${selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : ""}` +
                 `${templates.invalidOptionMessage}\n\n${getDateOptionsText(dateOptions)}`
             )
-          : "Maaf, belum ada tanggal yang tersedia dalam beberapa hari ke depan. Silakan coba lagi nanti ya 🙏";
+          : "Maaf, belum ada tanggal yang tersedia dalam beberapa hari ke depan. Silakan coba lagi nanti ya 🙏");
     } else {
       const slots = await getAvailableSlots(
         selectedDate.key,
@@ -1322,11 +1511,22 @@ export async function POST(req: Request) {
       const selectedBranch = getSelectedBranch(branches, state.branch_id);
 
       if (!selectedSlot) {
-        reply = withCancelHint(
-          `Kita masih di langkah pilih jam.\n\n` +
-            `${selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : ""}` +
-            `${templates.invalidOptionMessage}\n\n${getSlotOptionsText(slots)}`
-        );
+        const faqReply = await maybeGetInFlowFaqReply({
+          context,
+          industry,
+          rawMessage,
+          state,
+          tenantServices,
+          branches,
+        });
+
+        reply =
+          faqReply ||
+          withCancelHint(
+            `Kita masih di langkah pilih jam.\n\n` +
+              `${selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : ""}` +
+              `${templates.invalidOptionMessage}\n\n${getSlotOptionsText(slots)}`
+          );
       } else if (!(await isSlotAvailable({
         date: state.tanggal,
         time: selectedSlot,
@@ -1362,7 +1562,17 @@ export async function POST(req: Request) {
     const customerName = normalizeCustomerName(rawMessage);
 
     if (!customerName || customerName.length < 2) {
+      const faqReply = await maybeGetInFlowFaqReply({
+        context,
+        industry,
+        rawMessage,
+        state,
+        tenantServices,
+        branches,
+      });
+
       reply =
+        faqReply ||
         "Kita masih di langkah isi nama.\n\n" +
         `${getSelectedBranch(branches, state.branch_id) ? `Cabang: *${getSelectedBranch(branches, state.branch_id)?.name ?? "-"}*\n` : ""}` +
         "Nama pemesan minimal 2 karakter. Balas dengan nama yang benar ya 🙌\n\n" +
@@ -1464,7 +1674,17 @@ export async function POST(req: Request) {
       await clearState(sender, context.channelId);
       reply = templates.cancelMessage;
     } else {
+      const faqReply = await maybeGetInFlowFaqReply({
+        context,
+        industry,
+        rawMessage,
+        state,
+        tenantServices,
+        branches,
+      });
+
       reply =
+        faqReply ||
         "Kita masih di langkah konfirmasi.\n\n" +
         `${templates.invalidOptionMessage}\n\nBalas *YA* untuk konfirmasi atau *BATAL* untuk mengulang.`;
     }

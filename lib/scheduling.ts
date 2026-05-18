@@ -1,6 +1,7 @@
 import { createAdminSupabase } from "@/lib/supabase";
 import type { IndustryKey } from "@/lib/bookings";
 import { getSlotsForIndustry } from "@/lib/bookings";
+import { isBlackoutDateForScope } from "@/lib/user-blackout-dates";
 
 export const WEEKDAY_KEYS = [
   "monday",
@@ -286,6 +287,16 @@ export async function getAvailableSlotsForDate(params: {
   channelId: string | null;
   branchId?: string | null;
 }) {
+  const isBlackout = await isBlackoutDateForScope({
+    userId: params.userId,
+    branchId: params.branchId ?? null,
+    date: params.date,
+  });
+
+  if (isBlackout) {
+    return [] as string[];
+  }
+
   const businessHours = await getBusinessHoursForScope({
     userId: params.userId,
     branchId: params.branchId,

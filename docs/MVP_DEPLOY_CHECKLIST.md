@@ -9,6 +9,9 @@ Checklist ini dipakai untuk memastikan flow MVP barbershop siap dipakai owner su
 - Isi `AUTH_SECRET` atau `SESSION_SECRET`
 - Isi `NEXT_PUBLIC_APP_URL` dengan URL publik aplikasi
 - `FONNTE_TOKEN` tidak lagi jadi sumber utama tenant-aware flow. Token utama disimpan per channel di dashboard owner.
+- Untuk AI booking assistant, isi `GEMINI_API_KEY` atau `GOOGLE_API_KEY`
+- Jika diperlukan, isi `GEMINI_OPENAI_BASE_URL` dan `AI_BOOKING_MODEL`
+- Gunakan `AI_BOOKING_ENABLED=false` hanya jika ingin menonaktifkan routing AI sementara
 
 ## 2. Database
 
@@ -74,3 +77,4 @@ Checklist ini dipakai untuk memastikan flow MVP barbershop siap dipakai owner su
 - Belum mendukung multi-barber atau multi-chair
 - Template WA masih sederhana
 - Belum ada billing dan analytics lanjutan
+- Shared AI assistant masih default satu nomor platform; dedicated number per merchant bisa jadi add-on nanti

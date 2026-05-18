@@ -22,11 +22,16 @@ Isi environment berikut sebelum menjalankan aplikasi:
 - `WHATSAPP_OFFICIAL_ACCESS_TOKEN`
 - `WHATSAPP_OFFICIAL_WABA_ID`
 - `WHATSAPP_OFFICIAL_VERIFY_TOKEN`
+- `GEMINI_API_KEY` atau `GOOGLE_API_KEY`
+- `GEMINI_OPENAI_BASE_URL` jika ingin override endpoint OpenAI-compatible
+- `AI_BOOKING_MODEL` jika ingin override model default `gemma-4-26b-a4b-it`
+- `AI_BOOKING_ENABLED` untuk mematikan AI routing tanpa menghapus credential
 
 Catatan:
 - `FONNTE_TOKEN` dipakai sebagai fallback backend untuk reminder bila token per channel belum diisi.
 - WhatsApp official chatbot memakai credential backend. User cukup input nomor WhatsApp bisnis di dashboard.
 - Jika `AUTH_SECRET` tidak diisi, aplikasi akan fallback ke variabel lain yang kurang ideal. Untuk production, selalu isi `AUTH_SECRET`.
+- AI assistant membaca data merchant dari database lalu menjawab FAQ atau memulai flow booking, sementara validasi booking tetap ditangani rules engine.
 
 ## Jalankan Lokal
 
