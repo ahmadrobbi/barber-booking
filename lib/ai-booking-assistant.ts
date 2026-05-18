@@ -377,8 +377,9 @@ async function callAiChatCompletion(params: {
     },
     body: JSON.stringify({
       model: params.model ?? config.model,
-      temperature: params.temperature ?? 0.2,
+      temperature: params.temperature ?? 0,
       max_tokens: params.max_tokens ?? 512,
+      response_format: { type: "json_object" },
       messages: params.messages,
     }),
   });
