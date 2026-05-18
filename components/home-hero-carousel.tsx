@@ -65,42 +65,42 @@ export function HomeHeroCarousel({
         <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,1.15fr)_320px] lg:items-end">
           <div className="max-w-3xl">
             <div
-              className={`inline-flex items-center gap-3 rounded-full border border-white/15 bg-black/35 px-4 py-2 text-xs uppercase tracking-[0.32em] text-amber-200/90 backdrop-blur ${menuFontClassName}`}
+              className={`inline-flex items-center gap-3 rounded-full border border-white/15 bg-black/35 px-4 py-2 text-[10px] uppercase tracking-[0.26em] text-amber-200/90 backdrop-blur ${menuFontClassName}`}
             >
               <span className="h-2 w-2 rounded-full bg-amber-300" />
               {slides[activeIndex].eyebrow}
             </div>
 
             <h1
-              className={`${menuFontClassName} mt-6 text-5xl font-bold uppercase leading-none text-white drop-shadow-[0_10px_40px_rgba(0,0,0,0.45)] sm:text-6xl md:text-7xl`}
+              className={`${menuFontClassName} mt-6 max-w-2xl text-3xl font-bold uppercase leading-tight text-white drop-shadow-[0_10px_40px_rgba(0,0,0,0.45)] sm:text-4xl md:text-5xl`}
             >
               {slides[activeIndex].title}
             </h1>
 
-            <p className="mt-6 max-w-2xl text-base leading-7 text-white/78 md:text-lg">
+            <p className="mt-5 max-w-2xl text-sm leading-7 text-white/78 md:text-sm">
               {slides[activeIndex].description}
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/register"
-                className="rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-black transition hover:bg-amber-400"
+                className="rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-amber-400"
               >
                 Coba Platform Gratis
               </Link>
               <a
                 href={waLink}
-                className="rounded-full border border-white/25 bg-black/15 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="rounded-full border border-white/25 bg-black/15 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Demo via WhatsApp
               </a>
             </div>
 
-            <div className="mt-10 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-2.5">
               {slides[activeIndex].stats.map((item) => (
                 <div
                   key={item}
-                  className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm text-white/75 backdrop-blur"
+                  className="rounded-2xl border border-white/10 bg-white/8 px-3.5 py-2.5 text-[11px] text-white/75 backdrop-blur md:text-xs"
                 >
                   {item}
                 </div>
@@ -118,10 +118,10 @@ export function HomeHeroCarousel({
             />
             <div className="mt-5 flex items-center justify-between gap-4">
               <div>
-                <p className={`text-xl uppercase ${menuFontClassName}`}>
+                <p className={`text-base uppercase tracking-[0.06em] ${menuFontClassName}`}>
                   {slides[activeIndex].accent}
                 </p>
-                <p className="mt-1 text-sm text-white/60">
+                <p className="mt-1 text-xs leading-6 text-white/60">
                   Konsep grooming yang lebih modern, rapi, dan nyaman.
                 </p>
               </div>

@@ -21,7 +21,7 @@ export default function DynamicLandingPage() {
   ] as const;
 
   return (
-    <main className="bg-gradient-to-br from-blue-50 via-white to-indigo-100 text-slate-800 font-sans min-h-screen">
+    <main className="bg-gradient-to-br from-blue-50 via-white to-indigo-100 text-[15px] font-sans text-slate-800 min-h-screen sm:text-base">
       <header className="sticky top-0 z-50 border-b border-slate-200/50 bg-white/90 backdrop-blur-md shadow-sm">
         <nav className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
           <div className="flex items-center justify-between gap-4 lg:gap-8">
@@ -35,23 +35,21 @@ export default function DynamicLandingPage() {
                 className="rounded-full shadow-lg"
               />
               <span>
-                <strong
-                  className="font-display block text-xl leading-tight tracking-wide text-slate-900 md:text-2xl"
-                >
+                <strong className="block text-base font-semibold leading-tight tracking-tight text-slate-900 md:text-lg">
                   {platformBrand}
                 </strong>
-                <span className="block text-xs text-slate-600 md:text-sm">
+                <span className="block text-[10px] text-slate-600 md:text-[11px]">
                   {platformTagline}
                 </span>
               </span>
             </a>
 
-            <div className="font-nav hidden flex-1 items-center justify-end gap-7 text-lg tracking-wide lg:flex xl:gap-9">
+            <div className="font-nav hidden flex-1 items-center justify-end gap-7 text-xs tracking-[0.12em] lg:flex xl:gap-9">
               {navItems.map((item) => (
                 <a
                   key={item.href}
                   href={item.href}
-                  className="text-slate-700 transition hover:text-blue-600 font-medium"
+                  className="font-medium text-slate-700 transition hover:text-blue-600"
                 >
                   {item.label}
                 </a>
@@ -90,12 +88,12 @@ export default function DynamicLandingPage() {
               </Link>
             </div>
 
-            <div className="font-nav flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-slate-200 pt-3 text-base tracking-wide">
+            <div className="font-nav flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-slate-200 pt-3 text-xs tracking-[0.12em]">
               {navItems.map((item) => (
                 <a
                   key={item.href}
                   href={item.href}
-                  className="text-slate-600 transition hover:text-blue-600 font-medium"
+                  className="font-medium text-slate-600 transition hover:text-blue-600"
                 >
                   {item.label}
                 </a>
@@ -139,29 +137,29 @@ export default function DynamicLandingPage() {
       {/* Platform Section */}
       <section id="platform" className="scroll-mt-24 bg-white py-24 text-center">
         <div className="mx-auto max-w-5xl px-6">
-          <div className="mx-auto inline-flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 text-5xl shadow-lg">
+          <div className="mx-auto inline-flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 text-4xl shadow-lg">
             🚀
           </div>
-          <h2 className="font-nav mt-8 text-4xl font-bold uppercase text-slate-900 md:text-5xl">
+          <h2 className="font-nav mt-8 text-2xl font-bold uppercase tracking-[0.1em] text-slate-900 md:text-3xl">
             Booking untuk Semua Usaha Jasa yang Lebih Ringkas
           </h2>
-          <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-slate-600">
+          <p className="mx-auto mt-6 max-w-3xl text-sm leading-7 text-slate-600 md:text-base">
             Fokus MVP ini sederhana: owner tidak perlu pindah channel atau mengajari pelanggan pakai aplikasi baru. Semua tetap berjalan lewat WhatsApp bisnis mereka sendiri dan link booking publik yang mudah dibagikan. Cocok untuk barbershop, klinik, pijat, lapangan olahraga, dan segala industri yang butuh booking.
           </p>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 p-8 shadow-lg border border-blue-200">
-              <div className="text-4xl mb-4">📱</div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Nomor WA Milik Sendiri</h3>
+              <div className="mb-4 text-2xl">📱</div>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Nomor WA Milik Sendiri</h3>
               <p className="text-slate-600 leading-relaxed">Setiap owner bisa mendaftarkan nomor bisnisnya sendiri sebagai bot, jadi relasi dengan pelanggan tetap melekat ke brand mereka.</p>
             </div>
             <div className="rounded-2xl bg-gradient-to-br from-green-50 to-green-100 p-8 shadow-lg border border-green-200">
-              <div className="text-4xl mb-4">🔗</div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Link Booking per Tenant</h3>
+              <div className="mb-4 text-2xl">🔗</div>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Link Booking per Tenant</h3>
               <p className="text-slate-600 leading-relaxed">Setiap bisnis punya slug publik sendiri sehingga halaman booking, layanan, jadwal, dan reminder tidak tercampur dengan tenant lain.</p>
             </div>
             <div className="rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 p-8 shadow-lg border border-purple-200">
-              <div className="text-4xl mb-4">🔔</div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Reminder dan Status Dasar</h3>
+              <div className="mb-4 text-2xl">🔔</div>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Reminder dan Status Dasar</h3>
               <p className="text-slate-600 leading-relaxed">Owner bisa mengonfirmasi atau membatalkan booking dari dashboard, lalu pelanggan mendapat pesan WhatsApp yang jelas dan tepat waktu.</p>
             </div>
           </div>
@@ -172,10 +170,10 @@ export default function DynamicLandingPage() {
       <section id="pricing" className="scroll-mt-24 bg-slate-50 py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-12">
-            <h2 className="font-nav text-4xl font-bold uppercase text-slate-900 md:text-5xl">
+            <h2 className="font-nav text-2xl font-bold uppercase tracking-[0.1em] text-slate-900 md:text-3xl">
               Harga yang Jelas untuk MVP
             </h2>
-            <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
+            <p className="mx-auto mt-4 max-w-3xl text-sm text-slate-600 md:text-base">
               Fokus saat ini pada dua tier utama: gratis untuk barbershop baru, dan Pro untuk owner yang butuh fitur lebih untuk skala dan kontrol WA.
             </p>
           </div>
@@ -185,7 +183,7 @@ export default function DynamicLandingPage() {
               <div className="inline-flex rounded-full bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">
                 Free
               </div>
-              <div className="mt-8 text-5xl font-bold text-slate-900">Rp 0</div>
+              <div className="mt-8 text-3xl font-bold text-slate-900">Rp 0</div>
               <p className="mt-4 text-slate-600">Cocok untuk usaha jasa kecil (barbershop, klinik, pijat, dll) yang ingin mulai menerima booking lewat WhatsApp tanpa biaya.</p>
               <ul className="mt-8 space-y-3 text-slate-600">
                 <li>Landing page publik `/b/[slug]`</li>
@@ -205,7 +203,7 @@ export default function DynamicLandingPage() {
               <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white">
                 Pro
               </div>
-              <div className="mt-8 text-5xl font-bold">Rp 149.000</div>
+              <div className="mt-8 text-3xl font-bold">Rp 149.000</div>
               <p className="mt-4 text-slate-100">Untuk usaha jasa yang sudah berkembang dan ingin lebih banyak kontrol, dukungan multi-cabang, dan insight operasional.</p>
               <ul className="mt-8 space-y-3 text-slate-100/90">
                 <li>Multi-branch siap pakai</li>
@@ -225,7 +223,7 @@ export default function DynamicLandingPage() {
               <div className="inline-flex rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900">
                 Enterprise
               </div>
-              <div className="mt-8 text-5xl font-bold text-slate-900">Coming Soon</div>
+              <div className="mt-8 text-3xl font-bold text-slate-900">Coming Soon</div>
               <p className="mt-4 text-slate-600">Enterprise akan diluncurkan setelah MVP diuji, dengan AI CS dan custom workflow untuk bisnis dan industri yang lebih kompleks.</p>
               <ul className="mt-8 space-y-3 text-slate-600">
                 <li>AI CS / chatbot dukungan pelanggan</li>
@@ -244,10 +242,10 @@ export default function DynamicLandingPage() {
       <section id="industries" className="scroll-mt-24 bg-gradient-to-br from-slate-50 to-slate-100 py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-12">
-            <h2 className="font-nav text-4xl font-bold uppercase text-slate-900 md:text-5xl">
+            <h2 className="font-nav text-2xl font-bold uppercase tracking-[0.1em] text-slate-900 md:text-3xl">
               Cocok untuk Operasional Barbershop
             </h2>
-            <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
+            <p className="mx-auto mt-4 max-w-3xl text-sm text-slate-600 md:text-base">
               Halaman depan ini tidak lagi menjanjikan semua industri. Kita fokus pada masalah yang paling sering dirasakan owner barbershop saat mengatur booking manual lewat chat.
             </p>
           </div>
@@ -292,12 +290,12 @@ export default function DynamicLandingPage() {
             ].map((industry) => (
               <div
                 key={industry.name}
-                className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 hover:border-blue-300"
+                className="group rounded-2xl border border-slate-200 bg-white p-8 shadow-lg transition-all duration-300 hover:border-blue-300 hover:shadow-xl"
               >
-                <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${industry.color} flex items-center justify-center text-white text-3xl mb-6 shadow-lg`}>
+                <div className={`mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r ${industry.color} text-xl text-white shadow-lg`}>
                   {industry.icon}
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition">
+                <h3 className="mb-3 text-base font-semibold text-slate-900 transition group-hover:text-blue-600">
                   {industry.name}
                 </h3>
                 <p className="text-slate-600 leading-relaxed mb-6">
@@ -313,7 +311,7 @@ export default function DynamicLandingPage() {
             ))}
           </div>
           <div className="text-center">
-            <p className="text-slate-600 mb-6">Jika alur ini cocok dengan operasional barbershop Anda, MVP sudah siap diuji ke pelanggan pertama.</p>
+            <p className="mb-6 text-slate-600">Jika alur ini cocok dengan operasional barbershop Anda, MVP sudah siap diuji ke pelanggan pertama.</p>
             <Link
               href="/register"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-8 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl"
@@ -329,64 +327,64 @@ export default function DynamicLandingPage() {
       <section id="features" className="scroll-mt-24 bg-white py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
-            <h2 className="font-nav text-4xl font-bold uppercase text-slate-900 md:text-5xl">
+            <h2 className="font-nav text-2xl font-bold uppercase tracking-[0.1em] text-slate-900 md:text-3xl">
               Mengapa Pilih BookLink?
             </h2>
-            <p className="mt-4 text-lg text-slate-600">
+            <p className="mt-4 text-sm text-slate-600 md:text-base">
               Fitur inti yang memang dibutuhkan untuk validasi MVP harian
             </p>
           </div>
           <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">📱</span>
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-blue-100 to-blue-200">
+                <span className="text-2xl">📱</span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">WhatsApp Integration</h3>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">WhatsApp Integration</h3>
               <p className="text-slate-600 leading-relaxed">
                 Pelanggan tetap memakai WhatsApp yang sudah familiar, sementara owner tidak perlu memindahkan mereka ke aplikasi baru.
               </p>
             </div>
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">⚡</span>
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-green-100 to-green-200">
+                <span className="text-2xl">⚡</span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Setup Cepat</h3>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Setup Cepat</h3>
               <p className="text-slate-600 leading-relaxed">
                 Owner tinggal mengisi profil bisnis, slug landing page, layanan, dan channel WhatsApp untuk mulai menerima booking.
               </p>
             </div>
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-purple-100 to-purple-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">📅</span>
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-purple-100 to-purple-200">
+                <span className="text-2xl">📅</span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Slot Lebih Akurat</h3>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Slot Lebih Akurat</h3>
               <p className="text-slate-600 leading-relaxed">
                 Slot publik dan chatbot sekarang menghitung durasi layanan dan jam operasional agar booking tidak mudah bentrok.
               </p>
             </div>
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">🔧</span>
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-orange-100 to-orange-200">
+                <span className="text-2xl">🔧</span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Layanan Fleksibel</h3>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Layanan Fleksibel</h3>
               <p className="text-slate-600 leading-relaxed">
                 Owner bisa menambah, mengubah, atau menonaktifkan layanan sendiri beserta harga dan durasinya dari dashboard.
               </p>
             </div>
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-red-100 to-red-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">🔔</span>
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-red-100 to-red-200">
+                <span className="text-2xl">🔔</span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Reminder Otomatis</h3>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Reminder Otomatis</h3>
               <p className="text-slate-600 leading-relaxed">
                 Reminder dan notifikasi status dasar membantu owner menjaga pelanggan tetap mendapat kepastian sebelum jadwal.
               </p>
             </div>
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-teal-100 to-teal-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">🛡️</span>
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-teal-100 to-teal-200">
+                <span className="text-2xl">🛡️</span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Tenant-Aware dari Dasar</h3>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Tenant-Aware dari Dasar</h3>
               <p className="text-slate-600 leading-relaxed">
                 Booking publik, channel WhatsApp, layanan, dan reminder sudah dipisahkan per owner agar flow MVP lebih aman untuk production.
               </p>
