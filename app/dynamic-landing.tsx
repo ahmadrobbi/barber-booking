@@ -6,7 +6,7 @@ import { HomeHeroCarousel } from "@/components/home-hero-carousel";
 
 export default function DynamicLandingPage() {
   const platformBrand = "BookLink";
-  const platformTagline = "Platform Booking untuk Semua Usaha Jasa";
+  const platformTagline = "AI Booking Assistant untuk Semua Usaha Jasa";
   const phone = "6287749105273";
   const message = encodeURIComponent("Halo, saya mau booking.");
   const waLink = `https://wa.me/${phone}?text=${message}`;
@@ -106,28 +106,28 @@ export default function DynamicLandingPage() {
       <HomeHeroCarousel
         slides={[
           {
-            eyebrow: "Nomor WA Anda Sendiri",
-            title: "Terima Booking Barbershop Tanpa Ganti Channel",
-            description: "BookLink membantu owner barbershop, klinik, pijat, lapangan olahraga, dan usaha jasa lainnya menerima booking dari nomor WhatsApp milik mereka sendiri, lengkap dengan landing page publik dan reminder otomatis.",
+            eyebrow: "Satu nomor untuk banyak merchant",
+            title: "AI Booking Assistant yang Paham Konteks Merchant",
+            description: "BookLink membantu bisnis jasa menjawab pertanyaan, mengarahkan booking, dan menjaga data merchant tetap rapi. AI membaca konteks dari database, lalu membantu pelanggan dari satu nomor WhatsApp Official.",
             image: "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=1800&q=80",
-            accent: "BookLink",
-            stats: ["Nomor WA Sendiri", "Landing Page Publik", "Reminder Otomatis"],
+            accent: "Shared AI Number",
+            stats: ["Satu Nomor Official", "Multi Merchant", "Data DB Terhubung"],
           },
           {
-            eyebrow: "Setup Ringkas",
-            title: "Owner Bisa Go-Live dalam Beberapa Langkah",
-            description: "Daftar akun, isi profil bisnis, atur layanan dan durasi, sambungkan device WhatsApp, lalu bagikan link booking `/b/[slug]` ke pelanggan Anda.",
+            eyebrow: "Setup ringkas",
+            title: "Merchant Masuk, Data Tersinkron, Bot Siap Menjawab",
+            description: "Setiap merchant punya profil, cabang, layanan, jam operasional, hari libur, dan aturan booking sendiri. AI hanya menjawab berdasarkan data yang benar dari backend.",
             image: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=1800&q=80",
-            accent: "Cepat Jalan",
-            stats: ["Onboarding Ringkas", "Durasi Layanan", "Jam Operasional"],
+            accent: "Data-Aware",
+            stats: ["Profil Merchant", "Cabang & Libur", "Booking Tervalidasi"],
           },
           {
-            eyebrow: "Flow Harian yang Rapi",
-            title: "Booking Masuk, Dikonfirmasi, Diingatkan",
-            description: "Pelanggan bisa booking dari form publik atau chat WhatsApp. Owner mengelola status booking dari dashboard, lalu sistem mengirim notifikasi dan reminder dasar secara otomatis.",
+            eyebrow: "Flow harian yang rapi",
+            title: "Booking, FAQ, dan Reminder Jalan dari Satu Sistem",
+            description: "Pelanggan bisa tanya layanan, cek cabang, lihat jam buka, lalu booking. Sistem tetap memvalidasi slot dan status booking supaya operasional tidak berantakan.",
             image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1800&q=80",
-            accent: "Siap Dipakai",
-            stats: ["Status Booking", "Konfirmasi WA", "Anti Bentrok Slot"],
+            accent: "Guardrailed AI",
+            stats: ["FAQ Fleksibel", "Slot Aman", "Reminder Otomatis"],
           },
         ]}
         menuFontClassName="font-nav"
@@ -141,26 +141,26 @@ export default function DynamicLandingPage() {
             🚀
           </div>
           <h2 className="font-nav mt-8 text-2xl font-bold uppercase tracking-[0.1em] text-slate-900 md:text-3xl">
-            Booking untuk Semua Usaha Jasa yang Lebih Ringkas
+            Satu AI Untuk Banyak Merchant, Satu Sumber Kebenaran di DB
           </h2>
           <p className="mx-auto mt-6 max-w-3xl text-sm leading-7 text-slate-600 md:text-base">
-            Fokus MVP ini sederhana: owner tidak perlu pindah channel atau mengajari pelanggan pakai aplikasi baru. Semua tetap berjalan lewat WhatsApp bisnis mereka sendiri dan link booking publik yang mudah dibagikan. Cocok untuk barbershop, klinik, pijat, lapangan olahraga, dan segala industri yang butuh booking.
+            Fokus MVP sekarang bukan lagi banyak chatbot manual per merchant. Kita pakai 1 WhatsApp Official shared assistant, lalu AI membaca data merchant, cabang, layanan, jam buka, dan hari libur dari database sebelum menjawab pelanggan.
           </p>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 p-8 shadow-lg border border-blue-200">
               <div className="mb-4 text-2xl">📱</div>
-              <h3 className="mb-3 text-base font-semibold text-slate-900">Nomor WA Milik Sendiri</h3>
-              <p className="text-slate-600 leading-relaxed">Setiap owner bisa mendaftarkan nomor bisnisnya sendiri sebagai bot, jadi relasi dengan pelanggan tetap melekat ke brand mereka.</p>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Satu Nomor Official</h3>
+              <p className="text-slate-600 leading-relaxed">Nomor platform menjadi pintu masuk utama, sehingga onboarding merchant lebih cepat dan operasional lebih mudah dikelola.</p>
             </div>
             <div className="rounded-2xl bg-gradient-to-br from-green-50 to-green-100 p-8 shadow-lg border border-green-200">
               <div className="mb-4 text-2xl">🔗</div>
-              <h3 className="mb-3 text-base font-semibold text-slate-900">Link Booking per Tenant</h3>
-              <p className="text-slate-600 leading-relaxed">Setiap bisnis punya slug publik sendiri sehingga halaman booking, layanan, jadwal, dan reminder tidak tercampur dengan tenant lain.</p>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Data Merchant Terpisah</h3>
+              <p className="text-slate-600 leading-relaxed">Setiap merchant tetap punya profil, cabang, layanan, dan jadwal masing-masing agar AI tidak mencampur konteks antar bisnis.</p>
             </div>
             <div className="rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 p-8 shadow-lg border border-purple-200">
               <div className="mb-4 text-2xl">🔔</div>
-              <h3 className="mb-3 text-base font-semibold text-slate-900">Reminder dan Status Dasar</h3>
-              <p className="text-slate-600 leading-relaxed">Owner bisa mengonfirmasi atau membatalkan booking dari dashboard, lalu pelanggan mendapat pesan WhatsApp yang jelas dan tepat waktu.</p>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">AI Dibatasi Rules</h3>
+              <p className="text-slate-600 leading-relaxed">AI boleh menjawab fleksibel, tetapi booking, slot, dan status tetap divalidasi sistem supaya tidak ada jawaban ngarang.</p>
             </div>
           </div>
         </div>
@@ -171,69 +171,84 @@ export default function DynamicLandingPage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-12">
             <h2 className="font-nav text-2xl font-bold uppercase tracking-[0.1em] text-slate-900 md:text-3xl">
-              Harga yang Jelas untuk MVP
+              Draft Harga MVP
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-sm text-slate-600 md:text-base">
-              Fokus saat ini pada dua tier utama: gratis untuk barbershop baru, dan Pro untuk owner yang butuh fitur lebih untuk skala dan kontrol WA.
+              Harga di bawah ini masih draft awal untuk validasi pasar. Struktur utamanya per merchant, karena AI shared assistant akan membaca data tiap bisnis dari database terpisah.
             </p>
           </div>
 
           <div className="grid gap-8 lg:grid-cols-3">
             <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
               <div className="inline-flex rounded-full bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">
-                Free
+                Trial
               </div>
               <div className="mt-8 text-3xl font-bold text-slate-900">Rp 0</div>
-              <p className="mt-4 text-slate-600">Cocok untuk usaha jasa kecil (barbershop, klinik, pijat, dll) yang ingin mulai menerima booking lewat WhatsApp tanpa biaya.</p>
+              <p className="mt-4 text-slate-600">Untuk validasi awal merchant baru yang ingin mencoba shared AI assistant sebelum masuk paket berbayar.</p>
               <ul className="mt-8 space-y-3 text-slate-600">
-                <li>Landing page publik `/b/[slug]`</li>
-                <li>1 nomor WhatsApp bisnis</li>
-                <li>Dashboard booking dasar</li>
-                <li>Reminder WhatsApp otomatis</li>
+                <li>1 merchant</li>
+                <li>1 cabang</li>
+                <li>FAQ AI dasar</li>
+                <li>Booking sandbox</li>
               </ul>
               <Link
-                href="/register"
+                href="/pricing"
                 className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
               >
-                Daftar Gratis
+                Lihat Struktur Lengkap
               </Link>
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-blue-600 to-indigo-600 p-8 shadow-xl text-white">
               <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white">
-                Pro
+                Starter
               </div>
-              <div className="mt-8 text-3xl font-bold">Rp 149.000</div>
-              <p className="mt-4 text-slate-100">Untuk usaha jasa yang sudah berkembang dan ingin lebih banyak kontrol, dukungan multi-cabang, dan insight operasional.</p>
+              <div className="mt-8 text-3xl font-bold">Rp 299.000</div>
+              <p className="mt-4 text-slate-100">Paket awal untuk 1 merchant aktif yang ingin AI menjawab FAQ, cabang, jam buka, dan booking dasar dari satu nomor official.</p>
               <ul className="mt-8 space-y-3 text-slate-100/90">
-                <li>Multi-branch siap pakai</li>
-                <li>Unlimited layanan & durasi</li>
-                <li>Laporan booking dan omzet</li>
-                <li>Prioritas setup dan support</li>
+                <li>1 merchant aktif</li>
+                <li>1-2 cabang</li>
+                <li>AI FAQ + booking flow</li>
+                <li>Reminder otomatis</li>
               </ul>
               <Link
-                href="/register"
+                href="/pricing"
                 className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
               >
-                Upgrade ke Pro
+                Detail Starter
               </Link>
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm opacity-80">
               <div className="inline-flex rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900">
-                Enterprise
+                Growth / Pro
               </div>
-              <div className="mt-8 text-3xl font-bold text-slate-900">Coming Soon</div>
-              <p className="mt-4 text-slate-600">Enterprise akan diluncurkan setelah MVP diuji, dengan AI CS dan custom workflow untuk bisnis dan industri yang lebih kompleks.</p>
+              <div className="mt-8 text-3xl font-bold text-slate-900">Custom</div>
+              <p className="mt-4 text-slate-600">Untuk merchant yang butuh banyak cabang, knowledge khusus, handoff ke admin, dan SLA yang lebih serius.</p>
               <ul className="mt-8 space-y-3 text-slate-600">
-                <li>AI CS / chatbot dukungan pelanggan</li>
-                <li>Custom integrasi dan SLA</li>
-                <li>Pelaporan lanjutan</li>
+                <li>Multi cabang</li>
+                <li>Custom knowledge</li>
+                <li>Human handoff</li>
               </ul>
-              <div className="mt-8 rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 text-center">
-                Tertunda untuk fase berikutnya
-              </div>
+              <Link
+                href="/pricing"
+                className="mt-8 inline-flex w-full items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Buka Detail Pro
+              </Link>
             </div>
+          </div>
+
+          <div className="mt-10 flex flex-col items-center gap-3 text-center">
+            <p className="max-w-2xl text-sm leading-7 text-slate-500">
+              Kalau kamu mau pricing yang lebih tegas untuk market awal, kita bisa mulai dari satu paket berbayar saja, lalu sisanya jadi add-on. Itu biasanya lebih mudah dijual di fase MVP.
+            </p>
+            <Link
+              href="/pricing"
+              className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Buka Draft Pricing Page
+            </Link>
           </div>
         </div>
       </section>
@@ -246,7 +261,7 @@ export default function DynamicLandingPage() {
               Cocok untuk Operasional Barbershop
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-sm text-slate-600 md:text-base">
-              Halaman depan ini tidak lagi menjanjikan semua industri. Kita fokus pada masalah yang paling sering dirasakan owner barbershop saat mengatur booking manual lewat chat.
+              Halaman ini fokus pada masalah paling umum di bisnis jasa: pertanyaan berulang, booking yang berantakan, dan data operasional yang tersebar.
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-12">
@@ -254,37 +269,37 @@ export default function DynamicLandingPage() {
               {
                 name: "Chat Masuk Tidak Berantakan",
                 icon: "✂️",
-                description: "Pelanggan tetap chat lewat WhatsApp, tetapi alurnya diarahkan ke pilihan layanan, tanggal, dan jam yang terstruktur.",
+                description: "Pelanggan tetap chat lewat WhatsApp, tetapi AI membaca konteks merchant lalu memandu ke cabang, layanan, dan jadwal yang tepat.",
                 color: "from-blue-500 to-blue-600",
               },
               {
                 name: "Slot Mengikuti Jam Operasional",
                 icon: "🕒",
-                description: "Pilihan jam otomatis menyesuaikan business hours dan durasi layanan, bukan sekadar slot statis tanpa aturan.",
+                description: "Pilihan jam otomatis menyesuaikan business hours, hari libur, dan durasi layanan yang tersimpan di database.",
                 color: "from-green-500 to-green-600",
               },
               {
                 name: "Layanan Bisa Diatur Owner",
                 icon: "🧾",
-                description: "Owner dapat mengubah nama layanan, harga, dan durasi dari dashboard tanpa sentuh database manual.",
+                description: "Owner dapat mengubah nama layanan, harga, durasi, cabang, dan knowledge tanpa sentuh kode manual.",
                 color: "from-orange-500 to-orange-600",
               },
               {
                 name: "Status Booking Lebih Jelas",
                 icon: "✅",
-                description: "Booking punya status `pending`, `confirmed`, `completed`, dan `cancelled` agar operasional harian lebih mudah dipantau.",
+                description: "Booking tetap punya status yang jelas agar AI tidak melompati aturan operasional atau mengubah data sembarangan.",
                 color: "from-purple-500 to-purple-600",
               },
               {
                 name: "Owner Tetap Pegang Nomor Sendiri",
                 icon: "📲",
-                description: "Bot berjalan di nomor bisnis owner, jadi pelanggan tetap menghubungi channel yang memang sudah mereka kenal.",
+                description: "Kalau nanti dibutuhkan, model dedicated number tetap bisa jadi add-on untuk merchant yang ingin brand sendiri.",
                 color: "from-indigo-500 to-indigo-600",
               },
               {
                 name: "Siap Divalidasi ke Pasar",
                 icon: "🚀",
-                description: "Scope MVP dijaga tetap sempit supaya cepat diuji ke owner barbershop sungguhan sebelum menambah kompleksitas lain.",
+                description: "Scope MVP dijaga tetap sempit supaya cepat diuji ke merchant sungguhan sebelum menambah kompleksitas lain.",
                 color: "from-gray-500 to-gray-600",
               },
             ].map((industry) => (
@@ -401,7 +416,7 @@ export default function DynamicLandingPage() {
               BookLink
             </h3>
             <p className="text-sm text-slate-300 leading-relaxed mb-4">
-              Platform booking untuk semua usaha jasa yang membantu owner memakai nomor WhatsApp bisnis sendiri untuk menerima booking dan mengirim reminder otomatis.
+              AI booking assistant untuk bisnis jasa yang membantu merchant menjawab FAQ, mengelola booking, dan menjaga data operasional tetap rapi.
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-slate-400 hover:text-white transition">📘 Facebook</a>
