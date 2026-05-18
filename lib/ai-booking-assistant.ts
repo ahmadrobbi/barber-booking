@@ -65,26 +65,6 @@ const AssistantResponseSchema = z.object({
   needsHuman: z.boolean().optional(),
 });
 
-const FaqToolDecisionSchema = z.object({
-  mode: z.enum(["direct", "tool", "handoff"]).default("direct"),
-  reply: z.string().default(""),
-  confidence: z.number().min(0).max(1).default(0.5),
-  extractedTopic: z.string().nullable().optional(),
-  toolName: z
-    .enum(["merchant_profile", "branches", "services", "business_hours", "blackout_dates", "booking_state"])
-    .nullable()
-    .optional(),
-  toolQuery: z.string().nullable().optional(),
-  needsHuman: z.boolean().optional(),
-});
-
-const FaqToolReplySchema = z.object({
-  reply: z.string().default(""),
-  confidence: z.number().min(0).max(1).default(0.5),
-  extractedTopic: z.string().nullable().optional(),
-  needsHuman: z.boolean().optional(),
-});
-
 function normalizeText(value: string | null | undefined) {
   return value?.trim() ?? "";
 }
@@ -379,7 +359,6 @@ async function callAiChatCompletion(params: {
       model: params.model ?? config.model,
       temperature: params.temperature ?? 0,
       max_tokens: params.max_tokens ?? 512,
-      response_format: { type: "json_object" },
       messages: params.messages,
     }),
   });
@@ -491,6 +470,33 @@ export async function generateAiAssistantDecision(params: {
   }
 }
 
+function pickFaqToolFromMessage(message: string, bookingStateSummary?: string | null): AiFaqToolName {
+  const normalized = message.toLowerCase();
+  const bookingState = bookingStateSummary?.toLowerCase() ?? "";
+
+  if (/(status booking|booking status|status|riwayat booking|booking saya|konfirmasi)/i.test(normalized) || bookingState.includes("step: konfirmasi")) {
+    return "booking_state";
+  }
+
+  if (/(jam buka|buka hari ini|hari ini buka|jadwal buka|jam operasional|operasional)/i.test(normalized)) {
+    return "business_hours";
+  }
+
+  if (/(libur|cuti|tutup|blackout|tanggal merah|hari libur)/i.test(normalized)) {
+    return "blackout_dates";
+  }
+
+  if (/(cabang|alamat|lokasi|di mana|dimana|peta|telepon|no wa cabang)/i.test(normalized)) {
+    return "branches";
+  }
+
+  if (/(harga|biaya|durasi|lama|layanan|service|menu)/i.test(normalized)) {
+    return "services";
+  }
+
+  return "merchant_profile";
+}
+
 function summarizeFaqTool(
   context: AiAssistantContext,
   toolName: AiFaqToolName,
@@ -521,50 +527,6 @@ function summarizeFaqTool(
   }
 }
 
-function buildFaqToolSelectionPrompt(params: {
-  context: AiAssistantContext;
-  message: string;
-  bookingStateSummary?: string | null;
-}) {
-  const system = [
-    "Kamu adalah BookLink AI assistant untuk menjawab pertanyaan merchant.",
-    "Tugasmu memilih jawaban langsung atau memilih data tool yang paling relevan.",
-    "Gunakan bahasa Indonesia yang singkat, jelas, dan ramah.",
-    "Kalau user jelas ingin booking, pilih mode direct dengan reply singkat yang mengarahkan booking, atau mode handoff bila perlu.",
-    "Kalau pertanyaan membahas merchant, cabang, layanan, jam buka, libur, atau status booking, pilih mode tool.",
-    "Balas hanya JSON valid tanpa markdown, tanpa code fence, tanpa komentar.",
-    "Schema JSON:",
-    `{
-      "mode": "direct | tool | handoff",
-      "reply": "string",
-      "confidence": 0.0,
-      "extractedTopic": "string|null",
-      "toolName": "merchant_profile | branches | services | business_hours | blackout_dates | booking_state | null",
-      "toolQuery": "string|null",
-      "needsHuman": false
-    }`,
-  ].join("\n");
-
-  const user = {
-    merchant: {
-      name: params.context.businessName,
-      description: params.context.businessDescription,
-    },
-    question: params.message,
-    bookingStateSummary: params.bookingStateSummary ?? null,
-    availableTools: [
-      "merchant_profile: profil bisnis, kontak, website, sosial media",
-      "branches: daftar cabang, alamat, telepon, kode cabang",
-      "services: daftar layanan, harga, durasi",
-      "business_hours: jam operasional per hari",
-      "blackout_dates: tanggal libur atau blackout aktif",
-      "booking_state: status booking yang sedang berjalan",
-    ],
-  };
-
-  return { system, user };
-}
-
 function buildFaqToolAnswerPrompt(params: {
   context: AiAssistantContext;
   message: string;
@@ -575,16 +537,8 @@ function buildFaqToolAnswerPrompt(params: {
   const system = [
     "Kamu adalah BookLink AI assistant.",
     "Gunakan hanya data tool result dan konteks merchant.",
-    "Jawab singkat, akurat, dan membantu.",
-    "Kalau data masih kurang, minta klarifikasi atau arahkan ke admin secara sopan.",
-    "Balas hanya JSON valid tanpa markdown, tanpa code fence, tanpa komentar.",
-    "Schema JSON:",
-    `{
-      "reply": "string",
-      "confidence": 0.0,
-      "extractedTopic": "string|null",
-      "needsHuman": false
-    }`,
+    "Jawab singkat, akurat, dan membantu dalam bahasa Indonesia.",
+    "Balas hanya teks biasa tanpa markdown, tanpa JSON, tanpa code fence.",
   ].join("\n");
 
   const user = {
@@ -609,54 +563,7 @@ export async function generateAiFaqReply(params: {
   bookingStateSummary?: string | null;
 }): Promise<AiBookingAssistantDecision | null> {
   try {
-    const selectionContent = await callAiChatCompletion({
-      messages: [
-        {
-          role: "system",
-          content: buildFaqToolSelectionPrompt(params).system,
-        },
-        {
-          role: "user",
-          content: JSON.stringify(buildFaqToolSelectionPrompt(params).user),
-        },
-      ],
-    });
-
-    if (!selectionContent) {
-      return null;
-    }
-
-    const selectionJson = extractJsonObject(selectionContent);
-
-    if (!selectionJson) {
-      throw new Error("FAQ tool selection did not contain valid JSON.");
-    }
-
-    const selection = FaqToolDecisionSchema.parse(JSON.parse(selectionJson));
-
-    if (selection.mode === "handoff") {
-      return {
-        intent: "handoff",
-        reply: selection.reply.trim(),
-        confidence: selection.confidence,
-        extractedTopic: selection.extractedTopic ?? null,
-        shouldStartBooking: false,
-        needsHuman: selection.needsHuman ?? true,
-      };
-    }
-
-    if (selection.mode === "direct") {
-      return {
-        intent: "faq",
-        reply: selection.reply.trim(),
-        confidence: selection.confidence,
-        extractedTopic: selection.extractedTopic ?? null,
-        shouldStartBooking: false,
-        needsHuman: selection.needsHuman ?? false,
-      };
-    }
-
-    const toolName = selection.toolName ?? "merchant_profile";
+    const toolName = pickFaqToolFromMessage(params.message, params.bookingStateSummary);
     const toolResult = summarizeFaqTool(params.context, toolName, params.bookingStateSummary);
     const answerPrompt = buildFaqToolAnswerPrompt({
       context: params.context,
@@ -673,28 +580,61 @@ export async function generateAiFaqReply(params: {
       ],
     });
 
+    console.log("[whatsapp-webhook][ai-faq] selection", {
+      toolName,
+      messagePreview: params.message.slice(0, 120),
+      bookingStatePreview: params.bookingStateSummary?.slice(0, 120) ?? null,
+    });
+
     if (!answerContent) {
-      return null;
+      console.log("[whatsapp-webhook][ai-faq] answer", {
+        toolName,
+        answerPreview: toolResult.slice(0, 200),
+        confidence: 0.5,
+      });
+
+      return {
+        intent: "faq",
+        reply: toolResult,
+        confidence: 0.5,
+        extractedTopic: toolName,
+        shouldStartBooking: false,
+        needsHuman: false,
+      };
     }
 
-    const answerJson = extractJsonObject(answerContent);
-
-    if (!answerJson) {
-      throw new Error("FAQ tool answer did not contain valid JSON.");
-    }
-
-    const answer = FaqToolReplySchema.parse(JSON.parse(answerJson));
+    console.log("[whatsapp-webhook][ai-faq] answer", {
+      toolName,
+      answerPreview: answerContent.trim().slice(0, 200),
+      confidence: 0.8,
+    });
 
     return {
       intent: "faq",
-      reply: answer.reply.trim(),
-      confidence: answer.confidence,
-      extractedTopic: answer.extractedTopic ?? selection.extractedTopic ?? null,
+      reply: answerContent.trim(),
+      confidence: 0.8,
+      extractedTopic: toolName,
       shouldStartBooking: false,
-      needsHuman: answer.needsHuman ?? selection.needsHuman ?? false,
+      needsHuman: false,
     };
   } catch (error) {
     console.warn("AI FAQ reply failed:", error);
-    return null;
+    const toolName = pickFaqToolFromMessage(params.message, params.bookingStateSummary);
+    const fallbackReply = summarizeFaqTool(params.context, toolName, params.bookingStateSummary);
+
+    console.log("[whatsapp-webhook][ai-faq] answer", {
+      toolName,
+      answerPreview: fallbackReply.slice(0, 200),
+      confidence: 0.5,
+    });
+
+    return {
+      intent: "faq",
+      reply: fallbackReply,
+      confidence: 0.5,
+      extractedTopic: toolName,
+      shouldStartBooking: false,
+      needsHuman: false,
+    };
   }
 }

@@ -794,6 +794,20 @@ async function getAiFallbackReply(params: {
     return null;
   }
 
+  if (isLikelyFaqMessage(params.rawMessage)) {
+    const richFaqReply = await getRichFaqReply({
+      context: params.context,
+      industry: params.industry,
+      rawMessage: params.rawMessage,
+      tenantServices: params.tenantServices,
+      branches: params.branches,
+    });
+
+    if (richFaqReply?.reply) {
+      return richFaqReply.reply;
+    }
+  }
+
   const aiContext = await buildAiAssistantContext({
     userId: params.context.userId,
     industry: params.industry,
