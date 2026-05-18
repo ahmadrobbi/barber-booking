@@ -124,7 +124,7 @@ function isLikelyFaqMessage(message: string) {
     return true;
   }
 
-  return /(\bberapa\b|\balamat\b|\bcabang\b|\blokasi\b|\bharga\b|\blibur\b|\bjam buka\b|\bkontak\b|\bwa\b|\bwhatsapp\b|\binstagram\b|\bpromo\b|\bdurasi\b|\bjadwal\b|\breschedule\b|\bbatal\b)/i.test(normalized);
+  return /(\bberapa\b|\balamat\b|\bcabang\b|\blokasi\b|\bharga\b|\blibur\b|\bjam buka\b|\bjam operasional\b|\bkontak\b|\bwa\b|\bwhatsapp\b|\binstagram\b|\bpromo\b|\bdurasi\b|\bjadwal\b|\breschedule\b|\blayanan\b|\bservice\b|\bmenu\b|\bpunya\b|\bapa saja\b)/i.test(normalized);
 }
 
 function withCancelHint(message: string) {
@@ -1243,10 +1243,25 @@ export async function POST(req: Request) {
     tenantServices.find((service) => service.name === serviceName)?.duration_minutes ?? 60;
   let reply = "";
 
-  if (state && isCancelMessage(message)) {
+  if (isLikelyFaqMessage(rawMessage)) {
+    const faqReply = await getAiFallbackReply({
+      sender,
+      context,
+      industry,
+      tenantServices,
+      branches,
+      rawMessage,
+    });
+
+    if (faqReply) {
+      reply = faqReply;
+    }
+  }
+
+  if (!reply && state && isCancelMessage(message)) {
     await clearState(sender, context.channelId);
     reply = templates.cancelMessage;
-  } else if (state && isContinueMessage(message)) {
+  } else if (!reply && state && isContinueMessage(message)) {
     reply = await buildCurrentStepReply({
       state,
       context,
@@ -1257,7 +1272,7 @@ export async function POST(req: Request) {
       scope,
       industry,
     });
-  } else if (message === "halo" || message === "menu" || message === "booking") {
+  } else if (!reply && (message === "halo" || message === "menu" || message === "booking")) {
     reply = await resetToGreetingState({
       sender,
       context,
@@ -1266,6 +1281,7 @@ export async function POST(req: Request) {
       branches,
     });
   } else if (
+    !reply &&
     state &&
     branches.length > 0 &&
     ["cabang", "pilih cabang", "ganti cabang", "ubah cabang"].includes(message)
@@ -1286,6 +1302,7 @@ export async function POST(req: Request) {
 
     reply = withCancelHint(buildBranchSelectionMessage(context, branches));
   } else if (
+    !reply &&
     ["industri", "pilih industri", "ganti industri", "ubah industri"].includes(message)
   ) {
     await saveState({
@@ -1298,7 +1315,7 @@ export async function POST(req: Request) {
     });
 
     reply = withCancelHint(`Pilih industri:\n${industryPrompt}\n\nBalas dengan nomor atau nama industri.`);
-  } else if (state?.step === "pilih_industri") {
+  } else if (!reply && state?.step === "pilih_industri") {
     const selectedIndustry = getIndustryBySelection(message);
 
     if (!selectedIndustry) {
@@ -1331,7 +1348,7 @@ export async function POST(req: Request) {
         })
       );
     }
-  } else if (state?.step === "pilih_cabang") {
+  } else if (!reply && state?.step === "pilih_cabang") {
     const selectedBranch = getBranchBySelection(message, branches);
 
     if (!selectedBranch) {
@@ -1372,7 +1389,7 @@ export async function POST(req: Request) {
           })
       );
     }
-  } else if (!state) {
+  } else if (!reply && !state) {
     reply =
       (await getAiFallbackReply({
         sender,
@@ -1389,17 +1406,18 @@ export async function POST(req: Request) {
         tenantServices,
         branches,
       }));
-  } else if (state.step === "pilih_layanan") {
+  } else if (!reply && state?.step === "pilih_layanan") {
+    const bookingState = state;
     const industryServices = tenantServices;
     const service = getServiceBySelection(message, industryServices);
-    const selectedBranch = getSelectedBranch(branches, state.branch_id);
+    const selectedBranch = getSelectedBranch(branches, bookingState.branch_id);
 
     if (!service) {
       const faqReply = await maybeGetInFlowFaqReply({
         context,
         industry,
         rawMessage,
-        state,
+        state: bookingState,
         tenantServices,
         branches,
       });
@@ -1424,15 +1442,15 @@ export async function POST(req: Request) {
           "Maaf, belum ada tanggal yang tersedia dalam beberapa hari ke depan. " +
           "Silakan hubungi admin untuk penjadwalan manual ya 🙏";
       } else {
-      await saveState({
-        sender,
-        channel_id: context.channelId,
-        user_id: context.userId,
-        step: "pilih_tanggal",
-        customer_name: null,
-        layanan: service.name,
-        harga: service.price,
-        industry,
+        await saveState({
+          sender,
+          channel_id: context.channelId,
+          user_id: context.userId,
+          step: "pilih_tanggal",
+          customer_name: null,
+          layanan: service.name,
+          harga: service.price,
+          industry,
         });
 
         reply = withCancelHint(
@@ -1445,22 +1463,23 @@ export async function POST(req: Request) {
         );
       }
     }
-  } else if (state.step === "pilih_tanggal") {
+  } else if (!reply && state?.step === "pilih_tanggal") {
+    const bookingState = state;
     const dateOptions = await getAvailableDateOptions({
       baseDate: today,
       industry,
       scope,
-      durationMinutes: getServiceDuration(state?.layanan),
+      durationMinutes: getServiceDuration(bookingState.layanan),
     });
     const selectedDate = getDateBySelection(message, dateOptions);
-    const selectedBranch = getSelectedBranch(branches, state.branch_id);
+    const selectedBranch = getSelectedBranch(branches, bookingState.branch_id);
 
     if (!selectedDate) {
       const faqReply = await maybeGetInFlowFaqReply({
         context,
         industry,
         rawMessage,
-        state,
+        state: bookingState,
         tenantServices,
         branches,
       });
@@ -1479,7 +1498,7 @@ export async function POST(req: Request) {
         selectedDate.key,
         industry,
         scope,
-        getServiceDuration(state?.layanan)
+        getServiceDuration(bookingState.layanan)
       );
 
       if (slots.length === 0) {
@@ -1487,7 +1506,7 @@ export async function POST(req: Request) {
           baseDate: today,
           industry,
           scope,
-          durationMinutes: getServiceDuration(state?.layanan),
+          durationMinutes: getServiceDuration(bookingState.layanan),
         });
 
         reply =
@@ -1514,22 +1533,23 @@ export async function POST(req: Request) {
         );
       }
     }
-  } else if (state.step === "pilih_jam") {
-    if (!state.tanggal) {
+  } else if (!reply && state?.step === "pilih_jam") {
+    const bookingState = state;
+    if (!bookingState.tanggal) {
       await clearState(sender, context.channelId);
       reply = "Sesi booking kamu sudah kedaluwarsa. Ketik *halo* untuk mulai lagi.";
     } else {
-      const durationMinutes = getServiceDuration(state.layanan);
-      const slots = await getAvailableSlots(state.tanggal, industry, scope, durationMinutes);
+      const durationMinutes = getServiceDuration(bookingState.layanan);
+      const slots = await getAvailableSlots(bookingState.tanggal, industry, scope, durationMinutes);
       const selectedSlot = getSlotBySelection(message, slots);
-      const selectedBranch = getSelectedBranch(branches, state.branch_id);
+      const selectedBranch = getSelectedBranch(branches, bookingState.branch_id);
 
       if (!selectedSlot) {
         const faqReply = await maybeGetInFlowFaqReply({
           context,
           industry,
           rawMessage,
-          state,
+          state: bookingState,
           tenantServices,
           branches,
         });
@@ -1542,7 +1562,7 @@ export async function POST(req: Request) {
               `${templates.invalidOptionMessage}\n\n${getSlotOptionsText(slots)}`
           );
       } else if (!(await isSlotAvailable({
-        date: state.tanggal,
+        date: bookingState.tanggal,
         time: selectedSlot,
         industry,
         durationMinutes,
@@ -1553,7 +1573,7 @@ export async function POST(req: Request) {
         reply =
           "Jam tersebut baru saja terisi. Pilih jam lain ya 🙏\n\n" +
           getSlotOptionsText(
-            await getAvailableSlots(state.tanggal, industry, scope, durationMinutes)
+            await getAvailableSlots(bookingState.tanggal, industry, scope, durationMinutes)
           ) +
           "\n\nKetik *BATAL* kalau mau berhenti.";
       } else {
@@ -1567,12 +1587,13 @@ export async function POST(req: Request) {
         });
 
         reply =
-          `Sip, jam *${selectedSlot}* masih tersedia untuk *${state.layanan}*.\n\n` +
+          `Sip, jam *${selectedSlot}* masih tersedia untuk *${bookingState.layanan}*.\n\n` +
           "Sekarang balas dengan *nama pemesan* untuk melanjutkan booking ya 🙌\n\n" +
           "Ketik *BATAL* kalau mau berhenti.";
       }
     }
-  } else if (state.step === "isi_nama") {
+  } else if (!reply && state?.step === "isi_nama") {
+    const bookingState = state;
     const customerName = normalizeCustomerName(rawMessage);
 
     if (!customerName || customerName.length < 2) {
@@ -1580,7 +1601,7 @@ export async function POST(req: Request) {
         context,
         industry,
         rawMessage,
-        state,
+        state: bookingState,
         tenantServices,
         branches,
       });
@@ -1588,25 +1609,25 @@ export async function POST(req: Request) {
       reply =
         faqReply ||
         "Kita masih di langkah isi nama.\n\n" +
-        `${getSelectedBranch(branches, state.branch_id) ? `Cabang: *${getSelectedBranch(branches, state.branch_id)?.name ?? "-"}*\n` : ""}` +
+        `${getSelectedBranch(branches, bookingState.branch_id) ? `Cabang: *${getSelectedBranch(branches, bookingState.branch_id)?.name ?? "-"}*\n` : ""}` +
         "Nama pemesan minimal 2 karakter. Balas dengan nama yang benar ya 🙌\n\n" +
         "Ketik *BATAL* kalau mau berhenti.";
     } else {
       const confirmationSummary = renderTemplate(templates.confirmationPrompt, {
         business_name: context.businessName,
         customer_name: customerName,
-        layanan: state.layanan,
-        tanggal_label: state.tanggal ? formatBookingDateLabel(state.tanggal) : "-",
-        jam: state.jam,
-        harga: formatRupiah(state.harga),
-        branch_name: getSelectedBranch(branches, state.branch_id)?.name,
+        layanan: bookingState.layanan,
+        tanggal_label: bookingState.tanggal ? formatBookingDateLabel(bookingState.tanggal) : "-",
+        jam: bookingState.jam,
+        harga: formatRupiah(bookingState.harga),
+        branch_name: getSelectedBranch(branches, bookingState.branch_id)?.name,
       });
 
       await saveState({
         sender,
         channel_id: context.channelId,
         user_id: context.userId,
-        branch_id: state.branch_id ?? null,
+        branch_id: bookingState.branch_id ?? null,
         step: "konfirmasi",
         customer_name: customerName,
         industry,
@@ -1614,38 +1635,39 @@ export async function POST(req: Request) {
 
       reply =
         `${confirmationSummary}\n\n` +
-        `${getSelectedBranch(branches, state.branch_id) ? `📍 Cabang: ${getSelectedBranch(branches, state.branch_id)?.name ?? "-"}\n` : ""}` +
+        `${getSelectedBranch(branches, bookingState.branch_id) ? `📍 Cabang: ${getSelectedBranch(branches, bookingState.branch_id)?.name ?? "-"}\n` : ""}` +
         `🙍 Nama pemesan: ${customerName}\n\n` +
         "Balas *YA* untuk konfirmasi atau *BATAL* untuk mengulang.";
     }
-  } else if (state.step === "konfirmasi") {
+  } else if (!reply && state?.step === "konfirmasi") {
+    const bookingState = state;
     if (message === "ya") {
-      if (!state.tanggal || !state.jam || !state.customer_name) {
+      if (!bookingState.tanggal || !bookingState.jam || !bookingState.customer_name) {
         await clearState(sender, context.channelId);
         reply = "Sesi booking kamu sudah kedaluwarsa. Ketik *halo* untuk mulai lagi.";
       } else if (!(await isSlotAvailable({
-        date: state.tanggal,
-        time: state.jam,
+        date: bookingState.tanggal,
+        time: bookingState.jam,
         industry,
-        durationMinutes: getServiceDuration(state.layanan),
+        durationMinutes: getServiceDuration(bookingState.layanan),
         userId: scope.userId,
         channelId: scope.channelId,
         branchId: scope.branchId,
       }))) {
         reply = "❌ Slot sudah diambil pelanggan lain. Ketik *halo* untuk mulai pilih ulang ya.";
       } else {
-        const durationMinutes = getServiceDuration(state.layanan);
-        const selectedService = tenantServices.find((service) => service.name === state.layanan);
+        const durationMinutes = getServiceDuration(bookingState.layanan);
+        const selectedService = tenantServices.find((service) => service.name === bookingState.layanan);
         const { error: bookingInsertError } = await getSupabase().from("bookings").insert([
           {
             sender,
-            customer_name: state.customer_name,
-            branch_id: state.branch_id,
-            layanan: state.layanan,
+            customer_name: bookingState.customer_name,
+            branch_id: bookingState.branch_id,
+            layanan: bookingState.layanan,
             service_codes: selectedService ? [selectedService.code] : [],
-            harga: state.harga,
-            tanggal: state.tanggal,
-            jam: state.jam,
+            harga: bookingState.harga,
+            tanggal: bookingState.tanggal,
+            jam: bookingState.jam,
             duration_minutes: durationMinutes,
             status: "confirmed",
             industry,
@@ -1677,11 +1699,11 @@ export async function POST(req: Request) {
 
         reply = renderTemplate(templates.successMessage, {
           business_name: context.businessName,
-          customer_name: state.customer_name,
-          layanan: state.layanan,
-          tanggal_label: formatBookingDateLabel(state.tanggal),
-          jam: state.jam,
-          branch_name: getSelectedBranch(branches, state.branch_id)?.name,
+          customer_name: bookingState.customer_name,
+          layanan: bookingState.layanan,
+          tanggal_label: formatBookingDateLabel(bookingState.tanggal),
+          jam: bookingState.jam,
+          branch_name: getSelectedBranch(branches, bookingState.branch_id)?.name,
         });
       }
     } else if (message === "batal") {
@@ -1692,7 +1714,7 @@ export async function POST(req: Request) {
         context,
         industry,
         rawMessage,
-        state,
+        state: bookingState,
         tenantServices,
         branches,
       });
