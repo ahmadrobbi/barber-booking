@@ -803,9 +803,7 @@ async function getAiFallbackReply(params: {
       branches: params.branches,
     });
 
-    if (richFaqReply?.reply) {
-      return richFaqReply.reply;
-    }
+    return richFaqReply?.reply ?? null;
   }
 
   const aiContext = await buildAiAssistantContext({
