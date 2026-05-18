@@ -304,14 +304,57 @@ function extractJsonObject(content: string) {
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
   const candidate = fencedMatch ? fencedMatch[1].trim() : trimmed;
 
-  const firstBrace = candidate.indexOf("{");
-  const lastBrace = candidate.lastIndexOf("}");
+  let startIndex = -1;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
 
-  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
-    return null;
+  for (let index = 0; index < candidate.length; index += 1) {
+    const char = candidate[index];
+
+    if (startIndex === -1) {
+      if (char === "{") {
+        startIndex = index;
+        depth = 1;
+      }
+
+      continue;
+    }
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\" && inString) {
+      escaped = true;
+      continue;
+    }
+
+    if (char === "\"") {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) {
+      continue;
+    }
+
+    if (char === "{") {
+      depth += 1;
+      continue;
+    }
+
+    if (char === "}") {
+      depth -= 1;
+
+      if (depth === 0) {
+        return candidate.slice(startIndex, index + 1);
+      }
+    }
   }
 
-  return candidate.slice(firstBrace, lastBrace + 1);
+  return null;
 }
 
 async function callAiChatCompletion(params: {
