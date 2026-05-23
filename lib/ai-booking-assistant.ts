@@ -77,7 +77,6 @@ type KnowledgeMatch = {
 const DEFAULT_AI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/";
 const DEFAULT_AI_MODEL = "gemma-4-26b-a4b-it";
 const ASSISTANT_CONTEXT_CACHE_TTL_MS = 5 * 60 * 1000;
-const KNOWLEDGE_CACHE_TTL_MS = 60 * 1000;
 const AI_ROUTER_TIMEOUT_MS = 1800;
 const AI_FAQ_TIMEOUT_MS = 2500;
 
@@ -340,22 +339,20 @@ async function loadMerchantProfile(userId: string) {
 }
 
 async function loadMerchantKnowledge(userId: string) {
-  return getCachedAsync(merchantKnowledgeCache, userId, KNOWLEDGE_CACHE_TTL_MS, async () => {
-    const supabase = createAdminSupabase();
-    const { data, error } = await supabase
-      .from("user_knowledge_entries")
-      .select("id, title, question, answer, tags, category, priority, source, is_active, updated_at")
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .order("priority", { ascending: false })
-      .order("updated_at", { ascending: false });
+  const supabase = createAdminSupabase();
+  const { data, error } = await supabase
+    .from("user_knowledge_entries")
+    .select("id, title, question, answer, tags, category, priority, source, is_active, updated_at")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .order("priority", { ascending: false })
+    .order("updated_at", { ascending: false });
 
-    if (error && error.code !== "42P01") {
-      throw new Error(error.message);
-    }
+  if (error && error.code !== "42P01") {
+    throw new Error(error.message);
+  }
 
-    return (data ?? []) as MerchantKnowledgeRow[];
-  });
+  return (data ?? []) as MerchantKnowledgeRow[];
 }
 
 export async function buildAiAssistantContext(params: {
