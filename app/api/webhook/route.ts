@@ -15,6 +15,7 @@ import {
   buildAiAssistantContext,
   generateKnowledgePriorityFaqReply,
   generateAiAssistantDecision,
+  generateAiFaqReply,
 } from "@/lib/ai-booking-assistant";
 import { getAvailableSlotsForDate, isSlotAvailable } from "@/lib/scheduling";
 import { createAdminSupabase } from "@/lib/supabase";
@@ -775,7 +776,19 @@ async function getRichFaqReply(params: {
     return knowledgeFirstReply;
   }
 
-  return null;
+  return generateAiFaqReply({
+    context: aiContext,
+    message: params.rawMessage,
+    sender: params.sender,
+    messageId: params.messageId,
+    bookingStateSummary: params.state
+      ? buildBookingStateSummary({
+          state: params.state,
+          branches: params.branches,
+          tenantServices: params.tenantServices,
+        })
+      : null,
+  });
 }
 
 async function maybeGetInFlowFaqReply(params: {
