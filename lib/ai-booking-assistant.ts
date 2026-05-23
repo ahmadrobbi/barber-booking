@@ -29,6 +29,7 @@ export type AiBookingAssistantDecision = {
   extractedTopic?: string | null;
   shouldStartBooking?: boolean;
   needsHuman?: boolean;
+  replySource?: "knowledge" | "ai" | "deterministic" | "fallback";
 };
 
 export type AiFaqToolName =
@@ -625,6 +626,7 @@ export async function generateKnowledgePriorityFaqReply(params: {
       extractedTopic: null,
       shouldStartBooking: false,
       needsHuman: false,
+      replySource: "knowledge",
     };
   } catch (error) {
     console.warn("Knowledge-first FAQ reply failed:", error);
@@ -1130,6 +1132,7 @@ export async function generateAiFaqReply(params: {
         toolName,
         answerPreview: reply.slice(0, 200),
         confidence: topKnowledgeMatch.score,
+        selectedReplySource: "knowledge",
       });
 
       return {
@@ -1139,6 +1142,7 @@ export async function generateAiFaqReply(params: {
         extractedTopic: toolName,
         shouldStartBooking: false,
         needsHuman: false,
+        replySource: "knowledge",
       };
     }
 
@@ -1172,6 +1176,7 @@ export async function generateAiFaqReply(params: {
         toolName,
         answerPreview: reply.slice(0, 200),
         confidence: retrieval.matches[0]?.score ?? 0.5,
+        selectedReplySource: "deterministic",
       });
 
       return {
@@ -1181,6 +1186,7 @@ export async function generateAiFaqReply(params: {
         extractedTopic: toolName,
         shouldStartBooking: false,
         needsHuman: false,
+        replySource: "deterministic",
       };
     }
 
@@ -1236,6 +1242,8 @@ export async function generateAiFaqReply(params: {
       toolName,
       answerPreview: reply.slice(0, 200),
       confidence: retrieval.matches[0]?.score ?? 0.5,
+      selectedReplySource: parsedReply?.success ? "ai" : "deterministic",
+      model: parsedReply?.success ? getAiConfig().model : null,
     });
 
     return {
@@ -1245,6 +1253,7 @@ export async function generateAiFaqReply(params: {
       extractedTopic: toolName,
       shouldStartBooking: false,
       needsHuman: false,
+      replySource: parsedReply?.success ? "ai" : "deterministic",
     };
   } catch (error) {
     console.warn("AI FAQ reply failed:", error);
@@ -1279,6 +1288,7 @@ export async function generateAiFaqReply(params: {
       toolName,
       answerPreview: fallbackReply.slice(0, 200),
       confidence: 0.5,
+      selectedReplySource: "fallback",
     });
 
     return {
@@ -1288,6 +1298,7 @@ export async function generateAiFaqReply(params: {
       extractedTopic: toolName,
       shouldStartBooking: false,
       needsHuman: false,
+      replySource: "fallback",
     };
   }
 }
