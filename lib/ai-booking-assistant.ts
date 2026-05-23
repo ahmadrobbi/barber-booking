@@ -985,6 +985,7 @@ export async function generateAiFaqReply(params: {
       message: params.message,
       limit: 3,
     });
+    const topKnowledgeMatch = retrieval.matches[0] ?? null;
     const toolResult = summarizeFaqTool(params.context, toolName, params.bookingStateSummary);
     const deterministicReply = getDeterministicFaqAnswer({
       context: params.context,
@@ -1000,10 +1001,50 @@ export async function generateAiFaqReply(params: {
       topKnowledgeScore: retrieval.matches[0]?.score ?? null,
     });
 
+    if (topKnowledgeMatch && topKnowledgeMatch.score >= 0.58) {
+      const reply = topKnowledgeMatch.row.answer.trim();
+
+      await recordChatbotAiEvent({
+        userId: params.context.userId,
+        channelId: params.context.channelId,
+        sender: params.sender ?? null,
+        messageId: params.messageId ?? null,
+        route: "faq",
+        intent: "faq",
+        confidence: topKnowledgeMatch.score,
+        model: null,
+        knowledgeHitCount: retrieval.matches.length,
+        retrievalMs: retrieval.retrievalMs,
+        aiMs: 0,
+        totalMs: Date.now() - startedAt,
+        fallbackUsed: false,
+        error: null,
+        metadata: {
+          toolName,
+          messagePreview: params.message.slice(0, 120),
+          knowledgeReasons: retrieval.matches.map((match) => match.reason),
+          selectedReplySource: "knowledge",
+        },
+      });
+
+      console.log("[whatsapp-webhook][ai-faq] answer", {
+        toolName,
+        answerPreview: reply.slice(0, 200),
+        confidence: topKnowledgeMatch.score,
+      });
+
+      return {
+        intent: "faq",
+        reply,
+        confidence: topKnowledgeMatch.score,
+        extractedTopic: toolName,
+        shouldStartBooking: false,
+        needsHuman: false,
+      };
+    }
+
     if (!shouldUseAiForFaq(params.message, retrieval.matches)) {
-      const reply = retrieval.matches[0]?.score >= 0.88
-        ? retrieval.matches[0].row.answer.trim()
-        : deterministicReply;
+      const reply = deterministicReply;
 
       await recordChatbotAiEvent({
         userId: params.context.userId,
@@ -1024,7 +1065,7 @@ export async function generateAiFaqReply(params: {
           toolName,
           messagePreview: params.message.slice(0, 120),
           knowledgeReasons: retrieval.matches.map((match) => match.reason),
-          selectedReplySource: retrieval.matches[0]?.score >= 0.88 ? "knowledge" : "deterministic",
+          selectedReplySource: "deterministic",
         },
       });
 
