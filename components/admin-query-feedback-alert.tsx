@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 type AdminQueryFeedbackAlertProps = {
@@ -13,8 +12,6 @@ export function AdminQueryFeedbackAlert({
   successMessage,
   errorMessage,
 }: AdminQueryFeedbackAlertProps) {
-  const router = useRouter();
-  const pathname = usePathname();
   const hasShownRef = useRef(false);
 
   useEffect(() => {
@@ -33,9 +30,13 @@ export function AdminQueryFeedbackAlert({
       confirmButtonText: "Oke",
       confirmButtonColor: successMessage ? "#111827" : "#dc2626",
     }).then(() => {
-      router.replace(pathname);
+      if (typeof window !== "undefined") {
+        const nextUrl = new URL(window.location.href);
+        nextUrl.search = "";
+        window.history.replaceState({}, "", nextUrl.toString());
+      }
     });
-  }, [errorMessage, pathname, router, successMessage]);
+  }, [errorMessage, successMessage]);
 
   return null;
 }
