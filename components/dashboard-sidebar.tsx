@@ -204,6 +204,24 @@ export function DashboardSidebar({
               <span className="font-medium">Layanan</span>
             </Link>
             <Link
+              href="/admin/settings/knowledge"
+              onClick={onNavigate}
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${
+                pathname === "/admin/settings/knowledge"
+                  ? "bg-amber-300 text-stone-950"
+                  : "text-white/75 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
+                  pathname === "/admin/settings/knowledge" ? "bg-stone-950/10" : "bg-white/5"
+                }`}
+              >
+                KB
+              </span>
+              <span className="font-medium">Knowledge AI</span>
+            </Link>
+            <Link
               href="/admin/settings/branches"
               onClick={onNavigate}
               className={`flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-3 transition ${

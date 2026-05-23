@@ -735,19 +735,26 @@ async function getRichFaqReply(params: {
   state?: SessionState | null;
   tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
   branches: UserBranch[];
+  sender: string;
+  messageId: string | null;
 }) {
   if (!params.context.userId) {
     return null;
   }
 
   const aiContext = await buildAiAssistantContext({
+    channelId: params.context.channelId,
     userId: params.context.userId,
     industry: params.industry,
+    branches: params.branches,
+    services: params.tenantServices,
   });
 
   return generateAiFaqReply({
     context: aiContext,
     message: params.rawMessage,
+    sender: params.sender,
+    messageId: params.messageId,
     bookingStateSummary: params.state
       ? buildBookingStateSummary({
           state: params.state,
@@ -765,6 +772,8 @@ async function maybeGetInFlowFaqReply(params: {
   state: SessionState;
   tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
   branches: UserBranch[];
+  sender: string;
+  messageId: string | null;
 }) {
   if (!isLikelyFaqMessage(params.rawMessage)) {
     return null;
@@ -777,6 +786,8 @@ async function maybeGetInFlowFaqReply(params: {
     state: params.state,
     tenantServices: params.tenantServices,
     branches: params.branches,
+    sender: params.sender,
+    messageId: params.messageId,
   });
 
   return richFaqReply?.reply ?? null;
@@ -789,6 +800,7 @@ async function getAiFallbackReply(params: {
   tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
   branches: UserBranch[];
   rawMessage: string;
+  messageId: string | null;
 }) {
   if (!params.context.userId) {
     return null;
@@ -801,18 +813,25 @@ async function getAiFallbackReply(params: {
       rawMessage: params.rawMessage,
       tenantServices: params.tenantServices,
       branches: params.branches,
+      sender: params.sender,
+      messageId: params.messageId,
     });
 
     return richFaqReply?.reply ?? null;
   }
 
   const aiContext = await buildAiAssistantContext({
+    channelId: params.context.channelId,
     userId: params.context.userId,
     industry: params.industry,
+    branches: params.branches,
+    services: params.tenantServices,
   });
   const decision = await generateAiAssistantDecision({
     context: aiContext,
     message: params.rawMessage,
+    sender: params.sender,
+    messageId: params.messageId,
   });
 
   if (!decision) {
@@ -826,6 +845,8 @@ async function getAiFallbackReply(params: {
       rawMessage: params.rawMessage,
       tenantServices: params.tenantServices,
       branches: params.branches,
+      sender: params.sender,
+      messageId: params.messageId,
     });
 
     return richFaqReply?.reply || decision.reply;
@@ -1249,6 +1270,7 @@ export async function POST(req: Request) {
       tenantServices,
       branches,
       rawMessage,
+      messageId,
     });
 
     if (faqReply) {
@@ -1357,6 +1379,8 @@ export async function POST(req: Request) {
         state,
         tenantServices,
         branches,
+        sender,
+        messageId,
       });
 
       reply =
@@ -1396,6 +1420,7 @@ export async function POST(req: Request) {
         tenantServices,
         branches,
         rawMessage,
+        messageId,
       })) ??
       (await resetToGreetingState({
         sender,
@@ -1418,6 +1443,8 @@ export async function POST(req: Request) {
         state: bookingState,
         tenantServices,
         branches,
+        sender,
+        messageId,
       });
 
       reply =
@@ -1480,6 +1507,8 @@ export async function POST(req: Request) {
         state: bookingState,
         tenantServices,
         branches,
+        sender,
+        messageId,
       });
 
       reply =
@@ -1550,6 +1579,8 @@ export async function POST(req: Request) {
           state: bookingState,
           tenantServices,
           branches,
+          sender,
+          messageId,
         });
 
         reply =
@@ -1602,6 +1633,8 @@ export async function POST(req: Request) {
         state: bookingState,
         tenantServices,
         branches,
+        sender,
+        messageId,
       });
 
       reply =
@@ -1715,6 +1748,8 @@ export async function POST(req: Request) {
         state: bookingState,
         tenantServices,
         branches,
+        sender,
+        messageId,
       });
 
       reply =

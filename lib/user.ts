@@ -1,6 +1,7 @@
 import { createAdminSupabase } from "@/lib/supabase";
 import { getSession } from "@/lib/auth";
 import type { BusinessHours } from "@/lib/scheduling";
+import { clearAiAssistantCaches } from "@/lib/ai-booking-assistant";
 
 export type UserProfile = {
   user_id: string;
@@ -79,6 +80,8 @@ export async function createOrUpdateUserProfile(profile: Partial<UserProfile>): 
     console.error("Error saving user profile:", error);
     return null;
   }
+
+  clearAiAssistantCaches({ userId: session.userId });
 
   return data;
 }
@@ -164,6 +167,8 @@ export async function createOrUpdateUserLandingPage(landingPage: Partial<UserLan
     console.error("Error saving user landing page:", error);
     return null;
   }
+
+  clearAiAssistantCaches({ userId: session.userId });
 
   return data;
 }

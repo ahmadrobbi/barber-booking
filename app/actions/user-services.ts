@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
+import { clearAiAssistantCaches } from "@/lib/ai-booking-assistant";
 import { createAdminSupabase } from "@/lib/supabase";
 import type { UserService } from "@/lib/user-services";
 
@@ -151,6 +152,7 @@ export async function saveUserServices(
   revalidatePath("/admin/settings/services");
   revalidatePath("/admin/settings/webhook");
   revalidatePath("/admin/bookings");
+  clearAiAssistantCaches({ userId: user.id });
 
   return formatState("Layanan berhasil disimpan.", true);
 }

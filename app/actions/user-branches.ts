@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
+import { clearAiAssistantCaches } from "@/lib/ai-booking-assistant";
 import { createAdminSupabase } from "@/lib/supabase";
 import {
   normalizeBusinessHours,
@@ -157,6 +158,7 @@ export async function saveUserBranches(
   revalidatePath("/admin/settings/branches");
   revalidatePath("/admin/bookings");
   revalidatePath("/admin");
+  clearAiAssistantCaches({ userId: user.id });
 
   return formatState("Cabang berhasil disimpan.", true);
 }
