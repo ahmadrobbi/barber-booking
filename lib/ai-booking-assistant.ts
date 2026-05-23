@@ -78,7 +78,7 @@ const DEFAULT_AI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/op
 const DEFAULT_AI_MODEL = "gemma-4-26b-a4b-it";
 const ASSISTANT_CONTEXT_CACHE_TTL_MS = 5 * 60 * 1000;
 const DEFAULT_AI_ROUTER_TIMEOUT_MS = 2200;
-const DEFAULT_AI_FAQ_TIMEOUT_MS = 6500;
+const DEFAULT_AI_FAQ_TIMEOUT_MS = 12000;
 
 const AssistantResponseSchema = z.object({
   intent: z.enum(["faq", "booking_start", "handoff", "unknown"]),
