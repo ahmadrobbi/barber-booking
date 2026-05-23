@@ -84,6 +84,13 @@ const RECENT_MESSAGE_DEDUPE_WINDOW_MS = 15_000;
 const RECENT_OUTBOUND_ECHO_WINDOW_MS = 60_000;
 const RECENT_OUTBOUND_ECHO_LOOKBACK_BUCKETS = 3;
 
+function getWebhookBuildMarker() {
+  const commitSha = process.env.VERCEL_GIT_COMMIT_SHA?.trim().slice(0, 8) || "local";
+  const vercelEnv = process.env.VERCEL_ENV?.trim() || "unknown";
+
+  return `${vercelEnv}:${commitSha}`;
+}
+
 function getSupabase() {
   return createAdminSupabase();
 }
@@ -1063,6 +1070,7 @@ export async function POST(req: Request) {
   }
 
   console.log("[whatsapp-webhook] payload diag", {
+    buildMarker: getWebhookBuildMarker(),
     eventType,
     officialPhoneNumberId: officialPhoneNumberId || null,
     messageId: messageId || null,
@@ -1073,6 +1081,7 @@ export async function POST(req: Request) {
   });
 
   console.log("[whatsapp-webhook] incoming", {
+    buildMarker: getWebhookBuildMarker(),
     sender: sender || null,
     device: device || null,
     officialPhoneNumberId: officialPhoneNumberId || null,
@@ -1776,6 +1785,7 @@ export async function POST(req: Request) {
   }
 
   console.log("[whatsapp-webhook] reply prepared", {
+    buildMarker: getWebhookBuildMarker(),
     sender,
     channelId: context.channelId,
     provider: context.chatbotProvider,
