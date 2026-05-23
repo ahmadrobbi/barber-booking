@@ -539,6 +539,107 @@ async function searchMerchantKnowledge(params: {
   };
 }
 
+function isStrongKnowledgeMatch(message: string, match: KnowledgeMatch) {
+  const normalizedMessage = normalizeSearchText(message);
+  const normalizedTitle = normalizeSearchText(match.row.title);
+  const normalizedQuestion = normalizeSearchText(match.row.question);
+
+  return (
+    match.score >= 0.3 ||
+    normalizedMessage === normalizedTitle ||
+    normalizedMessage === normalizedQuestion ||
+    normalizedMessage.includes(normalizedQuestion) ||
+    normalizedQuestion.includes(normalizedMessage)
+  );
+}
+
+export async function generateKnowledgePriorityFaqReply(params: {
+  context: AiAssistantContext;
+  message: string;
+  bookingStateSummary?: string | null;
+  sender?: string | null;
+  messageId?: string | null;
+}): Promise<AiBookingAssistantDecision | null> {
+  const startedAt = Date.now();
+
+  try {
+    const retrieval = await searchMerchantKnowledge({
+      userId: params.context.userId,
+      message: params.message,
+      limit: 3,
+    });
+    const topKnowledgeMatch = retrieval.matches[0] ?? null;
+
+    console.log("[whatsapp-webhook][ai-faq][knowledge-first]", {
+      messagePreview: params.message.slice(0, 120),
+      knowledgeHitCount: retrieval.matches.length,
+      topKnowledgeScore: topKnowledgeMatch?.score ?? null,
+    });
+
+    if (!topKnowledgeMatch || !isStrongKnowledgeMatch(params.message, topKnowledgeMatch)) {
+      return null;
+    }
+
+    const reply = topKnowledgeMatch.row.answer.trim();
+
+    await recordChatbotAiEvent({
+      userId: params.context.userId,
+      channelId: params.context.channelId,
+      sender: params.sender ?? null,
+      messageId: params.messageId ?? null,
+      route: "faq",
+      intent: "faq",
+      confidence: topKnowledgeMatch.score,
+      model: null,
+      knowledgeHitCount: retrieval.matches.length,
+      retrievalMs: retrieval.retrievalMs,
+      aiMs: 0,
+      totalMs: Date.now() - startedAt,
+      fallbackUsed: false,
+      error: null,
+      metadata: {
+        messagePreview: params.message.slice(0, 120),
+        selectedReplySource: "knowledge",
+        knowledgeReasons: retrieval.matches.map((match) => match.reason),
+      },
+    });
+
+    return {
+      intent: "faq",
+      reply,
+      confidence: topKnowledgeMatch.score,
+      extractedTopic: null,
+      shouldStartBooking: false,
+      needsHuman: false,
+    };
+  } catch (error) {
+    console.warn("Knowledge-first FAQ reply failed:", error);
+
+    await recordChatbotAiEvent({
+      userId: params.context.userId,
+      channelId: params.context.channelId,
+      sender: params.sender ?? null,
+      messageId: params.messageId ?? null,
+      route: "faq",
+      intent: "faq",
+      confidence: 0.5,
+      model: null,
+      knowledgeHitCount: 0,
+      retrievalMs: 0,
+      aiMs: 0,
+      totalMs: Date.now() - startedAt,
+      fallbackUsed: true,
+      error: error instanceof Error ? error.message : "Unknown knowledge reply error",
+      metadata: {
+        messagePreview: params.message.slice(0, 120),
+        selectedReplySource: "knowledge-first-error",
+      },
+    });
+
+    return null;
+  }
+}
+
 function getAiConfig() {
   const apiKey = normalizeText(process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY);
   const baseUrl = normalizeText(process.env.GEMINI_OPENAI_BASE_URL) || DEFAULT_AI_BASE_URL;

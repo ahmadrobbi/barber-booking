@@ -13,6 +13,7 @@ import { isBookingSlotConflict } from "@/lib/booking-conflicts";
 import { getServicesForUser } from "@/lib/bookings";
 import {
   buildAiAssistantContext,
+  generateKnowledgePriorityFaqReply,
   generateAiAssistantDecision,
   generateAiFaqReply,
 } from "@/lib/ai-booking-assistant";
@@ -749,6 +750,24 @@ async function getRichFaqReply(params: {
     branches: params.branches,
     services: params.tenantServices,
   });
+
+  const knowledgeFirstReply = await generateKnowledgePriorityFaqReply({
+    context: aiContext,
+    message: params.rawMessage,
+    sender: params.sender,
+    messageId: params.messageId,
+    bookingStateSummary: params.state
+      ? buildBookingStateSummary({
+          state: params.state,
+          branches: params.branches,
+          tenantServices: params.tenantServices,
+        })
+      : null,
+  });
+
+  if (knowledgeFirstReply?.reply) {
+    return knowledgeFirstReply;
+  }
 
   return generateAiFaqReply({
     context: aiContext,
