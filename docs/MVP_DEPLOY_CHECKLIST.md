@@ -11,6 +11,10 @@ Checklist ini dipakai untuk memastikan flow MVP barbershop siap dipakai owner su
 - `FONNTE_TOKEN` tidak lagi jadi sumber utama tenant-aware flow. Token utama disimpan per channel di dashboard owner.
 - Untuk AI booking assistant, isi `GEMINI_API_KEY` atau `GOOGLE_API_KEY`
 - Jika diperlukan, isi `GEMINI_OPENAI_BASE_URL` dan `AI_BOOKING_MODEL`
+- Rekomendasi aman untuk Gemma 4 26B A4B-it:
+  - `AI_BOOKING_MODEL=gemma-4-26b-a4b-it`
+  - `AI_ROUTER_TIMEOUT_MS=2200`
+  - `AI_FAQ_TIMEOUT_MS=6500`
 - Gunakan `AI_BOOKING_ENABLED=false` hanya jika ingin menonaktifkan routing AI sementara
 
 ## 2. Database

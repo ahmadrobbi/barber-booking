@@ -77,8 +77,8 @@ type KnowledgeMatch = {
 const DEFAULT_AI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/";
 const DEFAULT_AI_MODEL = "gemma-4-26b-a4b-it";
 const ASSISTANT_CONTEXT_CACHE_TTL_MS = 5 * 60 * 1000;
-const AI_ROUTER_TIMEOUT_MS = 1800;
-const AI_FAQ_TIMEOUT_MS = 2500;
+const DEFAULT_AI_ROUTER_TIMEOUT_MS = 2200;
+const DEFAULT_AI_FAQ_TIMEOUT_MS = 6500;
 
 const AssistantResponseSchema = z.object({
   intent: z.enum(["faq", "booking_start", "handoff", "unknown"]),
@@ -91,6 +91,20 @@ const AssistantResponseSchema = z.object({
 
 function normalizeText(value: string | null | undefined) {
   return value?.trim() ?? "";
+}
+
+function getTimeoutMs(envName: string, fallback: number) {
+  const rawValue = normalizeText(process.env[envName]);
+  if (!rawValue) {
+    return fallback;
+  }
+
+  const parsed = Number(rawValue);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.max(500, Math.min(15000, Math.round(parsed)));
 }
 
 type CacheEntry<T> = {
@@ -733,7 +747,7 @@ async function callAiChatCompletion(params: {
   }
 
   const controller = new AbortController();
-  const timeoutMs = params.timeoutMs ?? 2500;
+  const timeoutMs = params.timeoutMs ?? DEFAULT_AI_FAQ_TIMEOUT_MS;
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   const response = await fetch(`${config.baseUrl}chat/completions`, {
@@ -837,7 +851,7 @@ export async function generateAiAssistantDecision(params: {
         { role: "user", content: JSON.stringify(user) },
       ],
       max_tokens: 220,
-      timeoutMs: AI_ROUTER_TIMEOUT_MS,
+      timeoutMs: getTimeoutMs("AI_ROUTER_TIMEOUT_MS", DEFAULT_AI_ROUTER_TIMEOUT_MS),
     });
     aiMs = Date.now() - aiStartedAt;
 
@@ -1207,7 +1221,7 @@ export async function generateAiFaqReply(params: {
         { role: "user", content: JSON.stringify(answerPrompt.user) },
       ],
       max_tokens: 220,
-      timeoutMs: AI_FAQ_TIMEOUT_MS,
+      timeoutMs: getTimeoutMs("AI_FAQ_TIMEOUT_MS", DEFAULT_AI_FAQ_TIMEOUT_MS),
     });
     const aiMs = Date.now() - aiStartedAt;
 
