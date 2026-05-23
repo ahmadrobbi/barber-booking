@@ -105,7 +105,7 @@ function getTimeoutMs(envName: string, fallback: number) {
     return fallback;
   }
 
-  return Math.max(500, Math.min(15000, Math.round(parsed)));
+  return Math.max(500, Math.min(72000, Math.round(parsed)));
 }
 
 type CacheEntry<T> = {
