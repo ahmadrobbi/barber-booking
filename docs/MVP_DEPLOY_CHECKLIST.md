@@ -15,6 +15,7 @@ Checklist ini dipakai untuk memastikan flow MVP barbershop siap dipakai owner su
   - `AI_BOOKING_MODEL=gemma-4-26b-a4b-it`
   - `AI_ROUTER_TIMEOUT_MS=2200`
   - `AI_FAQ_TIMEOUT_MS=6500`
+- Pastikan nilai `AI_BOOKING_MODEL` yang sama dipakai di lokal dan production Vercel
 - Gunakan `AI_BOOKING_ENABLED=false` hanya jika ingin menonaktifkan routing AI sementara
 
 ## 2. Database

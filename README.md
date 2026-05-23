@@ -24,7 +24,7 @@ Isi environment berikut sebelum menjalankan aplikasi:
 - `WHATSAPP_OFFICIAL_VERIFY_TOKEN`
 - `GEMINI_API_KEY` atau `GOOGLE_API_KEY`
 - `GEMINI_OPENAI_BASE_URL` jika ingin override endpoint OpenAI-compatible
-- `AI_BOOKING_MODEL` jika ingin override model default `gemma-4-26b-a4b-it`
+- `AI_BOOKING_MODEL` jika ingin override model default `gemma-4-26b-a4b-it` di lokal maupun production
 - `AI_ROUTER_TIMEOUT_MS` untuk timeout router AI
 - `AI_FAQ_TIMEOUT_MS` untuk timeout FAQ AI
 - `AI_BOOKING_ENABLED` untuk mematikan AI routing tanpa menghapus credential
