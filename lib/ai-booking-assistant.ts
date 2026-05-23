@@ -1032,46 +1032,25 @@ function buildFaqToolAnswerPrompt(params: {
   message: string;
   toolName: AiFaqToolName;
   toolResult: string;
-  bookingStateSummary?: string | null;
-  knowledgeMatches: KnowledgeMatch[];
+  topKnowledgeMatch?: KnowledgeMatch | null;
 }) {
   const system = [
-    "Kamu adalah BookLink AI assistant.",
-    "Gunakan hanya data knowledge dan konteks merchant yang diberikan.",
-    "Jawab singkat, akurat, dan membantu dalam bahasa Indonesia.",
-    "Kalau data tidak cukup, jelaskan keterbatasannya dan sarankan langkah aman.",
-    "Balas hanya JSON valid tanpa markdown, tanpa code fence, tanpa komentar.",
-    "Schema JSON:",
-    `{
-      "intent": "faq | booking_start | handoff | unknown",
-      "reply": "string",
-      "confidence": 0.0,
-      "extractedTopic": "string|null",
-      "shouldStartBooking": true,
-      "needsHuman": false
-    }`,
-  ].join("\n");
+    "Jawab singkat dan natural dalam bahasa Indonesia.",
+    "Balas hanya JSON valid.",
+    `Schema: {"intent":"faq|booking_start|handoff|unknown","reply":"string","confidence":0-1,"extractedTopic":"string|null","shouldStartBooking":boolean,"needsHuman":boolean}`,
+  ].join(" ");
 
   const user = {
-    merchant: {
-      name: params.context.businessName,
-      description: params.context.businessDescription,
-      landingSlug: params.context.landingSlug,
-      industry: params.context.industry,
-    },
-    question: params.message,
-    selectedTool: params.toolName,
-    toolResult: params.toolResult,
-    bookingStateSummary: params.bookingStateSummary ?? null,
-    knowledgeMatches: params.knowledgeMatches.map((match) => ({
-      title: match.row.title,
-      question: match.row.question,
-      answer: match.row.answer,
-      category: match.row.category,
-      tags: match.row.tags ?? [],
-      score: Number(match.score.toFixed(3)),
-      reason: match.reason,
-    })),
+    q: params.message,
+    merchant: params.context.businessName,
+    tool: params.toolName,
+    answer_hint: params.toolResult,
+    knowledge_hint: params.topKnowledgeMatch
+      ? {
+          q: params.topKnowledgeMatch.row.question,
+          a: params.topKnowledgeMatch.row.answer,
+        }
+      : null,
   };
 
   return { system, user };
@@ -1210,8 +1189,7 @@ export async function generateAiFaqReply(params: {
       message: params.message,
       toolName,
       toolResult: deterministicReply,
-      bookingStateSummary: params.bookingStateSummary,
-      knowledgeMatches: retrieval.matches,
+      topKnowledgeMatch: retrieval.matches[0] ?? null,
     });
 
     const aiStartedAt = Date.now();
@@ -1220,7 +1198,7 @@ export async function generateAiFaqReply(params: {
         { role: "system", content: answerPrompt.system },
         { role: "user", content: JSON.stringify(answerPrompt.user) },
       ],
-      max_tokens: 220,
+      max_tokens: 120,
       timeoutMs: getTimeoutMs("AI_FAQ_TIMEOUT_MS", DEFAULT_AI_FAQ_TIMEOUT_MS),
     });
     const aiMs = Date.now() - aiStartedAt;
@@ -1249,7 +1227,7 @@ export async function generateAiFaqReply(params: {
       metadata: {
         toolName,
         messagePreview: params.message.slice(0, 120),
-        knowledgeReasons: retrieval.matches.map((match) => match.reason),
+        knowledgeReasons: retrieval.matches.slice(0, 2).map((match) => match.reason),
         selectedReplySource: parsedReply?.success ? "ai" : "deterministic",
       },
     });
