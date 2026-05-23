@@ -78,7 +78,6 @@ const DEFAULT_AI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/op
 const DEFAULT_AI_MODEL = "gemma-4-26b-a4b-it";
 const ASSISTANT_CONTEXT_CACHE_TTL_MS = 5 * 60 * 1000;
 const AI_ROUTER_TIMEOUT_MS = 1800;
-const AI_FAQ_TIMEOUT_MS = 2500;
 
 const AssistantResponseSchema = z.object({
   intent: z.enum(["faq", "booking_start", "handoff", "unknown"]),
@@ -1013,60 +1012,6 @@ function getDeterministicFaqAnswer(params: {
   }
 }
 
-function buildFaqToolAnswerPrompt(params: {
-  context: AiAssistantContext;
-  message: string;
-  toolName: AiFaqToolName;
-  toolResult: string;
-  bookingStateSummary?: string | null;
-  knowledgeMatches: KnowledgeMatch[];
-}) {
-  const system = [
-    "Kamu adalah BookLink AI assistant.",
-    "Gunakan hanya data knowledge dan konteks merchant yang diberikan.",
-    "Jawab singkat, akurat, dan membantu dalam bahasa Indonesia.",
-    "Kalau data tidak cukup, jelaskan keterbatasannya dan sarankan langkah aman.",
-    "Balas hanya teks biasa tanpa markdown, tanpa JSON, tanpa code fence.",
-  ].join("\n");
-
-  const user = {
-    merchant: {
-      name: params.context.businessName,
-      description: params.context.businessDescription,
-      landingSlug: params.context.landingSlug,
-      industry: params.context.industry,
-    },
-    question: params.message,
-    selectedTool: params.toolName,
-    toolResult: params.toolResult,
-    bookingStateSummary: params.bookingStateSummary ?? null,
-    knowledgeMatches: params.knowledgeMatches.map((match) => ({
-      title: match.row.title,
-      question: match.row.question,
-      answer: match.row.answer,
-      category: match.row.category,
-      tags: match.row.tags ?? [],
-      score: Number(match.score.toFixed(3)),
-      reason: match.reason,
-    })),
-  };
-
-  return { system, user };
-}
-
-function shouldUseAiForFaq(message: string, knowledgeMatches: KnowledgeMatch[]) {
-  const normalized = normalizeSearchText(message);
-  if (!knowledgeMatches.length) {
-    return false;
-  }
-
-  if (knowledgeMatches[0]?.score >= 0.88 && knowledgeMatches.length === 1) {
-    return false;
-  }
-
-  return /(\bjelaskan\b|\brekomendasi\b|\bsaran\b|\bbeda\b|\bperbedaan\b|\bkapan\b|\bkenapa\b|\bbagaimana\b|\bgimana\b|\bcocok\b|\bterbaik\b|\bapa yang\b)/i.test(normalized);
-}
-
 export async function generateAiFaqReply(params: {
   context: AiAssistantContext;
   message: string;
@@ -1084,7 +1029,6 @@ export async function generateAiFaqReply(params: {
       limit: 3,
     });
     const topKnowledgeMatch = retrieval.matches[0] ?? null;
-    const toolResult = summarizeFaqTool(params.context, toolName, params.bookingStateSummary);
     const deterministicReply = getDeterministicFaqAnswer({
       context: params.context,
       toolName,
@@ -1140,70 +1084,7 @@ export async function generateAiFaqReply(params: {
         needsHuman: false,
       };
     }
-
-    if (!shouldUseAiForFaq(params.message, retrieval.matches)) {
-      const reply = deterministicReply;
-
-      await recordChatbotAiEvent({
-        userId: params.context.userId,
-        channelId: params.context.channelId,
-        sender: params.sender ?? null,
-        messageId: params.messageId ?? null,
-        route: "faq",
-        intent: "faq",
-        confidence: retrieval.matches[0]?.score ?? 0.5,
-        model: null,
-        knowledgeHitCount: retrieval.matches.length,
-        retrievalMs: retrieval.retrievalMs,
-        aiMs: 0,
-        totalMs: Date.now() - startedAt,
-        fallbackUsed: retrieval.matches.length === 0,
-        error: null,
-        metadata: {
-          toolName,
-          messagePreview: params.message.slice(0, 120),
-          knowledgeReasons: retrieval.matches.map((match) => match.reason),
-          selectedReplySource: "deterministic",
-        },
-      });
-
-      console.log("[whatsapp-webhook][ai-faq] answer", {
-        toolName,
-        answerPreview: reply.slice(0, 200),
-        confidence: retrieval.matches[0]?.score ?? 0.5,
-      });
-
-      return {
-        intent: "faq",
-        reply,
-        confidence: retrieval.matches[0]?.score ?? 0.5,
-        extractedTopic: toolName,
-        shouldStartBooking: false,
-        needsHuman: false,
-      };
-    }
-
-    const answerPrompt = buildFaqToolAnswerPrompt({
-      context: params.context,
-      message: params.message,
-      toolName,
-      toolResult,
-      bookingStateSummary: params.bookingStateSummary,
-      knowledgeMatches: retrieval.matches,
-    });
-
-    const aiStartedAt = Date.now();
-    const answerContent = await callAiChatCompletion({
-      messages: [
-        { role: "system", content: answerPrompt.system },
-        { role: "user", content: JSON.stringify(answerPrompt.user) },
-      ],
-      max_tokens: 220,
-      timeoutMs: AI_FAQ_TIMEOUT_MS,
-    });
-    const aiMs = Date.now() - aiStartedAt;
-
-    const reply = answerContent?.trim() || deterministicReply;
+    const reply = deterministicReply;
 
     await recordChatbotAiEvent({
       userId: params.context.userId,
@@ -1212,32 +1093,32 @@ export async function generateAiFaqReply(params: {
       messageId: params.messageId ?? null,
       route: "faq",
       intent: "faq",
-      confidence: retrieval.matches[0]?.score ?? 0.7,
-      model: getAiConfig().model,
+      confidence: retrieval.matches[0]?.score ?? 0.5,
+      model: null,
       knowledgeHitCount: retrieval.matches.length,
       retrievalMs: retrieval.retrievalMs,
-      aiMs,
+      aiMs: 0,
       totalMs: Date.now() - startedAt,
-      fallbackUsed: !answerContent,
+      fallbackUsed: retrieval.matches.length === 0,
       error: null,
       metadata: {
         toolName,
         messagePreview: params.message.slice(0, 120),
         knowledgeReasons: retrieval.matches.map((match) => match.reason),
-        selectedReplySource: answerContent ? "ai" : "deterministic",
+        selectedReplySource: retrieval.matches.length > 0 ? "deterministic" : "deterministic",
       },
     });
 
     console.log("[whatsapp-webhook][ai-faq] answer", {
       toolName,
       answerPreview: reply.slice(0, 200),
-      confidence: retrieval.matches[0]?.score ?? 0.7,
+      confidence: retrieval.matches[0]?.score ?? 0.5,
     });
 
     return {
       intent: "faq",
       reply,
-      confidence: retrieval.matches[0]?.score ?? 0.7,
+      confidence: retrieval.matches[0]?.score ?? 0.5,
       extractedTopic: toolName,
       shouldStartBooking: false,
       needsHuman: false,
