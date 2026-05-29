@@ -7,7 +7,7 @@ import { HomeHeroCarousel } from "@/components/home-hero-carousel";
 export default function DynamicLandingPage() {
   const platformBrand = "BookLink";
   const platformTagline = "AI Booking Assistant untuk Bisnis Booking";
-  const phone = "6287749105273";
+  const phone = "15551926817";
   const message = encodeURIComponent("Halo, saya mau booking.");
   const waLink = `https://wa.me/${phone}?text=${message}`;
 
