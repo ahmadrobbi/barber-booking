@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BookLink | Platform Booking WhatsApp untuk Semua Usaha",
+  title: "BookLink | AI Booking Assistant untuk Bisnis Booking",
   description:
-    "Platform booking untuk barbershop, klinik, pijat, lapangan olahraga, dan usaha jasa lain. Gunakan nomor WhatsApp milik bisnis sendiri, buat landing page publik, dan kirim reminder otomatis.",
+    "Platform booking WhatsApp untuk bisnis yang menerima reservasi, jadwal, atau antrian seperti barbershop, klinik, salon, bengkel, laundry, dan toko berbasis booking. Gunakan nomor WhatsApp bisnis sendiri, buat landing page publik, dan kirim reminder otomatis.",
 };
 
 export default function RootLayout({

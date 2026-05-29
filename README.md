@@ -58,6 +58,10 @@ Migration yang penting untuk MVP tenant-aware saat ini:
 
 Checklist deploy dan smoke test MVP ada di [docs/MVP_DEPLOY_CHECKLIST.md](/Users/robbi-kaspin/Documents/barber_booking/barber-booking/docs/MVP_DEPLOY_CHECKLIST.md:1).
 
+## Sales Pitch
+
+Copy satu halaman untuk pitching ke merchant ada di [docs/sales-pitch.md](/Users/robbi-kaspin/Documents/barber_booking/barber-booking/docs/sales-pitch.md:1).
+
 ## CI Migration
 
 Repo ini punya workflow `.github/workflows/supabase-db-push.yml` untuk mendorong migration ke Supabase.

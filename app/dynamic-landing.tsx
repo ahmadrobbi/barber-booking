@@ -6,7 +6,7 @@ import { HomeHeroCarousel } from "@/components/home-hero-carousel";
 
 export default function DynamicLandingPage() {
   const platformBrand = "BookLink";
-  const platformTagline = "AI Booking Assistant untuk Semua Usaha Jasa";
+  const platformTagline = "AI Booking Assistant untuk Bisnis Booking";
   const phone = "6287749105273";
   const message = encodeURIComponent("Halo, saya mau booking.");
   const waLink = `https://wa.me/${phone}?text=${message}`;
@@ -106,25 +106,28 @@ export default function DynamicLandingPage() {
       <HomeHeroCarousel
         slides={[
           {
-            eyebrow: "Satu nomor untuk banyak merchant",
-            title: "AI Booking Assistant yang Paham Konteks Merchant",
-            description: "BookLink membantu bisnis jasa menjawab pertanyaan, mengarahkan booking, dan menjaga data merchant tetap rapi. AI membaca konteks dari database, lalu membantu pelanggan dari satu nomor WhatsApp Official.",
+            eyebrow: "Untuk bisnis yang hidup dari booking",
+            title: "Balas chat lebih cepat, booking lebih rapi, dan pelanggan tidak nunggu lama",
+            description:
+              "BookLink membantu bisnis yang menerima reservasi atau jadwal untuk menjawab pertanyaan berulang, mengarahkan booking, dan menjaga data operasional tetap rapi. Pelanggan tetap chat lewat WhatsApp bisnis, sementara AI membaca konteks dari database dan membantu dengan cepat.",
             image: "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=1800&q=80",
-            accent: "Shared AI Number",
-            stats: ["Satu Nomor Official", "Multi Merchant", "Data DB Terhubung"],
+            accent: "Booking First",
+            stats: ["Balas Lebih Cepat", "Reminder Otomatis", "No-Show Turun"],
           },
           {
-            eyebrow: "Setup ringkas",
-            title: "Merchant Masuk, Data Tersinkron, Bot Siap Menjawab",
-            description: "Setiap merchant punya profil, cabang, layanan, jam operasional, hari libur, dan aturan booking sendiri. AI hanya menjawab berdasarkan data yang benar dari backend.",
+            eyebrow: "Cocok untuk barbershop & klinik",
+            title: "Setup singkat, langsung bisa dipakai, tanpa ribet teknis",
+            description:
+              "Isi profil bisnis, cabang, layanan, jam buka, dan knowledge dasar. Setelah itu bot langsung siap menjawab FAQ, membantu booking, dan menjaga data tetap teratur.",
             image: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=1800&q=80",
             accent: "Data-Aware",
-            stats: ["Profil Merchant", "Cabang & Libur", "Booking Tervalidasi"],
+            stats: ["Setup Cepat", "FAQ Siap", "Booking Aman"],
           },
           {
-            eyebrow: "Flow harian yang rapi",
-            title: "Booking, FAQ, dan Reminder Jalan dari Satu Sistem",
-            description: "Pelanggan bisa tanya layanan, cek cabang, lihat jam buka, lalu booking. Sistem tetap memvalidasi slot dan status booking supaya operasional tidak berantakan.",
+            eyebrow: "Satu alur dari chat ke booking",
+            title: "Pelanggan tanya, pilih jadwal, lalu tinggal datang",
+            description:
+              "Pelanggan bisa tanya layanan, cek cabang, lihat jam buka, lalu booking. Sistem tetap memvalidasi slot dan status booking supaya operasional tetap rapi dan owner tidak perlu cek manual terus-menerus.",
             image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1800&q=80",
             accent: "Guardrailed AI",
             stats: ["FAQ Fleksibel", "Slot Aman", "Reminder Otomatis"],
@@ -141,26 +144,26 @@ export default function DynamicLandingPage() {
             🚀
           </div>
           <h2 className="font-nav mt-8 text-2xl font-bold uppercase tracking-[0.1em] text-slate-900 md:text-3xl">
-            Satu AI Untuk Banyak Merchant, Satu Sumber Kebenaran di DB
+            Dibangun Untuk Bisnis yang Hidup dari Booking
           </h2>
           <p className="mx-auto mt-6 max-w-3xl text-sm leading-7 text-slate-600 md:text-base">
-            Fokus MVP sekarang bukan lagi banyak chatbot manual per merchant. Kita pakai 1 WhatsApp Official shared assistant, lalu AI membaca data merchant, cabang, layanan, jam buka, dan hari libur dari database sebelum menjawab pelanggan.
+            Fokus MVP sekarang adalah membantu owner mengurangi chat berulang, mempercepat booking, dan menjaga jadwal tetap rapi. AI membaca data bisnis dari database sebelum menjawab pelanggan, jadi owner tidak perlu membalas pertanyaan yang sama berkali-kali.
           </p>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 p-8 shadow-lg border border-blue-200">
               <div className="mb-4 text-2xl">📱</div>
-              <h3 className="mb-3 text-base font-semibold text-slate-900">Satu Nomor Official</h3>
-              <p className="text-slate-600 leading-relaxed">Nomor platform menjadi pintu masuk utama, sehingga onboarding merchant lebih cepat dan operasional lebih mudah dikelola.</p>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Pelanggan Tetap Pakai WhatsApp</h3>
+              <p className="text-slate-600 leading-relaxed">Tidak perlu pindah ke aplikasi lain. Pelanggan cukup chat ke nomor bisnis yang sudah mereka kenal.</p>
             </div>
             <div className="rounded-2xl bg-gradient-to-br from-green-50 to-green-100 p-8 shadow-lg border border-green-200">
               <div className="mb-4 text-2xl">🔗</div>
-              <h3 className="mb-3 text-base font-semibold text-slate-900">Data Merchant Terpisah</h3>
-              <p className="text-slate-600 leading-relaxed">Setiap merchant tetap punya profil, cabang, layanan, dan jadwal masing-masing agar AI tidak mencampur konteks antar bisnis.</p>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Data Bisnis Tetap Rapi</h3>
+              <p className="text-slate-600 leading-relaxed">Profil, cabang, layanan, jam buka, dan hari libur dipisah per bisnis supaya jawaban AI tetap relevan.</p>
             </div>
             <div className="rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 p-8 shadow-lg border border-purple-200">
               <div className="mb-4 text-2xl">🔔</div>
-              <h3 className="mb-3 text-base font-semibold text-slate-900">AI Dibatasi Rules</h3>
-              <p className="text-slate-600 leading-relaxed">AI boleh menjawab fleksibel, tetapi booking, slot, dan status tetap divalidasi sistem supaya tidak ada jawaban ngarang.</p>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Booking Tetap Aman</h3>
+              <p className="text-slate-600 leading-relaxed">AI boleh membantu menjawab, tapi slot, status, dan aturan booking tetap divalidasi sistem supaya tidak ada jadwal ngaco.</p>
             </div>
           </div>
         </div>
@@ -171,10 +174,10 @@ export default function DynamicLandingPage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-12">
             <h2 className="font-nav text-2xl font-bold uppercase tracking-[0.1em] text-slate-900 md:text-3xl">
-              Draft Harga MVP
+              Draft Harga MVP yang Sederhana
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-sm text-slate-600 md:text-base">
-              Harga di bawah ini masih draft awal untuk validasi pasar. Struktur utamanya per merchant, karena AI shared assistant akan membaca data tiap bisnis dari database terpisah.
+              Harga di bawah ini masih draft awal untuk validasi pasar. Struktur utamanya per bisnis, karena AI membaca data tiap bisnis dari database terpisah.
             </p>
           </div>
 
@@ -184,9 +187,9 @@ export default function DynamicLandingPage() {
                 Trial
               </div>
               <div className="mt-8 text-3xl font-bold text-slate-900">Rp 0</div>
-              <p className="mt-4 text-slate-600">Untuk validasi awal merchant baru yang ingin mencoba shared AI assistant sebelum masuk paket berbayar.</p>
+              <p className="mt-4 text-slate-600">Untuk bisnis baru yang ingin mencoba AI booking assistant sebelum masuk paket berbayar.</p>
               <ul className="mt-8 space-y-3 text-slate-600">
-                <li>1 merchant</li>
+                <li>1 bisnis</li>
                 <li>1 cabang</li>
                 <li>FAQ AI dasar</li>
                 <li>Booking sandbox</li>
@@ -204,9 +207,9 @@ export default function DynamicLandingPage() {
                 Starter
               </div>
               <div className="mt-8 text-3xl font-bold">Rp 299.000</div>
-              <p className="mt-4 text-slate-100">Paket awal untuk 1 merchant aktif yang ingin AI menjawab FAQ, cabang, jam buka, dan booking dasar dari satu nomor official.</p>
+              <p className="mt-4 text-slate-100">Paket awal untuk bisnis aktif yang ingin AI menjawab FAQ, cabang, jam buka, dan booking dasar dari satu nomor official.</p>
               <ul className="mt-8 space-y-3 text-slate-100/90">
-                <li>1 merchant aktif</li>
+                <li>1 bisnis aktif</li>
                 <li>1-2 cabang</li>
                 <li>AI FAQ + booking flow</li>
                 <li>Reminder otomatis</li>
@@ -224,7 +227,7 @@ export default function DynamicLandingPage() {
                 Growth / Pro
               </div>
               <div className="mt-8 text-3xl font-bold text-slate-900">Custom</div>
-              <p className="mt-4 text-slate-600">Untuk merchant yang butuh banyak cabang, knowledge khusus, handoff ke admin, dan SLA yang lebih serius.</p>
+              <p className="mt-4 text-slate-600">Untuk bisnis yang butuh banyak cabang, knowledge khusus, handoff ke admin, dan SLA yang lebih serius.</p>
               <ul className="mt-8 space-y-3 text-slate-600">
                 <li>Multi cabang</li>
                 <li>Custom knowledge</li>
@@ -258,18 +261,18 @@ export default function DynamicLandingPage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-12">
             <h2 className="font-nav text-2xl font-bold uppercase tracking-[0.1em] text-slate-900 md:text-3xl">
-              Cocok untuk Operasional Barbershop
+              Cocok untuk Bisnis yang Butuh Booking
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-sm text-slate-600 md:text-base">
-              Halaman ini fokus pada masalah paling umum di bisnis jasa: pertanyaan berulang, booking yang berantakan, dan data operasional yang tersebar.
+              Halaman ini fokus pada masalah paling umum di bisnis yang pakai booking: pertanyaan berulang, jadwal yang berantakan, dan data operasional yang tersebar.
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-12">
             {[
               {
-                name: "Chat Masuk Tidak Berantakan",
+                name: "Chat Masuk Tetap Rapi",
                 icon: "✂️",
-                description: "Pelanggan tetap chat lewat WhatsApp, tetapi AI membaca konteks merchant lalu memandu ke cabang, layanan, dan jadwal yang tepat.",
+                description: "Pelanggan tetap chat lewat WhatsApp, tetapi AI membaca konteks bisnis lalu memandu ke cabang, layanan, dan jadwal yang tepat.",
                 color: "from-blue-500 to-blue-600",
               },
               {
@@ -291,15 +294,15 @@ export default function DynamicLandingPage() {
                 color: "from-purple-500 to-purple-600",
               },
               {
-                name: "Owner Tetap Pegang Nomor Sendiri",
+                name: "Nomor Bisnis Tetap Dipakai",
                 icon: "📲",
-                description: "Kalau nanti dibutuhkan, model dedicated number tetap bisa jadi add-on untuk merchant yang ingin brand sendiri.",
+                description: "Kalau nanti dibutuhkan, dedicated number tetap bisa jadi add-on untuk bisnis yang ingin brand dan nomor sendiri.",
                 color: "from-indigo-500 to-indigo-600",
               },
               {
                 name: "Siap Divalidasi ke Pasar",
                 icon: "🚀",
-                description: "Scope MVP dijaga tetap sempit supaya cepat diuji ke merchant sungguhan sebelum menambah kompleksitas lain.",
+                description: "Scope MVP dijaga tetap sempit supaya cepat diuji ke bisnis sungguhan sebelum menambah kompleksitas lain.",
                 color: "from-gray-500 to-gray-600",
               },
             ].map((industry) => (
@@ -326,12 +329,12 @@ export default function DynamicLandingPage() {
             ))}
           </div>
           <div className="text-center">
-            <p className="mb-6 text-slate-600">Jika alur ini cocok dengan operasional barbershop Anda, MVP sudah siap diuji ke pelanggan pertama.</p>
+            <p className="mb-6 text-slate-600">Jika alur ini cocok dengan operasional bisnis Anda, MVP sudah siap diuji ke pelanggan pertama.</p>
             <Link
               href="/register"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-8 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl"
             >
-              Daftar dan Sambungkan Nomor WA
+              Daftar dan Sambungkan Nomor WA Bisnis
               <span className="text-lg">🚀</span>
             </Link>
           </div>
@@ -343,10 +346,10 @@ export default function DynamicLandingPage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
             <h2 className="font-nav text-2xl font-bold uppercase tracking-[0.1em] text-slate-900 md:text-3xl">
-              Mengapa Pilih BookLink?
+              Mengapa Owner Akan Suka BookLink?
             </h2>
             <p className="mt-4 text-sm text-slate-600 md:text-base">
-              Fitur inti yang memang dibutuhkan untuk validasi MVP harian
+              Fitur inti yang memang dibutuhkan untuk bikin booking lebih laku dan lebih rapi
             </p>
           </div>
           <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
@@ -354,7 +357,7 @@ export default function DynamicLandingPage() {
               <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-blue-100 to-blue-200">
                 <span className="text-2xl">📱</span>
               </div>
-              <h3 className="mb-3 text-base font-semibold text-slate-900">WhatsApp Integration</h3>
+              <h3 className="mb-3 text-base font-semibold text-slate-900">Tetap di WhatsApp</h3>
               <p className="text-slate-600 leading-relaxed">
                 Pelanggan tetap memakai WhatsApp yang sudah familiar, sementara owner tidak perlu memindahkan mereka ke aplikasi baru.
               </p>
@@ -416,7 +419,7 @@ export default function DynamicLandingPage() {
               BookLink
             </h3>
             <p className="text-sm text-slate-300 leading-relaxed mb-4">
-              AI booking assistant untuk bisnis jasa yang membantu merchant menjawab FAQ, mengelola booking, dan menjaga data operasional tetap rapi.
+              AI booking assistant untuk bisnis booking yang membantu owner menjawab FAQ, mengelola booking, dan menjaga data operasional tetap rapi.
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-slate-400 hover:text-white transition">📘 Facebook</a>
@@ -455,7 +458,7 @@ export default function DynamicLandingPage() {
         <div className="mt-12 border-t border-slate-700 pt-8 px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-slate-400">
-              © {new Date().getFullYear()} BookLink. Platform booking untuk semua usaha jasa berbasis WhatsApp.
+              © {new Date().getFullYear()} BookLink. Platform booking berbasis WhatsApp untuk bisnis yang menerima reservasi dan jadwal.
             </p>
             <div className="flex gap-6 text-sm text-slate-400">
               <a href="/privacy" className="hover:text-white transition">Privacy Policy</a>
