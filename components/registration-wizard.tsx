@@ -18,7 +18,7 @@ export function RegistrationWizard() {
   const [no_hp, setNoHp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [selectedIndustry, setSelectedIndustry] = useState<IndustryKey>("barbershop");
+  const [selectedIndustry, setSelectedIndustry] = useState<IndustryKey>("general_booking");
   const [businessName, setBusinessName] = useState("");
 
   const industries = getAvailableIndustries();
@@ -134,7 +134,7 @@ export function RegistrationWizard() {
       <div className="mb-8">
         <div className="flex justify-between text-xs text-slate-500 mb-2 font-medium">
           <span className={currentStep === "account" ? "text-blue-600" : ""}>Akun</span>
-          <span className={currentStep === "industry" ? "text-blue-600" : ""}>Industri</span>
+          <span className={currentStep === "industry" ? "text-blue-600" : ""}>Kategori</span>
           <span className={currentStep === "business" ? "text-blue-600" : ""}>Bisnis</span>
           <span className={currentStep === "confirm" ? "text-blue-600" : ""}>Konfirmasi</span>
         </div>
@@ -230,8 +230,10 @@ export function RegistrationWizard() {
         {/* Industry Step */}
         {currentStep === "industry" && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900">Pilih Jenis Industri</h2>
-            <p className="text-sm text-slate-600">Sesuaikan platform dengan kebutuhan bisnis Anda</p>
+            <h2 className="text-lg font-semibold text-slate-900">Pilih Kategori Bisnis</h2>
+            <p className="text-sm text-slate-600">
+              Pilih kategori yang paling mendekati bisnis Anda. Semua opsi bisa dikustomisasi nanti.
+            </p>
 
             <div className="grid grid-cols-1 gap-3">
               {industries.map((ind) => (
@@ -264,7 +266,7 @@ export function RegistrationWizard() {
 
             <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
               <div className="text-sm">
-                <span className="font-medium text-slate-700">Industri: </span>
+                <span className="font-medium text-slate-700">Kategori: </span>
                 <span className="text-slate-600">{industryData.name}</span>
               </div>
             </div>
@@ -278,7 +280,7 @@ export function RegistrationWizard() {
                 type="text"
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="Contoh: Urban Fade Studio"
+                placeholder="Contoh: Marini Klinik Kesehatan"
                 className="w-full rounded-lg border-2 border-slate-400 bg-white px-4 py-2 text-slate-900 caret-slate-900 placeholder-slate-500 transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 hover:border-slate-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-300"
                 disabled={isSubmitting}
               />
@@ -309,7 +311,7 @@ export function RegistrationWizard() {
               </div>
               <div className="h-px bg-slate-200 my-2"></div>
               <div className="flex justify-between">
-                <span className="text-slate-600">Industri:</span>
+                <span className="text-slate-600">Kategori:</span>
                 <span className="font-medium text-slate-900">{industryData.name}</span>
               </div>
               <div className="flex justify-between">

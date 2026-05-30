@@ -42,8 +42,7 @@ export function getMonthlyCalendarDays(month: number, year: number) {
   }
 
   for (let day = 1; day <= lastDay.getDate(); day += 1) {
-    const date = new Date(year, month - 1, day);
-    days.push(date.toISOString().slice(0, 10));
+    days.push(formatDateKey(year, month, day));
   }
 
   while (days.length % 7 !== 0) {
@@ -51,6 +50,10 @@ export function getMonthlyCalendarDays(month: number, year: number) {
   }
 
   return days;
+}
+
+function formatDateKey(year: number, month: number, day: number) {
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 export function groupBookingsByDateMap(bookings: readonly BookingRow[]) {

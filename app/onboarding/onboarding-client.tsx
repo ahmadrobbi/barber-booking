@@ -16,7 +16,7 @@ type Service = {
 export default function OnboardingClient() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("welcome");
-  const [selectedIndustry, setSelectedIndustry] = useState<IndustryKey>("barbershop");
+  const [selectedIndustry, setSelectedIndustry] = useState<IndustryKey>("general_booking");
   const [businessName, setBusinessName] = useState("");
   const [services, setServices] = useState<Service[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,10 +103,10 @@ export default function OnboardingClient() {
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-stone-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Progress Bar */}
-        <div className="mb-8">
+          <div className="mb-8">
           <div className="flex justify-between text-sm text-stone-500 mb-2">
             <span className={currentStep === "welcome" ? "text-amber-600 font-medium" : ""}>Selamat Datang</span>
-            <span className={currentStep === "industry" ? "text-amber-600 font-medium" : ""}>Pilih Industri</span>
+            <span className={currentStep === "industry" ? "text-amber-600 font-medium" : ""}>Pilih Kategori</span>
             <span className={currentStep === "business" ? "text-amber-600 font-medium" : ""}>Info Bisnis</span>
             <span className={currentStep === "services" ? "text-amber-600 font-medium" : ""}>Layanan</span>
             <span className={currentStep === "confirm" ? "text-amber-600 font-medium" : ""}>Konfirmasi</span>
@@ -128,9 +128,9 @@ export default function OnboardingClient() {
         {currentStep === "welcome" && (
           <div className="bg-white rounded-3xl p-8 shadow-lg">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-stone-900 mb-4">Selamat Datang di Setup MVP</h1>
+              <h1 className="text-3xl font-bold text-stone-900 mb-4">Setup Bisnis Booking Anda</h1>
               <p className="text-stone-600 leading-relaxed">
-                Kita fokus ke MVP barbershop dulu: sambungkan nomor WhatsApp bisnis Anda, atur layanan, lalu mulai terima booking dengan alur yang rapi.
+              Kita fokus ke bisnis booking dulu: sambungkan nomor WhatsApp bisnis Anda, atur layanan, lalu mulai terima booking dengan alur yang rapi.
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -138,8 +138,8 @@ export default function OnboardingClient() {
                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <span className="text-amber-600 font-bold">1</span>
                 </div>
-                <h3 className="font-semibold text-stone-900 mb-2">Pilih Industri</h3>
-                <p className="text-sm text-stone-600">Barbershop jadi fokus utama MVP saat ini</p>
+                <h3 className="font-semibold text-stone-900 mb-2">Pilih Kategori</h3>
+                <p className="text-sm text-stone-600">Cocok untuk booking, jadwal, dan antrian</p>
               </div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -161,7 +161,7 @@ export default function OnboardingClient() {
                 onClick={handleNext}
                 className="px-8 py-4 bg-amber-500 text-white rounded-2xl font-semibold text-lg hover:bg-amber-600 transition shadow-lg hover:shadow-xl"
               >
-                Mulai Setup Barbershop
+                Mulai Setup
               </button>
               <p className="text-sm text-stone-500 mt-4">
                 Setup inti hanya butuh beberapa menit
@@ -173,7 +173,7 @@ export default function OnboardingClient() {
         {/* Industry Selection */}
         {currentStep === "industry" && (
           <div className="bg-white rounded-3xl p-8 shadow-lg">
-            <h2 className="text-2xl font-bold text-stone-900 mb-6">Pilih Industri Bisnis Anda</h2>
+            <h2 className="text-2xl font-bold text-stone-900 mb-6">Pilih Kategori Bisnis Anda</h2>
             <div className="space-y-3">
               {industries.map((industry) => (
                 <label
@@ -311,7 +311,7 @@ export default function OnboardingClient() {
             <h2 className="text-2xl font-bold text-stone-900 mb-6">Konfirmasi Setup Bisnis</h2>
             <div className="space-y-6">
               <div className="bg-stone-50 rounded-2xl p-6">
-                <h3 className="font-semibold text-stone-900 mb-2">Industri Bisnis</h3>
+                <h3 className="font-semibold text-stone-900 mb-2">Kategori Bisnis</h3>
                 <p className="text-stone-600">{industries.find(i => i.key === selectedIndustry)?.name}</p>
               </div>
               <div className="bg-stone-50 rounded-2xl p-6">

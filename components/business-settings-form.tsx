@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { updateBusinessSettings } from "@/app/actions/business-settings";
 import { AdminActionFeedbackAlert } from "@/components/admin-action-feedback-alert";
 import type { IndustryConfig } from "@/lib/industry-config";
+import { getIndustryDisplayName } from "@/lib/industries";
 
 interface BusinessSettingsFormProps {
   initialBusinessName: string;
@@ -49,8 +50,7 @@ export function BusinessSettingsForm({ initialBusinessName, config }: BusinessSe
         >
           {config.enabled.map((industry) => (
             <option key={industry} value={industry}>
-              {industry === "barbershop" ? "Barbershop" :
-               industry === "clinic" ? "Klinik" : industry}
+              {getIndustryDisplayName(industry)}
             </option>
           ))}
         </select>

@@ -1,5 +1,5 @@
-import { PageSpinner } from "@/components/page-spinner";
+import { AdminDashboardLoading } from "@/components/admin-dashboard-loading";
 
 export default function Loading() {
-  return <PageSpinner label="Memuat dashboard..." />;
+  return <AdminDashboardLoading />;
 }

@@ -174,10 +174,10 @@ export default function DynamicLandingPage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-12">
             <h2 className="font-nav text-2xl font-bold uppercase tracking-[0.1em] text-slate-900 md:text-3xl">
-              Draft Harga MVP yang Sederhana
+              Paket Awal yang Mudah Dijual
             </h2>
             <p className="mx-auto mt-4 max-w-3xl text-sm text-slate-600 md:text-base">
-              Harga di bawah ini masih draft awal untuk validasi pasar. Struktur utamanya per bisnis, karena AI membaca data tiap bisnis dari database terpisah.
+              Paket di bawah ini dibuat sederhana supaya mudah dipahami merchant awam. Fokusnya tetap per bisnis, karena AI membaca data tiap bisnis dari database terpisah.
             </p>
           </div>
 
@@ -187,7 +187,7 @@ export default function DynamicLandingPage() {
                 Trial
               </div>
               <div className="mt-8 text-3xl font-bold text-slate-900">Rp 0</div>
-              <p className="mt-4 text-slate-600">Untuk bisnis baru yang ingin mencoba AI booking assistant sebelum masuk paket berbayar.</p>
+              <p className="mt-4 text-slate-600">Untuk bisnis baru yang ingin mencoba alur booking, FAQ AI, dan reminder sebelum masuk paket berbayar.</p>
               <ul className="mt-8 space-y-3 text-slate-600">
                 <li>1 bisnis</li>
                 <li>1 cabang</li>
@@ -250,7 +250,7 @@ export default function DynamicLandingPage() {
               href="/pricing"
               className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
             >
-              Buka Draft Pricing Page
+              Lihat Paket Lengkap
             </Link>
           </div>
         </div>

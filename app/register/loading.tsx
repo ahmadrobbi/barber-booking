@@ -1,5 +1,5 @@
-import { PageSpinner } from "@/components/page-spinner";
+import { AuthRouteLoading } from "@/components/auth-route-loading";
 
 export default function Loading() {
-  return <PageSpinner label="Menyiapkan halaman daftar..." />;
+  return <AuthRouteLoading mode="register" />;
 }

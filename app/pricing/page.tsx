@@ -5,7 +5,7 @@ const plans = [
     name: "Trial",
     price: "Rp 0",
     description:
-      "Untuk validasi awal bisnis booking baru yang ingin mencoba AI booking assistant sebelum masuk paket berbayar.",
+      "Untuk bisnis booking baru yang ingin mencoba alur booking, FAQ AI, dan reminder sebelum masuk paket berbayar.",
     accent: "bg-blue-50 text-blue-700",
     features: ["1 bisnis", "1 cabang", "FAQ AI dasar", "Booking sandbox"],
   },
@@ -34,7 +34,7 @@ const plans = [
 ];
 
 const addOns = [
-      "Dedicated WhatsApp number untuk bisnis tertentu",
+  "Dedicated WhatsApp number untuk bisnis tertentu",
   "Cabang tambahan di luar kuota paket",
   "Custom prompt / knowledge tuning per bisnis",
   "Integrasi CRM, export data, atau dashboard lanjutan",
@@ -63,15 +63,13 @@ export default function PricingPage() {
         <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div>
             <p className="font-nav text-xs uppercase tracking-[0.24em] text-blue-600">
-              Draft Pricing
+              Paket Awal
             </p>
             <h1 className="mt-4 max-w-3xl text-3xl font-bold leading-tight text-slate-900 sm:text-4xl md:text-5xl">
-              Pricing yang cocok untuk AI booking assistant dan tetap mudah dijual ke bisnis booking.
+              Paket yang sederhana, jelas, dan mudah dijual ke merchant awam.
             </h1>
             <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-600 md:text-base">
-              Harga di halaman ini masih draft awal. Fokusnya adalah validasi pasar: satu nomor WhatsApp
-              Official, satu bisnis di belakangnya, dan AI yang membaca data dari database sebelum
-              menjawab pelanggan.
+              Fokus pricing di fase awal adalah validasi pasar: satu nomor WhatsApp Official, satu bisnis di belakangnya, dan AI yang membaca data dari database sebelum menjawab pelanggan.
             </p>
           </div>
 
@@ -150,8 +148,7 @@ export default function PricingPage() {
             <h2 className="mt-3 text-2xl font-semibold">Jangan terlalu banyak paket di awal</h2>
             <p className="mt-4 text-sm leading-7 text-slate-300">
               Untuk fase awal, saya sarankan fokus pada satu paket utama yang paling gampang dibeli.
-              Paket lain bisa tetap ada sebagai draft internal, lalu diumumkan setelah pilot bisnis
-              pertama terbukti jalan.
+              Paket lain bisa menyusul setelah pilot bisnis pertama terbukti jalan.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link

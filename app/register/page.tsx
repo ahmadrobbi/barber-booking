@@ -25,7 +25,7 @@ export default async function RegisterPage() {
             Jalankan Booking dari Nomor WhatsApp Bisnis Anda Sendiri
           </h1>
           <p className="mt-5 max-w-lg text-base leading-7 text-slate-600">
-            Daftar, sambungkan nomor WhatsApp bisnis, lalu mulai terima booking publik dengan reminder otomatis. Fokus MVP kami saat ini paling cocok untuk barbershop dan klinik, tapi tetap bisa dipakai untuk bisnis booking lain seperti salon, bengkel, laundry, atau toko yang menerima reservasi.
+            Daftar, sambungkan nomor WhatsApp bisnis, lalu mulai terima booking publik dengan reminder otomatis. Cocok untuk bisnis yang hidup dari jadwal, reservasi, atau antrian seperti barbershop, klinik, salon, bengkel, laundry, dan toko berbasis booking.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <div className="flex items-center gap-2 text-sm text-slate-600">

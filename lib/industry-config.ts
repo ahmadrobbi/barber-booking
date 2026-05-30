@@ -2,7 +2,7 @@
 
 import { createAdminSupabase } from "./supabase";
 import { getSession } from "./auth";
-import { INDUSTRIES, type IndustryKey } from "./industries";
+import { INDUSTRIES, getAvailableIndustries, type IndustryKey } from "./industries";
 
 export type { IndustryKey } from "./industries";
 
@@ -49,9 +49,12 @@ export async function getIndustryConfig(): Promise<IndustryConfig> {
   }
 
   // Default config
+  const availableIndustries = getAvailableIndustries().map((industry) => industry.key);
   return {
-    enabled: ["barbershop"],
-    default: "barbershop",
+    enabled: availableIndustries,
+    default: (availableIndustries.includes("general_booking" as IndustryKey)
+      ? "general_booking"
+      : availableIndustries[0] ?? "barbershop") as IndustryKey,
   };
 }
 

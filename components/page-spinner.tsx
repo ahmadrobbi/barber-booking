@@ -11,7 +11,7 @@ export function PageSpinner({
     <div
       className={
         fullScreen
-          ? "flex min-h-screen items-center justify-center bg-gradient-to-br from-stone-100 via-stone-50 to-amber-50 px-6 py-10"
+          ? "fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-stone-100 via-stone-50 to-amber-50 px-6 py-10 backdrop-blur-[1px]"
           : "flex min-h-[240px] items-center justify-center px-6 py-10"
       }
       aria-busy="true"
