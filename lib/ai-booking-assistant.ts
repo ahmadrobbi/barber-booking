@@ -103,6 +103,7 @@ const DEFAULT_AI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/op
 const DEFAULT_AI_MODEL = "gemma-4-26b-a4b-it";
 const ASSISTANT_CONTEXT_CACHE_TTL_MS = 5 * 60 * 1000;
 const DEFAULT_AI_ROUTER_TIMEOUT_MS = 2200;
+const DEFAULT_AI_BOOKING_PARSER_TIMEOUT_MS = 8000;
 const DEFAULT_AI_FAQ_TIMEOUT_MS = 24000;
 
 const AssistantResponseSchema = z.object({
@@ -930,6 +931,11 @@ export async function parseAiBookingStepInput(params: {
     return null;
   }
 
+  const timeoutMs = getTimeoutMs(
+    "AI_BOOKING_PARSER_TIMEOUT_MS",
+    getTimeoutMs("AI_ROUTER_TIMEOUT_MS", DEFAULT_AI_BOOKING_PARSER_TIMEOUT_MS)
+  );
+
   try {
     const prompt = buildAiBookingParserPrompt(params);
     const content = await callAiChatCompletion({
@@ -938,7 +944,7 @@ export async function parseAiBookingStepInput(params: {
         { role: "user", content: JSON.stringify(prompt.user) },
       ],
       max_tokens: 180,
-      timeoutMs: getTimeoutMs("AI_ROUTER_TIMEOUT_MS", DEFAULT_AI_ROUTER_TIMEOUT_MS),
+      timeoutMs,
     });
 
     if (!content) {
@@ -970,7 +976,14 @@ export async function parseAiBookingStepInput(params: {
       clarificationReason: parsed.data.clarificationReason?.trim() || null,
     };
   } catch (error) {
-    console.warn("AI booking parser failed:", error);
+    console.warn("AI booking parser failed:", {
+      step: params.step,
+      timeoutMs,
+      model: config.model,
+      baseUrl: config.baseUrl,
+      messagePreview: params.message.slice(0, 120),
+      error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+    });
     return null;
   }
 }
