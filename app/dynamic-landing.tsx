@@ -6,18 +6,18 @@ import { HomeHeroCarousel } from "@/components/home-hero-carousel";
 
 export default function DynamicLandingPage() {
   const platformBrand = "BookLink";
-  const platformTagline = "AI Booking Assistant untuk Bisnis Booking";
+  const platformTagline = "WhatsApp Booking Assistant untuk UMKM";
   const phone = "15551926817";
   const message = encodeURIComponent("Halo, saya mau booking.");
   const waLink = `https://wa.me/${phone}?text=${message}`;
 
   const navItems = [
     { href: "#home", label: "Home" },
-    { href: "#platform", label: "Produk" },
+    { href: "#platform", label: "Manfaat" },
     { href: "#pricing", label: "Harga" },
     { href: "#industries", label: "Use Case" },
     { href: "#features", label: "Fitur" },
-    { href: "#contact", label: "Contact" },
+    { href: "/pitch-deck", label: "Pitch Deck" },
   ] as const;
 
   return (
@@ -67,13 +67,13 @@ export default function DynamicLandingPage() {
                 href="/register"
                 className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:from-blue-600 hover:to-indigo-700 shadow-lg"
               >
-                Register
+                Coba Gratis
               </Link>
             </div>
           </div>
 
           <div className="mt-4 space-y-3 lg:hidden">
-            <div className="grid gap-3">
+          <div className="grid gap-3">
               <Link
                 href="/login"
                 className="rounded-lg border border-slate-300 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 transition hover:border-blue-300 hover:text-blue-600"
@@ -84,7 +84,7 @@ export default function DynamicLandingPage() {
                 href="/register"
                 className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:from-blue-600 hover:to-indigo-700"
               >
-                Register
+                Coba Gratis
               </Link>
             </div>
 
@@ -106,16 +106,16 @@ export default function DynamicLandingPage() {
       <HomeHeroCarousel
         slides={[
           {
-            eyebrow: "Untuk bisnis yang hidup dari booking",
-            title: "Balas chat lebih cepat, booking lebih rapi, dan pelanggan tidak nunggu lama",
+            eyebrow: "WhatsApp-first untuk UMKM",
+            title: "Ubah chat masuk jadi booking yang rapi, cepat, dan mudah dibayar kembali",
             description:
-              "BookLink membantu bisnis yang menerima reservasi atau jadwal untuk menjawab pertanyaan berulang, mengarahkan booking, dan menjaga data operasional tetap rapi. Pelanggan tetap chat lewat WhatsApp bisnis, sementara AI membaca konteks dari database dan membantu dengan cepat.",
+              "BookLink membantu UMKM yang hidup dari jadwal untuk menjawab pertanyaan berulang, mengarahkan booking, dan menjaga data operasional tetap rapi. Pelanggan tetap chat lewat WhatsApp bisnis, sementara AI membaca konteks dari database dan membantu dengan cepat.",
             image: "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=1800&q=80",
             accent: "Booking First",
-            stats: ["Balas Lebih Cepat", "Reminder Otomatis", "No-Show Turun"],
+            stats: ["Balas Lebih Cepat", "Booking Rapi", "No-Show Turun"],
           },
           {
-            eyebrow: "Cocok untuk barbershop & klinik",
+            eyebrow: "Cocok untuk bisnis yang sibuk",
             title: "Setup singkat, langsung bisa dipakai, tanpa ribet teknis",
             description:
               "Isi profil bisnis, cabang, layanan, jam buka, dan knowledge dasar. Setelah itu bot langsung siap menjawab FAQ, membantu booking, dan menjaga data tetap teratur.",
@@ -124,7 +124,7 @@ export default function DynamicLandingPage() {
             stats: ["Setup Cepat", "FAQ Siap", "Booking Aman"],
           },
           {
-            eyebrow: "Satu alur dari chat ke booking",
+            eyebrow: "Dari chat ke jadwal",
             title: "Pelanggan tanya, pilih jadwal, lalu tinggal datang",
             description:
               "Pelanggan bisa tanya layanan, cek cabang, lihat jam buka, lalu booking. Sistem tetap memvalidasi slot dan status booking supaya operasional tetap rapi dan owner tidak perlu cek manual terus-menerus.",
@@ -144,7 +144,7 @@ export default function DynamicLandingPage() {
             🚀
           </div>
           <h2 className="font-nav mt-8 text-2xl font-bold uppercase tracking-[0.1em] text-slate-900 md:text-3xl">
-            Dibangun Untuk Bisnis yang Hidup dari Booking
+            Dibangun Untuk UMKM yang Hidup dari Booking
           </h2>
           <p className="mx-auto mt-6 max-w-3xl text-sm leading-7 text-slate-600 md:text-base">
             Fokus MVP sekarang adalah membantu owner mengurangi chat berulang, mempercepat booking, dan menjaga jadwal tetap rapi. AI membaca data bisnis dari database sebelum menjawab pelanggan, jadi owner tidak perlu membalas pertanyaan yang sama berkali-kali.
@@ -207,7 +207,7 @@ export default function DynamicLandingPage() {
                 Starter
               </div>
               <div className="mt-8 text-3xl font-bold">Rp 299.000</div>
-              <p className="mt-4 text-slate-100">Paket awal untuk bisnis aktif yang ingin AI menjawab FAQ, cabang, jam buka, dan booking dasar dari satu nomor official.</p>
+              <p className="mt-4 text-slate-100">Paket utama untuk UMKM yang ingin AI menjawab FAQ, cabang, jam buka, dan booking dasar dari satu nomor official.</p>
               <ul className="mt-8 space-y-3 text-slate-100/90">
                 <li>1 bisnis aktif</li>
                 <li>1-2 cabang</li>
@@ -251,6 +251,12 @@ export default function DynamicLandingPage() {
               className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
             >
               Lihat Paket Lengkap
+            </Link>
+            <Link
+              href="/pitch-deck"
+              className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-sky-300 hover:text-sky-700"
+            >
+              Buka Pitch Deck
             </Link>
           </div>
         </div>
@@ -411,6 +417,40 @@ export default function DynamicLandingPage() {
         </div>
       </section>
 
+      <section className="bg-slate-950 px-6 py-20 text-white">
+        <div className="mx-auto grid max-w-6xl gap-8 rounded-[2rem] border border-white/10 bg-white/5 p-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <div>
+            <p className="text-xs uppercase tracking-[0.28em] text-amber-300/80">Closing CTA</p>
+            <h2 className="mt-3 max-w-2xl text-3xl font-bold leading-tight md:text-4xl">
+              Kalau bisnis Anda hidup dari booking, BookLink bisa jadi layer operasional yang langsung terasa manfaatnya.
+            </h2>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
+              Mulai dari trial untuk validasi, lalu naik ke Starter saat alurnya sudah cocok. Untuk multi cabang dan kebutuhan khusus, kita bisa lanjut ke Growth atau Pro.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3 lg:justify-end">
+            <Link
+              href="/register"
+              className="rounded-full bg-amber-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-300"
+            >
+              Mulai Trial
+            </Link>
+            <Link
+              href="/pricing"
+              className="rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+            >
+              Lihat Pricing
+            </Link>
+            <Link
+              href="/pitch-deck"
+              className="rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+            >
+              Pitch Deck
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <footer id="contact" className="bg-gradient-to-r from-slate-900 to-slate-800 py-16 text-white">
         <div className="mx-auto grid max-w-6xl gap-8 px-6 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <section>
@@ -419,7 +459,7 @@ export default function DynamicLandingPage() {
               BookLink
             </h3>
             <p className="text-sm text-slate-300 leading-relaxed mb-4">
-              AI booking assistant untuk bisnis booking yang membantu owner menjawab FAQ, mengelola booking, dan menjaga data operasional tetap rapi.
+              WhatsApp booking assistant untuk UMKM yang membantu owner menjawab FAQ, mengelola booking, dan menjaga data operasional tetap rapi.
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-slate-400 hover:text-white transition">📘 Facebook</a>
@@ -433,6 +473,7 @@ export default function DynamicLandingPage() {
               <li><a href="#platform" className="hover:text-white transition">Produk</a></li>
               <li><a href="#industries" className="hover:text-white transition">Use Case</a></li>
               <li><a href="#features" className="hover:text-white transition">Fitur</a></li>
+              <li><a href="/pricing" className="hover:text-white transition">Pricing</a></li>
               <li><a href="/register" className="hover:text-white transition">Mulai</a></li>
             </ul>
           </section>
@@ -451,6 +492,7 @@ export default function DynamicLandingPage() {
               <li><a href="/login" className="hover:text-white transition">Login Admin</a></li>
               <li><a href="/register" className="hover:text-white transition">Daftar Gratis</a></li>
               <li><a href="#platform" className="hover:text-white transition">Cara Kerja</a></li>
+              <li><a href="/pitch-deck" className="hover:text-white transition">Pitch Deck</a></li>
               <li><a href="#features" className="hover:text-white transition">Fitur Inti</a></li>
             </ul>
           </section>

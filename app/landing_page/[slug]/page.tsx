@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -150,10 +151,13 @@ export default async function PublicLandingPage({ params }: LandingPageProps) {
             <div className="relative">
               {landing.logoUrl ? (
                 <div className="relative mx-auto w-80 h-80">
-                  <img
+                  <Image
                     src={landing.logoUrl}
                     alt={landing.businessName}
-                    className="w-full h-full rounded-full object-cover shadow-2xl border-8 border-amber-400/20"
+                    fill
+                    unoptimized
+                    sizes="20rem"
+                    className="rounded-full object-cover shadow-2xl border-8 border-amber-400/20"
                   />
                   <div className="absolute inset-0 rounded-full bg-gradient-to-t from-slate-900/50 to-transparent"></div>
                 </div>
@@ -326,10 +330,10 @@ export default async function PublicLandingPage({ params }: LandingPageProps) {
             {testimonials.map((item, index) => (
               <div key={index} className="rounded-3xl bg-white/5 p-8 backdrop-blur-sm border border-white/10">
                 <div className="mb-6 flex text-amber-400">
-                  {'★'.repeat(5)}
+                  {"★".repeat(5)}
                 </div>
                 <p className="mb-6 text-lg leading-relaxed text-white/90">
-                  "{item.quote}"
+                  &ldquo;{item.quote}&rdquo;
                 </p>
                 <div className="flex items-center">
                   <div className="h-12 w-12 rounded-full bg-amber-500 flex items-center justify-center text-slate-900 font-bold">

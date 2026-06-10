@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BookLink | AI Booking Assistant untuk Bisnis Booking",
+  title: "BookLink | WhatsApp Booking Assistant untuk UMKM",
   description:
-    "Platform booking WhatsApp untuk bisnis yang menerima reservasi, jadwal, atau antrian seperti barbershop, klinik, salon, bengkel, laundry, dan toko berbasis booking. Gunakan nomor WhatsApp bisnis sendiri, buat landing page publik, dan kirim reminder otomatis.",
+    "BookLink membantu UMKM yang hidup dari jadwal untuk menerima booking lewat WhatsApp, menjawab FAQ dari data bisnis, menjaga slot tetap rapi, dan mengirim reminder otomatis tanpa pelanggan perlu install aplikasi baru.",
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang="id" className="h-full antialiased">
       <body className="min-h-full flex flex-col bg-stone-50 text-stone-900">{children}</body>
     </html>
   );

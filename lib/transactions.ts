@@ -10,7 +10,7 @@ export type UserTransaction = {
   payment_method?: string;
   description?: string;
   reference_id?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   created_at: string;
   updated_at?: string;
 };
@@ -88,12 +88,18 @@ export async function updateTransactionStatus(
   additionalData?: {
     payment_provider?: string;
     provider_reference?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }
 ): Promise<boolean> {
   const supabase = createAdminSupabase();
 
-  const updateData: any = {
+  const updateData: {
+    status: string;
+    updated_at: string;
+    payment_method?: string;
+    reference_id?: string;
+    metadata?: Record<string, unknown>;
+  } = {
     status,
     updated_at: new Date().toISOString(),
   };
@@ -139,7 +145,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     amount: 50000, // IDR
     currency: "IDR",
     interval: "monthly",
-    features: ["Up to 100 bookings/month", "Basic reporting", "Email support"]
+    features: ["Up to 100 bookings/month", "Basic reporting", "Email support"],
   },
   {
     id: "pro",
@@ -147,7 +153,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     amount: 150000, // IDR
     currency: "IDR",
     interval: "monthly",
-    features: ["Unlimited bookings", "Advanced reporting", "Priority support", "Custom branding"]
+    features: ["Unlimited bookings", "Advanced reporting", "Priority support", "Custom branding"],
   },
   {
     id: "enterprise",
@@ -155,8 +161,8 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     amount: 500000, // IDR
     currency: "IDR",
     interval: "monthly",
-    features: ["Everything in Pro", "API access", "White-label solution", "Dedicated support"]
-  }
+    features: ["Everything in Pro", "API access", "White-label solution", "Dedicated support"],
+  },
 ];
 
 export async function createSubscriptionTransaction(
@@ -164,7 +170,7 @@ export async function createSubscriptionTransaction(
   planId: string,
   paymentMethod?: string
 ): Promise<UserTransaction | null> {
-  const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId);
+  const plan = SUBSCRIPTION_PLANS.find((p) => p.id === planId);
   if (!plan) {
     console.error("Invalid subscription plan:", planId);
     return null;
@@ -182,8 +188,8 @@ export async function createSubscriptionTransaction(
     metadata: {
       plan_id: planId,
       interval: plan.interval,
-      features: plan.features
-    }
+      features: plan.features,
+    },
   });
 
   return transaction;

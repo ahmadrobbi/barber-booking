@@ -32,6 +32,30 @@ export type AiBookingAssistantDecision = {
   replySource?: "knowledge" | "ai" | "deterministic" | "fallback";
 };
 
+export type AiBookingParserStep =
+  | "pilih_cabang"
+  | "pilih_layanan"
+  | "pilih_tanggal"
+  | "pilih_jam"
+  | "isi_nama"
+  | "konfirmasi";
+
+export type AiBookingParserCandidate = {
+  id: string;
+  label: string;
+  aliases?: string[];
+  metadata?: string[];
+};
+
+export type AiBookingParserResult = {
+  matchedCandidateId: string | null;
+  customerName: string | null;
+  confirmBooking: boolean;
+  confidence: number;
+  clarificationNeeded: boolean;
+  clarificationReason: string | null;
+};
+
 export type AiFaqToolName =
   | "merchant_profile"
   | "branches"
@@ -88,6 +112,15 @@ const AssistantResponseSchema = z.object({
   extractedTopic: z.string().nullable().optional(),
   shouldStartBooking: z.boolean().optional(),
   needsHuman: z.boolean().optional(),
+});
+
+const BookingParserResponseSchema = z.object({
+  matchedCandidateId: z.string().nullable().default(null),
+  customerName: z.string().nullable().default(null),
+  confirmBooking: z.boolean().default(false),
+  confidence: z.number().min(0).max(1).default(0.5),
+  clarificationNeeded: z.boolean().default(false),
+  clarificationReason: z.string().nullable().default(null),
 });
 
 function normalizeText(value: string | null | undefined) {
@@ -833,6 +866,113 @@ export function buildAiAssistantPrompt(params: {
   };
 
   return { system, user };
+}
+
+function buildAiBookingParserPrompt(params: {
+  context: AiAssistantContext;
+  step: AiBookingParserStep;
+  message: string;
+  candidates?: AiBookingParserCandidate[];
+  bookingStateSummary?: string | null;
+}) {
+  const system = [
+    "Kamu adalah parser untuk flow booking WhatsApp.",
+    "Tugasmu hanya memahami input user untuk step booking yang sedang aktif.",
+    "Balas hanya JSON valid tanpa markdown.",
+    "Jangan mengarang kandidat di luar daftar yang diberikan.",
+    "Jika tidak yakin, kembalikan matchedCandidateId=null dan clarificationNeeded=true.",
+    "Untuk step isi_nama, ekstrak nama customer sebersih mungkin.",
+    "Untuk step konfirmasi, set confirmBooking=true hanya jika user benar-benar setuju atau mengonfirmasi.",
+    "Schema JSON:",
+    `{
+      "matchedCandidateId": "string|null",
+      "customerName": "string|null",
+      "confirmBooking": false,
+      "confidence": 0.0,
+      "clarificationNeeded": false,
+      "clarificationReason": "string|null"
+    }`,
+  ].join("\n");
+
+  const user = {
+    merchant: params.context.businessName,
+    step: params.step,
+    customerMessage: params.message,
+    currentBookingState: params.bookingStateSummary ?? null,
+    candidates:
+      params.candidates?.map((candidate) => ({
+        id: candidate.id,
+        label: candidate.label,
+        aliases: candidate.aliases ?? [],
+        metadata: candidate.metadata ?? [],
+      })) ?? [],
+    hardRules: [
+      "matchedCandidateId hanya boleh berisi id dari daftar candidates.",
+      "Jika message terlalu ambigu, jangan menebak.",
+      "Untuk step konfirmasi, matchedCandidateId harus null.",
+      "Untuk step isi_nama, matchedCandidateId boleh null dan customerName yang diisi.",
+    ],
+  };
+
+  return { system, user };
+}
+
+export async function parseAiBookingStepInput(params: {
+  context: AiAssistantContext;
+  step: AiBookingParserStep;
+  message: string;
+  candidates?: AiBookingParserCandidate[];
+  bookingStateSummary?: string | null;
+}): Promise<AiBookingParserResult | null> {
+  const config = getAiConfig();
+
+  if (!config.enabled) {
+    return null;
+  }
+
+  try {
+    const prompt = buildAiBookingParserPrompt(params);
+    const content = await callAiChatCompletion({
+      messages: [
+        { role: "system", content: prompt.system },
+        { role: "user", content: JSON.stringify(prompt.user) },
+      ],
+      max_tokens: 180,
+      timeoutMs: getTimeoutMs("AI_ROUTER_TIMEOUT_MS", DEFAULT_AI_ROUTER_TIMEOUT_MS),
+    });
+
+    if (!content) {
+      return null;
+    }
+
+    const jsonString = extractJsonObject(content);
+    if (!jsonString) {
+      return null;
+    }
+
+    const parsed = BookingParserResponseSchema.safeParse(JSON.parse(jsonString));
+    if (!parsed.success) {
+      return null;
+    }
+
+    const validCandidateIds = new Set((params.candidates ?? []).map((candidate) => candidate.id));
+    const matchedCandidateId =
+      parsed.data.matchedCandidateId && validCandidateIds.has(parsed.data.matchedCandidateId)
+        ? parsed.data.matchedCandidateId
+        : null;
+
+    return {
+      matchedCandidateId,
+      customerName: parsed.data.customerName?.trim() || null,
+      confirmBooking: parsed.data.confirmBooking,
+      confidence: parsed.data.confidence,
+      clarificationNeeded: parsed.data.clarificationNeeded,
+      clarificationReason: parsed.data.clarificationReason?.trim() || null,
+    };
+  } catch (error) {
+    console.warn("AI booking parser failed:", error);
+    return null;
+  }
 }
 
 export async function generateAiAssistantDecision(params: {

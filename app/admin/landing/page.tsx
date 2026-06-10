@@ -5,20 +5,6 @@ import { LandingPageForm } from "@/components/landing-page-form";
 
 export const dynamic = "force-dynamic";
 
-function getAppUrl() {
-  const explicitUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
-
-  if (explicitUrl) {
-    return explicitUrl.replace(/\/$/, "");
-  }
-
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-
-  return "http://localhost:3000";
-}
-
 export default async function LandingPage({
   searchParams,
 }: {
@@ -28,7 +14,6 @@ export default async function LandingPage({
 
   const landingPage = await getUserLandingPage();
   const params = (await searchParams) ?? {};
-  const appUrl = getAppUrl();
   const publicLandingPageHref = landingPage?.custom_domain
     ? `https://${landingPage.custom_domain}`
     : landingPage?.subdomain
@@ -66,7 +51,7 @@ export default async function LandingPage({
         </div>
       </section>
       <section className="rounded-[2rem] bg-white p-6 shadow-xl md:p-8">
-        <LandingPageForm initialLandingPage={landingPage} appUrl={appUrl} />
+        <LandingPageForm initialLandingPage={landingPage} />
       </section>
     </div>
   );

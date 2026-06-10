@@ -106,7 +106,7 @@ export default function IndustrySettings() {
       
       // Filter out undefined customization entries
       const filteredCustomization = Object.fromEntries(
-        Object.entries(customization).filter(([_, value]) => value !== undefined)
+        Object.entries(customization).filter(([, value]) => value !== undefined)
       ) as Record<IndustryKey, { templates?: Record<string, string>; services?: Array<{ code: string; name: string; price: number; description: string; }>; }>;
       
       await saveIndustryConfigAction({

@@ -5,7 +5,12 @@ import {
   saveWhatsappChannel,
 } from "@/app/actions/whatsapp-channels";
 import { requireAdmin } from "@/lib/auth";
-import { DEFAULT_CHATBOT_TEMPLATES, getChatbotTemplates } from "@/lib/chatbot";
+import {
+  DEFAULT_CHATBOT_REPLY_STYLE,
+  DEFAULT_CHATBOT_TEMPLATES,
+  getChatbotTemplates,
+  normalizeChatbotChannelOverrides,
+} from "@/lib/chatbot";
 import { getAvailableIndustries } from "@/lib/industries";
 import { getCurrentUserWhatsappChannels, type WhatsappChannel } from "@/lib/whatsapp-channels";
 
@@ -117,7 +122,7 @@ export default async function WebhookSettingsPage({
         <div className="mt-6 space-y-6">
           {channelForms.map((channel, index) => {
             const isNew = !channel.id;
-            const overrides = channel.template_overrides ?? {};
+            const overrides = normalizeChatbotChannelOverrides(channel.template_overrides);
 
             return (
               <div
@@ -238,27 +243,107 @@ export default async function WebhookSettingsPage({
                   </div>
 
                   <div className="rounded-[1.5rem] border border-dashed border-stone-300 bg-white p-4">
-                    <p className="text-sm font-medium text-stone-900">Template override per channel</p>
+                    <p className="text-sm font-medium text-stone-900">Gaya percakapan per channel</p>
                     <p className="mt-1 text-sm leading-6 text-stone-600">
-                      Kosongkan field bila channel ini boleh mengikuti fallback global + default industry.
+                      Channel sekarang bisa punya gaya balasan sendiri. Fallback template tetap tersedia
+                      hanya untuk jaga-jaga bila kamu butuh copy khusus atau AI sedang tidak aktif.
                     </p>
 
                     <div className="mt-4 grid gap-4 md:grid-cols-2">
-                      {Object.entries(DEFAULT_CHATBOT_TEMPLATES).map(([key, defaultValue]) => (
-                        <label key={key} className="block">
-                          <span className="mb-2 block text-sm font-medium capitalize text-stone-700">
-                            {key}
-                          </span>
-                          <textarea
-                            name={`template_${key}`}
-                            defaultValue={overrides[key as keyof typeof overrides] ?? ""}
-                            placeholder={defaultValue}
-                            rows={key === "greeting" || key === "reminder" ? 5 : 3}
-                            className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400 focus:bg-white"
-                          />
-                        </label>
-                      ))}
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-stone-700">Nama assistant</span>
+                        <input
+                          name="style_assistant_label"
+                          type="text"
+                          defaultValue={overrides.replyStyle.assistantLabel ?? DEFAULT_CHATBOT_REPLY_STYLE.assistantLabel}
+                          className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400 focus:bg-white"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-stone-700">Tone</span>
+                        <select
+                          name="style_tone"
+                          defaultValue={overrides.replyStyle.tone}
+                          className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400 focus:bg-white"
+                        >
+                          <option value="friendly">Friendly</option>
+                          <option value="warm">Warm</option>
+                          <option value="professional">Professional</option>
+                        </select>
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-stone-700">Panjang jawaban</span>
+                        <select
+                          name="style_brevity"
+                          defaultValue={overrides.replyStyle.brevity}
+                          className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400 focus:bg-white"
+                        >
+                          <option value="compact">Compact</option>
+                          <option value="balanced">Balanced</option>
+                        </select>
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-stone-700">Emoji level</span>
+                        <select
+                          name="style_emoji_level"
+                          defaultValue={overrides.replyStyle.emojiLevel}
+                          className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400 focus:bg-white"
+                        >
+                          <option value="none">None</option>
+                          <option value="low">Low</option>
+                          <option value="medium">Medium</option>
+                        </select>
+                      </label>
+
+                      <label className="block md:col-span-2">
+                        <span className="mb-2 block text-sm font-medium text-stone-700">Kalimat penutup opsional</span>
+                        <textarea
+                          name="style_closing_line"
+                          defaultValue={overrides.replyStyle.closingLine}
+                          rows={3}
+                          className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400 focus:bg-white"
+                        />
+                      </label>
+
+                      <label className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-800 md:col-span-2">
+                        <input
+                          type="checkbox"
+                          name="style_use_natural_language"
+                          defaultChecked={overrides.replyStyle.useNaturalLanguage}
+                          className="h-4 w-4 rounded border-stone-300 text-amber-500 focus:ring-amber-400"
+                        />
+                        Pakai balasan natural dulu, template jadi fallback
+                      </label>
                     </div>
+
+                    <details className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 p-4">
+                      <summary className="cursor-pointer text-sm font-semibold text-stone-800">
+                        Fallback template lanjutan
+                      </summary>
+                      <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        {Object.entries(DEFAULT_CHATBOT_TEMPLATES).map(([key, defaultValue]) => (
+                          <label key={key} className="block">
+                            <span className="mb-2 block text-sm font-medium capitalize text-stone-700">
+                              {key}
+                            </span>
+                            <textarea
+                              name={`fallback_template_${key}`}
+                              defaultValue={
+                                overrides.fallbackTemplates[
+                                  key as keyof typeof overrides.fallbackTemplates
+                                ] ?? ""
+                              }
+                              placeholder={defaultValue}
+                              rows={key === "greeting" || key === "reminder" ? 5 : 3}
+                              className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-amber-400 focus:bg-white"
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    </details>
                   </div>
 
                   <div className="flex flex-col gap-3 md:flex-row md:justify-between">

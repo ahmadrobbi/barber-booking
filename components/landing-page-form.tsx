@@ -7,10 +7,9 @@ import type { UserLandingPage } from "@/lib/user";
 
 type LandingPageFormProps = {
   initialLandingPage: UserLandingPage | null;
-  appUrl: string;
 };
 
-export function LandingPageForm({ initialLandingPage, appUrl }: LandingPageFormProps) {
+export function LandingPageForm({ initialLandingPage }: LandingPageFormProps) {
   const [state, action] = useActionState(updateLandingPage, { message: "" });
   const publicProfilePath = initialLandingPage?.custom_domain
     ? `https://${initialLandingPage.custom_domain}`

@@ -1,4 +1,5 @@
 import {
+  DEFAULT_CHATBOT_REPLY_STYLE,
   formatBookingDateLabel,
   formatRupiah,
   getUpcomingDateOptions,
@@ -7,12 +8,15 @@ import {
   getSlotBySelection,
   getSlotOptionsText,
   renderTemplate,
+  type ChatbotReplyStyle,
 } from "@/lib/chatbot";
 import { type IndustryKey, getAvailableIndustries } from "@/lib/industries";
 import { isBookingSlotConflict } from "@/lib/booking-conflicts";
 import { getServicesForUser } from "@/lib/bookings";
 import {
   buildAiAssistantContext,
+  parseAiBookingStepInput,
+  type AiBookingParserCandidate,
   generateKnowledgePriorityFaqReply,
   generateAiAssistantDecision,
   generateAiFaqReply,
@@ -139,8 +143,93 @@ function withCancelHint(message: string) {
   return `${message}\n\nKetik *BATAL* kalau mau berhenti dari booking ini.`;
 }
 
+function getToneLead(style: ChatbotReplyStyle, variant: "ack" | "guide" | "retry" = "guide") {
+  const resolvedStyle = style ?? DEFAULT_CHATBOT_REPLY_STYLE;
+
+  if (resolvedStyle.tone === "professional") {
+    if (variant === "ack") return "Baik.";
+    if (variant === "retry") return "Mohon coba lagi.";
+    return "Silakan lanjut.";
+  }
+
+  if (resolvedStyle.tone === "friendly") {
+    if (variant === "ack") return "Siap.";
+    if (variant === "retry") return "Coba lagi ya.";
+    return "Lanjut ya.";
+  }
+
+  if (variant === "ack") return "Siap ya.";
+  if (variant === "retry") return "Coba lagi pelan-pelan ya.";
+  return "Kita lanjut ya.";
+}
+
+function maybeAddEmoji(style: ChatbotReplyStyle, emoji: string) {
+  if (style.emojiLevel === "none") {
+    return "";
+  }
+
+  if (style.emojiLevel === "low") {
+    return `${emoji} `;
+  }
+
+  return `${emoji} `;
+}
+
+function composeNaturalReply(params: {
+  style: ChatbotReplyStyle;
+  intro?: string | null;
+  lines?: string[];
+  question?: string | null;
+  includeClosingLine?: boolean;
+}) {
+  const parts = [
+    params.intro?.trim() ?? "",
+    ...(params.lines ?? []).map((line) => line.trim()).filter(Boolean),
+    params.question?.trim() ?? "",
+    params.includeClosingLine && params.style.closingLine ? params.style.closingLine.trim() : "",
+  ].filter(Boolean);
+
+  return parts.join("\n\n");
+}
+
 function getBranchOptionsText(branches: UserBranch[]) {
   return branches.map((branch, index) => `${index + 1}. *${branch.name}*`).join("\n");
+}
+
+function getBranchCandidates(branches: UserBranch[]): AiBookingParserCandidate[] {
+  return branches
+    .filter((branch): branch is UserBranch & { id: string } => typeof branch.id === "string")
+    .map((branch) => ({
+      id: branch.id,
+      label: branch.name,
+      aliases: [branch.code, branch.name].filter(Boolean) as string[],
+      metadata: [branch.address, branch.phone].filter(Boolean) as string[],
+    }));
+}
+
+function getServiceCandidates(services: Awaited<ReturnType<typeof getServicesForUser>>): AiBookingParserCandidate[] {
+  return services.map((service) => ({
+    id: service.code,
+    label: service.name,
+    aliases: [service.code, service.name].filter(Boolean),
+    metadata: [service.description, formatRupiah(service.price)].filter(Boolean),
+  }));
+}
+
+function getDateCandidates(options: Array<{ key: string; label: string; index: number }>): AiBookingParserCandidate[] {
+  return options.map((option) => ({
+    id: option.key,
+    label: option.label,
+    aliases: [String(option.index), option.key, option.label],
+  }));
+}
+
+function getSlotCandidates(slots: readonly string[]): AiBookingParserCandidate[] {
+  return slots.map((slot, index) => ({
+    id: slot,
+    label: slot,
+    aliases: [String(index + 1), slot],
+  }));
 }
 
 function getBranchBySelection(message: string, branches: UserBranch[]) {
@@ -170,6 +259,18 @@ function getSelectedBranch(branches: UserBranch[], branchId: string | null | und
 }
 
 function buildBranchSelectionMessage(context: WhatsappRuntimeContext, branches: UserBranch[]) {
+  if (context.replyStyle.useNaturalLanguage) {
+    return composeNaturalReply({
+      style: context.replyStyle,
+      intro:
+        `${maybeAddEmoji(context.replyStyle, "👋")}Halo, selamat datang di *${context.businessName}*. ` +
+        "Sebelum lanjut booking, pilih cabangnya dulu ya.",
+      lines: branches.map((branch, index) => `${index + 1}. *${branch.name}*`),
+      question: "Boleh balas dengan nomor, kode cabang, atau nama cabangnya langsung.",
+      includeClosingLine: false,
+    });
+  }
+
   return (
     `Halo 👋 Selamat datang di *${context.businessName}* 💈\n\n` +
     "Pilih cabang dulu ya sebelum lanjut booking:\n\n" +
@@ -709,6 +810,22 @@ async function resetToGreetingState({
     industry,
   });
 
+  if (context.replyStyle.useNaturalLanguage) {
+    return composeNaturalReply({
+      style: context.replyStyle,
+      intro:
+        `${maybeAddEmoji(context.replyStyle, "👋")}Halo, selamat datang di *${context.businessName}*. ` +
+        "Aku bantu bookingnya ya.",
+      lines: [
+        getToneLead(context.replyStyle, "guide"),
+        "Ini layanan yang tersedia saat ini:",
+        getServiceOptionsText(tenantServices),
+      ],
+      question: "Kamu bisa balas dengan nomor layanan, nama layanan, atau tulis kebutuhanmu langsung.",
+      includeClosingLine: false,
+    });
+  }
+
   return renderTemplate(context.templates.greeting, {
     business_name: context.businessName,
     service_list: getServiceOptionsText(tenantServices),
@@ -734,6 +851,479 @@ function buildBookingStateSummary(params: {
   ]
     .filter(Boolean)
     .join("\n");
+}
+
+async function parseBookingStepWithAi(params: {
+  context: WhatsappRuntimeContext;
+  industry: IndustryKey;
+  step: "pilih_cabang" | "pilih_layanan" | "pilih_tanggal" | "pilih_jam" | "isi_nama" | "konfirmasi";
+  rawMessage: string;
+  state: SessionState;
+  tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
+  branches: UserBranch[];
+  candidates?: AiBookingParserCandidate[];
+}) {
+  if (!params.context.userId) {
+    return null;
+  }
+
+  const aiContext = await buildAiAssistantContext({
+    channelId: params.context.channelId,
+    userId: params.context.userId,
+    industry: params.industry,
+    branches: params.branches,
+    services: params.tenantServices,
+  });
+
+  return parseAiBookingStepInput({
+    context: aiContext,
+    step: params.step,
+    message: params.rawMessage,
+    candidates: params.candidates,
+    bookingStateSummary: buildBookingStateSummary({
+      state: params.state,
+      branches: params.branches,
+      tenantServices: params.tenantServices,
+    }),
+  });
+}
+
+function isLikelyMultiFieldBookingMessage(message: string) {
+  const normalized = message.trim().toLowerCase();
+
+  if (!normalized) {
+    return false;
+  }
+
+  return /(\bbooking\b|\bmau\b|\batas nama\b|\bnama saya\b|\bbesok\b|\blusa\b|\bhari ini\b|\bjam\b|\bpukul\b|\btanggal\b|\d{4}-\d{2}-\d{2}|\d{1,2}[:.]\d{2})/i.test(
+    normalized
+  );
+}
+
+function getNextBookingStep(params: {
+  branches: UserBranch[];
+  branchId: string | null;
+  layanan: string | null;
+  tanggal: string | null;
+  jam: string | null;
+  customerName: string | null;
+}) {
+  if (params.branches.length > 0 && !params.branchId) {
+    return "pilih_cabang" as const;
+  }
+
+  if (!params.layanan) {
+    return "pilih_layanan" as const;
+  }
+
+  if (!params.tanggal) {
+    return "pilih_tanggal" as const;
+  }
+
+  if (!params.jam) {
+    return "pilih_jam" as const;
+  }
+
+  if (!params.customerName) {
+    return "isi_nama" as const;
+  }
+
+  return "konfirmasi" as const;
+}
+
+function buildConfirmationReply(params: {
+  style: ChatbotReplyStyle;
+  context: WhatsappRuntimeContext;
+  templates: WhatsappRuntimeContext["templates"];
+  branchName: string | null;
+  layanan: string;
+  tanggal: string;
+  jam: string;
+  harga: number | null;
+  customerName: string;
+}) {
+  const confirmationSummary = renderTemplate(params.templates.confirmationPrompt, {
+    business_name: params.context.businessName,
+    customer_name: params.customerName,
+    layanan: params.layanan,
+    tanggal_label: formatBookingDateLabel(params.tanggal),
+    jam: params.jam,
+    harga: formatRupiah(params.harga),
+    branch_name: params.branchName,
+  });
+
+  if (params.style.useNaturalLanguage) {
+    return composeNaturalReply({
+      style: params.style,
+      intro: `${getToneLead(params.style, "ack")} Aku sudah rangkum bookingnya ya.`,
+      lines: [
+        confirmationSummary,
+        params.branchName ? `📍 Cabang: ${params.branchName}` : "",
+        `🙍 Nama pemesan: ${params.customerName}`,
+      ],
+      question: "Kalau sudah benar, balas *YA*. Kalau mau ubah, balas *BATAL* dulu ya.",
+      includeClosingLine: false,
+    });
+  }
+
+  return (
+    `${confirmationSummary}\n\n` +
+    `${params.branchName ? `📍 Cabang: ${params.branchName}\n` : ""}` +
+    `🙍 Nama pemesan: ${params.customerName}\n\n` +
+    "Balas *YA* untuk konfirmasi atau *BATAL* untuk mengulang."
+  );
+}
+
+async function tryFastForwardBookingFromMessage(params: {
+  sender: string;
+  rawMessage: string;
+  context: WhatsappRuntimeContext;
+  industry: IndustryKey;
+  state: SessionState | null;
+  tenantServices: Awaited<ReturnType<typeof getServicesForUser>>;
+  branches: UserBranch[];
+  today: Date;
+}): Promise<string | null> {
+  if (!isLikelyMultiFieldBookingMessage(params.rawMessage)) {
+    return null;
+  }
+
+  const currentState = params.state;
+  const initialBranchId =
+    currentState?.branch_id ??
+    (params.branches.length === 1 && typeof params.branches[0]?.id === "string"
+      ? params.branches[0].id
+      : null);
+  let branchId = initialBranchId;
+  let layanan = currentState?.layanan ?? null;
+  let harga = currentState?.harga ?? null;
+  let tanggal = currentState?.tanggal ?? null;
+  let jam = currentState?.jam ?? null;
+  let customerName = currentState?.customer_name ?? null;
+
+  if (params.branches.length > 1 && !branchId) {
+    const parsedBranch = getBranchBySelection(params.rawMessage.toLowerCase(), params.branches);
+    const aiParsedBranch = parsedBranch
+      ? null
+      : await parseBookingStepWithAi({
+          context: params.context,
+          industry: params.industry,
+          step: "pilih_cabang",
+          rawMessage: params.rawMessage,
+          state:
+            currentState ?? {
+              sender: params.sender,
+              channel_id: params.context.channelId,
+              user_id: params.context.userId,
+              branch_id: null,
+              step: "pilih_cabang",
+              customer_name: null,
+              layanan: null,
+              harga: null,
+              tanggal: null,
+              jam: null,
+              industry: params.industry,
+            },
+          tenantServices: params.tenantServices,
+          branches: params.branches,
+          candidates: getBranchCandidates(params.branches),
+        });
+
+    branchId =
+      parsedBranch?.id ??
+      params.branches.find((branch) => branch.id === aiParsedBranch?.matchedCandidateId)?.id ??
+      null;
+  }
+
+  if (!layanan) {
+    const parsedService = getServiceBySelection(params.rawMessage.toLowerCase(), params.tenantServices);
+    const aiParsedService = parsedService
+      ? null
+      : await parseBookingStepWithAi({
+          context: params.context,
+          industry: params.industry,
+          step: "pilih_layanan",
+          rawMessage: params.rawMessage,
+          state:
+            currentState ?? {
+              sender: params.sender,
+              channel_id: params.context.channelId,
+              user_id: params.context.userId,
+              branch_id: branchId,
+              step: "pilih_layanan",
+              customer_name: null,
+              layanan: null,
+              harga: null,
+              tanggal: null,
+              jam: null,
+              industry: params.industry,
+            },
+          tenantServices: params.tenantServices,
+          branches: params.branches,
+          candidates: getServiceCandidates(params.tenantServices),
+        });
+
+    const selectedService =
+      parsedService ??
+      params.tenantServices.find((service) => service.code === aiParsedService?.matchedCandidateId) ??
+      null;
+
+    layanan = selectedService?.name ?? null;
+    harga = selectedService?.price ?? harga;
+  }
+
+  const scope: BookingScope = {
+    userId: params.context.userId,
+    channelId: params.context.channelId,
+    branchId,
+  };
+
+  if (layanan && !tanggal) {
+    const durationMinutes =
+      params.tenantServices.find((service) => service.name === layanan)?.duration_minutes ?? 60;
+    const dateOptions = await getAvailableDateOptions({
+      baseDate: params.today,
+      industry: params.industry,
+      scope,
+      durationMinutes,
+    });
+    const parsedDate = getDateBySelection(params.rawMessage, dateOptions);
+    const aiParsedDate = parsedDate
+      ? null
+      : await parseBookingStepWithAi({
+          context: params.context,
+          industry: params.industry,
+          step: "pilih_tanggal",
+          rawMessage: params.rawMessage,
+          state:
+            currentState ?? {
+              sender: params.sender,
+              channel_id: params.context.channelId,
+              user_id: params.context.userId,
+              branch_id: branchId,
+              step: "pilih_tanggal",
+              customer_name: null,
+              layanan,
+              harga,
+              tanggal: null,
+              jam: null,
+              industry: params.industry,
+            },
+          tenantServices: params.tenantServices,
+          branches: params.branches,
+          candidates: getDateCandidates(dateOptions),
+        });
+
+    tanggal =
+      parsedDate?.key ??
+      dateOptions.find((option) => option.key === aiParsedDate?.matchedCandidateId)?.key ??
+      null;
+  }
+
+  if (layanan && tanggal && !jam) {
+    const durationMinutes =
+      params.tenantServices.find((service) => service.name === layanan)?.duration_minutes ?? 60;
+    const slots = await getAvailableSlots(tanggal, params.industry, scope, durationMinutes);
+    const parsedSlot = getSlotBySelection(params.rawMessage, slots);
+    const aiParsedSlot = parsedSlot
+      ? null
+      : await parseBookingStepWithAi({
+          context: params.context,
+          industry: params.industry,
+          step: "pilih_jam",
+          rawMessage: params.rawMessage,
+          state:
+            currentState ?? {
+              sender: params.sender,
+              channel_id: params.context.channelId,
+              user_id: params.context.userId,
+              branch_id: branchId,
+              step: "pilih_jam",
+              customer_name: null,
+              layanan,
+              harga,
+              tanggal,
+              jam: null,
+              industry: params.industry,
+            },
+          tenantServices: params.tenantServices,
+          branches: params.branches,
+          candidates: getSlotCandidates(slots),
+        });
+
+    jam = parsedSlot ?? aiParsedSlot?.matchedCandidateId ?? null;
+  }
+
+  if (!customerName) {
+    const aiParsedName = await parseBookingStepWithAi({
+      context: params.context,
+      industry: params.industry,
+      step: "isi_nama",
+      rawMessage: params.rawMessage,
+      state:
+        currentState ?? {
+          sender: params.sender,
+          channel_id: params.context.channelId,
+          user_id: params.context.userId,
+          branch_id: branchId,
+          step: "isi_nama",
+          customer_name: null,
+          layanan,
+          harga,
+          tanggal,
+          jam,
+          industry: params.industry,
+        },
+      tenantServices: params.tenantServices,
+      branches: params.branches,
+    });
+
+    customerName = normalizeCustomerName(aiParsedName?.customerName || "");
+    if (customerName.length < 2) {
+      customerName = null;
+    }
+  }
+
+  const nextStep = getNextBookingStep({
+    branches: params.branches,
+    branchId,
+    layanan,
+    tanggal,
+    jam,
+    customerName,
+  });
+
+  const selectedBranch = getSelectedBranch(params.branches, branchId);
+
+  await saveState({
+    sender: params.sender,
+    channel_id: params.context.channelId,
+    user_id: params.context.userId,
+    branch_id: branchId,
+    step: nextStep,
+    customer_name: customerName,
+    layanan,
+    harga,
+    tanggal,
+    jam,
+    industry: params.industry,
+  });
+
+  if (nextStep === "konfirmasi" && layanan && tanggal && jam && customerName) {
+    return withCancelHint(
+      buildConfirmationReply({
+        style: params.context.replyStyle,
+        context: params.context,
+        templates: params.context.templates,
+        branchName: selectedBranch?.name ?? null,
+        layanan,
+        tanggal,
+        jam,
+        harga,
+        customerName,
+      })
+    );
+  }
+
+  if (nextStep === "pilih_cabang") {
+    const capturedDetails = [
+      layanan ? `Layanan: *${layanan}*` : "",
+      tanggal ? `Tanggal: *${formatBookingDateLabel(tanggal)}*` : "",
+      jam ? `Jam: *${jam}*` : "",
+      customerName ? `Atas nama: *${customerName}*` : "",
+    ].filter(Boolean);
+
+    return withCancelHint(
+      composeNaturalReply({
+        style: params.context.replyStyle,
+        intro:
+          `${getToneLead(params.context.replyStyle, "ack")} Aku sudah tangkap beberapa detail bookingmu.`,
+        lines: [
+          capturedDetails.length > 0 ? capturedDetails.join("\n") : "",
+          "Sebelum lanjut, pilih cabangnya dulu ya:",
+          getBranchOptionsText(params.branches),
+        ],
+        question: "Balas dengan nomor, kode, atau nama cabang yang tersedia.",
+        includeClosingLine: false,
+      })
+    );
+  }
+
+  if (nextStep === "pilih_layanan") {
+    return withCancelHint(
+      composeNaturalReply({
+        style: params.context.replyStyle,
+        intro:
+          `${getToneLead(params.context.replyStyle, "ack")} Aku siap bantu lanjut bookingnya.` +
+          (selectedBranch ? ` Cabang *${selectedBranch.name}* sudah kupilih.` : ""),
+        lines: ["Tinggal pilih layanannya ya:", getServiceOptionsText(params.tenantServices)],
+        question: "Kamu bisa balas dengan nomor layanan, nama layanan, atau tulis kebutuhanmu langsung.",
+        includeClosingLine: false,
+      })
+    );
+  }
+
+  if (nextStep === "pilih_tanggal" && layanan) {
+    const durationMinutes =
+      params.tenantServices.find((service) => service.name === layanan)?.duration_minutes ?? 60;
+    const dateOptions = await getAvailableDateOptions({
+      baseDate: params.today,
+      industry: params.industry,
+      scope,
+      durationMinutes,
+    });
+
+    if (dateOptions.length > 0) {
+      return withCancelHint(
+        composeNaturalReply({
+          style: params.context.replyStyle,
+          intro:
+            `${getToneLead(params.context.replyStyle, "ack")} Layanan *${layanan}* sudah kupilih.` +
+            (selectedBranch ? ` Untuk cabang *${selectedBranch.name}* ya.` : ""),
+          lines: ["Tanggal yang masih tersedia:", getDateOptionsText(dateOptions)],
+          question: "Kamu bisa balas dengan nomor tanggal, tulis tanggalnya langsung, atau bilang misalnya besok/lusa.",
+          includeClosingLine: false,
+        })
+      );
+    }
+  }
+
+  if (nextStep === "pilih_jam" && tanggal && layanan) {
+    const durationMinutes =
+      params.tenantServices.find((service) => service.name === layanan)?.duration_minutes ?? 60;
+    const slots = await getAvailableSlots(tanggal, params.industry, scope, durationMinutes);
+    if (slots.length > 0) {
+      return withCancelHint(
+        composeNaturalReply({
+          style: params.context.replyStyle,
+          intro:
+            `${getToneLead(params.context.replyStyle, "ack")} ` +
+            `Aku sudah tangkap layanan *${layanan}*` +
+            `${selectedBranch ? ` di cabang *${selectedBranch.name}*` : ""}` +
+            ` untuk *${formatBookingDateLabel(tanggal)}*.`,
+          lines: ["Jam yang masih tersedia:", getSlotOptionsText(slots)],
+          question: "Tinggal pilih jamnya ya. Boleh tulis misalnya `jam 3 sore` atau pilih dari daftar.",
+          includeClosingLine: false,
+        })
+      );
+    }
+  }
+
+  if (nextStep === "isi_nama" && layanan && tanggal && jam) {
+    return withCancelHint(
+      composeNaturalReply({
+        style: params.context.replyStyle,
+        intro:
+          `${getToneLead(params.context.replyStyle, "ack")} ` +
+          `Aku sudah tangkap layanan *${layanan}*, tanggal *${formatBookingDateLabel(tanggal)}*, dan jam *${jam}*.`,
+        lines: [selectedBranch ? `Cabang: *${selectedBranch.name}*` : ""],
+        question: "Sekarang kirim nama pemesannya ya. Contohnya: `atas nama Robbi`.",
+        includeClosingLine: false,
+      })
+    );
+  }
+
+  return null;
 }
 
 async function getRichFaqReply(params: {
@@ -1278,6 +1868,7 @@ export async function POST(req: Request) {
   const state = await loadState(sender, context.channelId);
   const industry: IndustryKey = state?.industry || context.industry;
   const templates = context.templates;
+  const replyStyle = context.replyStyle;
   const branches = await getBranchesForUser(context.userId, { activeOnly: true });
   const tenantServices = await getServicesForUser(context.userId, industry);
   const today = getTodayInJakarta();
@@ -1396,8 +1987,48 @@ export async function POST(req: Request) {
         })
       );
     }
+  } else if (
+    !reply &&
+    state?.step !== "pilih_industri" &&
+    (!state ||
+      (typeof state.step === "string" &&
+        ["pilih_cabang", "pilih_layanan", "pilih_tanggal", "pilih_jam", "isi_nama"].includes(
+          state.step
+        )))
+  ) {
+    const fastForwardReply = await tryFastForwardBookingFromMessage({
+      sender,
+      rawMessage,
+      context,
+      industry,
+      state,
+      tenantServices,
+      branches,
+      today,
+    });
+
+    if (fastForwardReply) {
+      reply = fastForwardReply;
+    }
   } else if (!reply && state?.step === "pilih_cabang") {
-    const selectedBranch = getBranchBySelection(message, branches);
+    const parsedBranch = getBranchBySelection(message, branches);
+    const aiParsedBranch =
+      parsedBranch || branches.length === 0
+        ? null
+        : await parseBookingStepWithAi({
+            context,
+            industry,
+            step: "pilih_cabang",
+            rawMessage,
+            state,
+            tenantServices,
+            branches,
+            candidates: getBranchCandidates(branches),
+          });
+    const selectedBranch =
+      parsedBranch ??
+      branches.find((branch) => branch.id === aiParsedBranch?.matchedCandidateId) ??
+      null;
 
     if (!selectedBranch) {
       const faqReply = await maybeGetInFlowFaqReply({
@@ -1414,7 +2045,16 @@ export async function POST(req: Request) {
       reply =
         faqReply ||
         withCancelHint(
-          `Kita masih di langkah pilih cabang.\n\nPilihan belum sesuai. Balas dengan nomor cabang yang tersedia ya 🙌\n\n${getBranchOptionsText(branches)}`
+          composeNaturalReply({
+            style: replyStyle,
+            intro: "Kita masih di langkah pilih cabang ya.",
+            lines: [
+              aiParsedBranch?.clarificationReason || "Aku belum bisa memastikan cabang yang kamu maksud.",
+              getBranchOptionsText(branches),
+            ],
+            question: "Balas dengan nomor, kode, atau nama cabang yang tersedia ya.",
+            includeClosingLine: false,
+          })
         );
     } else {
       await saveState({
@@ -1432,11 +2072,20 @@ export async function POST(req: Request) {
       });
 
       reply = withCancelHint(
-        `Cabang dipilih: *${selectedBranch.name}*\n\n` +
-          renderTemplate(templates.greeting, {
-            business_name: context.businessName,
-            service_list: getServiceOptionsText(tenantServices),
-          })
+        replyStyle.useNaturalLanguage
+          ? composeNaturalReply({
+              style: replyStyle,
+              intro:
+                `${getToneLead(replyStyle, "ack")} Cabang *${selectedBranch.name}* sudah kupilih.`,
+              lines: ["Sekarang kita lanjut pilih layanannya ya.", getServiceOptionsText(tenantServices)],
+              question: "Boleh balas dengan nomor layanan, nama layanan, atau jelaskan kebutuhanmu langsung.",
+              includeClosingLine: false,
+            })
+          : `Cabang dipilih: *${selectedBranch.name}*\n\n` +
+            renderTemplate(templates.greeting, {
+              business_name: context.businessName,
+              service_list: getServiceOptionsText(tenantServices),
+            })
       );
     }
   } else if (!reply && !state) {
@@ -1460,7 +2109,24 @@ export async function POST(req: Request) {
   } else if (!reply && state?.step === "pilih_layanan") {
     const bookingState = state;
     const industryServices = tenantServices;
-    const service = getServiceBySelection(message, industryServices);
+    const parsedService = getServiceBySelection(message, industryServices);
+    const aiParsedService =
+      parsedService
+        ? null
+        : await parseBookingStepWithAi({
+            context,
+            industry,
+            step: "pilih_layanan",
+            rawMessage,
+            state: bookingState,
+            tenantServices,
+            branches,
+            candidates: getServiceCandidates(industryServices),
+          });
+    const service =
+      parsedService ??
+      industryServices.find((item) => item.code === aiParsedService?.matchedCandidateId) ??
+      null;
     const selectedBranch = getSelectedBranch(branches, bookingState.branch_id);
 
     if (!service) {
@@ -1478,9 +2144,17 @@ export async function POST(req: Request) {
       reply =
         faqReply ||
         withCancelHint(
-          `Kita masih di langkah pilih layanan.\n\n` +
-            `${selectedBranch ? `Cabang terpilih: *${selectedBranch.name}*\n\n` : ""}` +
-            `${templates.invalidOptionMessage}\n\n${getServiceOptionsText(industryServices)}`
+          composeNaturalReply({
+            style: replyStyle,
+            intro: "Kita masih di langkah pilih layanan ya.",
+            lines: [
+              selectedBranch ? `Cabang terpilih: *${selectedBranch.name}*` : "",
+              aiParsedService?.clarificationReason || templates.invalidOptionMessage,
+              getServiceOptionsText(industryServices),
+            ],
+            question: "Balas dengan nomor layanan, nama layanan, atau jelaskan layanan yang kamu mau.",
+            includeClosingLine: false,
+          })
         );
     } else {
       const dateOptions = await getAvailableDateOptions({
@@ -1507,12 +2181,22 @@ export async function POST(req: Request) {
         });
 
         reply = withCancelHint(
-          `${selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : ""}` +
-            renderTemplate(templates.servicePrompt, {
-              business_name: context.businessName,
-              layanan: service.name,
-              date_options: getDateOptionsText(dateOptions),
-            })
+          replyStyle.useNaturalLanguage
+            ? composeNaturalReply({
+                style: replyStyle,
+                intro:
+                  `${getToneLead(replyStyle, "ack")} Kamu pilih *${service.name}*.` +
+                  (selectedBranch ? ` Untuk cabang *${selectedBranch.name}* ya.` : ""),
+                lines: ["Tanggal yang masih tersedia:", getDateOptionsText(dateOptions)],
+                question: "Kamu bisa balas dengan nomor tanggal, tulis tanggalnya langsung, atau bilang misalnya besok/lusa.",
+                includeClosingLine: false,
+              })
+            : `${selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : ""}` +
+              renderTemplate(templates.servicePrompt, {
+                business_name: context.businessName,
+                layanan: service.name,
+                date_options: getDateOptionsText(dateOptions),
+              })
         );
       }
     }
@@ -1524,7 +2208,24 @@ export async function POST(req: Request) {
       scope,
       durationMinutes: getServiceDuration(bookingState.layanan),
     });
-    const selectedDate = getDateBySelection(message, dateOptions);
+    const parsedDate = getDateBySelection(message, dateOptions);
+    const aiParsedDate =
+      parsedDate || dateOptions.length === 0
+        ? null
+        : await parseBookingStepWithAi({
+            context,
+            industry,
+            step: "pilih_tanggal",
+            rawMessage,
+            state: bookingState,
+            tenantServices,
+            branches,
+            candidates: getDateCandidates(dateOptions),
+          });
+    const selectedDate =
+      parsedDate ??
+      dateOptions.find((option) => option.key === aiParsedDate?.matchedCandidateId) ??
+      null;
     const selectedBranch = getSelectedBranch(branches, bookingState.branch_id);
 
     if (!selectedDate) {
@@ -1543,9 +2244,17 @@ export async function POST(req: Request) {
         faqReply ||
         (dateOptions.length > 0
           ? withCancelHint(
-              `Kita masih di langkah pilih tanggal.\n\n` +
-                `${selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : ""}` +
-                `${templates.invalidOptionMessage}\n\n${getDateOptionsText(dateOptions)}`
+              composeNaturalReply({
+                style: replyStyle,
+                intro: "Kita masih di langkah pilih tanggal ya.",
+                lines: [
+                  selectedBranch ? `Cabang: *${selectedBranch.name}*` : "",
+                  aiParsedDate?.clarificationReason || templates.invalidOptionMessage,
+                  getDateOptionsText(dateOptions),
+                ],
+                question: "Balas dengan nomor, tanggal, atau sebutkan hari yang kamu inginkan.",
+                includeClosingLine: false,
+              })
             )
           : "Maaf, belum ada tanggal yang tersedia dalam beberapa hari ke depan. Silakan coba lagi nanti ya 🙏");
     } else {
@@ -1579,12 +2288,22 @@ export async function POST(req: Request) {
         });
 
         reply = withCancelHint(
-          `${selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : ""}` +
-            renderTemplate(templates.datePrompt, {
-              business_name: context.businessName,
-              tanggal_label: selectedDate.label,
-              slot_options: getSlotOptionsText(slots),
-            })
+          replyStyle.useNaturalLanguage
+            ? composeNaturalReply({
+                style: replyStyle,
+                intro:
+                  `${getToneLead(replyStyle, "ack")} Tanggal *${selectedDate.label}* sudah kupilih.` +
+                  (selectedBranch ? ` Untuk cabang *${selectedBranch.name}* ya.` : ""),
+                lines: ["Jam yang masih tersedia:", getSlotOptionsText(slots)],
+                question: "Boleh balas dengan nomor jam, tulis jam langsung, atau bilang misalnya jam 3 sore.",
+                includeClosingLine: false,
+              })
+            : `${selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : ""}` +
+              renderTemplate(templates.datePrompt, {
+                business_name: context.businessName,
+                tanggal_label: selectedDate.label,
+                slot_options: getSlotOptionsText(slots),
+              })
         );
       }
     }
@@ -1596,7 +2315,21 @@ export async function POST(req: Request) {
     } else {
       const durationMinutes = getServiceDuration(bookingState.layanan);
       const slots = await getAvailableSlots(bookingState.tanggal, industry, scope, durationMinutes);
-      const selectedSlot = getSlotBySelection(message, slots);
+      const parsedSlot = getSlotBySelection(message, slots);
+      const aiParsedSlot =
+        parsedSlot || slots.length === 0
+          ? null
+          : await parseBookingStepWithAi({
+              context,
+              industry,
+              step: "pilih_jam",
+              rawMessage,
+              state: bookingState,
+              tenantServices,
+              branches,
+              candidates: getSlotCandidates(slots),
+            });
+      const selectedSlot = parsedSlot ?? aiParsedSlot?.matchedCandidateId ?? null;
       const selectedBranch = getSelectedBranch(branches, bookingState.branch_id);
 
       if (!selectedSlot) {
@@ -1614,9 +2347,17 @@ export async function POST(req: Request) {
         reply =
           faqReply ||
           withCancelHint(
-            `Kita masih di langkah pilih jam.\n\n` +
-              `${selectedBranch ? `Cabang: *${selectedBranch.name}*\n\n` : ""}` +
-              `${templates.invalidOptionMessage}\n\n${getSlotOptionsText(slots)}`
+            composeNaturalReply({
+              style: replyStyle,
+              intro: "Kita masih di langkah pilih jam ya.",
+              lines: [
+                selectedBranch ? `Cabang: *${selectedBranch.name}*` : "",
+                aiParsedSlot?.clarificationReason || templates.invalidOptionMessage,
+                getSlotOptionsText(slots),
+              ],
+              question: "Balas dengan nomor jam atau tulis jam yang kamu mau langsung.",
+              includeClosingLine: false,
+            })
           );
       } else if (!(await isSlotAvailable({
         date: bookingState.tanggal,
@@ -1643,15 +2384,34 @@ export async function POST(req: Request) {
           industry,
         });
 
-        reply =
-          `Sip, jam *${selectedSlot}* masih tersedia untuk *${bookingState.layanan}*.\n\n` +
-          "Sekarang balas dengan *nama pemesan* untuk melanjutkan booking ya 🙌\n\n" +
-          "Ketik *BATAL* kalau mau berhenti.";
+        reply = withCancelHint(
+          replyStyle.useNaturalLanguage
+            ? composeNaturalReply({
+                style: replyStyle,
+                intro:
+                  `${getToneLead(replyStyle, "ack")} Jam *${selectedSlot}* masih tersedia untuk *${bookingState.layanan}*.`,
+                question: "Sekarang kirim nama pemesannya ya. Kamu bisa tulis misalnya `Atas nama Robbi`.",
+                includeClosingLine: false,
+              })
+            : `Sip, jam *${selectedSlot}* masih tersedia untuk *${bookingState.layanan}*.\n\n` +
+              "Sekarang balas dengan *nama pemesan* untuk melanjutkan booking ya 🙌"
+        );
       }
     }
   } else if (!reply && state?.step === "isi_nama") {
     const bookingState = state;
-    const customerName = normalizeCustomerName(rawMessage);
+    const parsedName = normalizeCustomerName(rawMessage);
+    const aiParsedName =
+      await parseBookingStepWithAi({
+        context,
+        industry,
+        step: "isi_nama",
+        rawMessage,
+        state: bookingState,
+        tenantServices,
+        branches,
+      });
+    const customerName = normalizeCustomerName(aiParsedName?.customerName || parsedName);
 
     if (!customerName || customerName.length < 2) {
       const faqReply = await maybeGetInFlowFaqReply({
@@ -1667,10 +2427,20 @@ export async function POST(req: Request) {
 
       reply =
         faqReply ||
-        "Kita masih di langkah isi nama.\n\n" +
-        `${getSelectedBranch(branches, bookingState.branch_id) ? `Cabang: *${getSelectedBranch(branches, bookingState.branch_id)?.name ?? "-"}*\n` : ""}` +
-        "Nama pemesan minimal 2 karakter. Balas dengan nama yang benar ya 🙌\n\n" +
-        "Ketik *BATAL* kalau mau berhenti.";
+        withCancelHint(
+          composeNaturalReply({
+            style: replyStyle,
+            intro: "Kita masih di langkah isi nama ya.",
+            lines: [
+              getSelectedBranch(branches, bookingState.branch_id)
+                ? `Cabang: *${getSelectedBranch(branches, bookingState.branch_id)?.name ?? "-"}*`
+                : "",
+              "Nama pemesan minimal 2 karakter.",
+            ],
+            question: "Balas dengan nama pemesannya ya. Contohnya: `Atas nama Robbi`.",
+            includeClosingLine: false,
+          })
+        );
     } else {
       const confirmationSummary = renderTemplate(templates.confirmationPrompt, {
         business_name: context.businessName,
@@ -1692,15 +2462,37 @@ export async function POST(req: Request) {
         industry,
       });
 
-      reply =
-        `${confirmationSummary}\n\n` +
-        `${getSelectedBranch(branches, bookingState.branch_id) ? `📍 Cabang: ${getSelectedBranch(branches, bookingState.branch_id)?.name ?? "-"}\n` : ""}` +
-        `🙍 Nama pemesan: ${customerName}\n\n` +
-        "Balas *YA* untuk konfirmasi atau *BATAL* untuk mengulang.";
+      reply = replyStyle.useNaturalLanguage
+        ? composeNaturalReply({
+            style: replyStyle,
+            intro: `${getToneLead(replyStyle, "ack")} Datanya sudah lengkap.`,
+            lines: [
+              confirmationSummary,
+              getSelectedBranch(branches, bookingState.branch_id)
+                ? `📍 Cabang: ${getSelectedBranch(branches, bookingState.branch_id)?.name ?? "-"}`
+                : "",
+              `🙍 Nama pemesan: ${customerName}`,
+            ],
+            question: "Kalau sudah benar, balas *YA*. Kalau mau ganti, balas *BATAL* dulu ya.",
+            includeClosingLine: false,
+          })
+        : `${confirmationSummary}\n\n` +
+          `${getSelectedBranch(branches, bookingState.branch_id) ? `📍 Cabang: ${getSelectedBranch(branches, bookingState.branch_id)?.name ?? "-"}\n` : ""}` +
+          `🙍 Nama pemesan: ${customerName}\n\n` +
+          "Balas *YA* untuk konfirmasi atau *BATAL* untuk mengulang.";
     }
   } else if (!reply && state?.step === "konfirmasi") {
     const bookingState = state;
-    if (message === "ya") {
+    const aiParsedConfirmation = await parseBookingStepWithAi({
+      context,
+      industry,
+      step: "konfirmasi",
+      rawMessage,
+      state: bookingState,
+      tenantServices,
+      branches,
+    });
+    if (message === "ya" || aiParsedConfirmation?.confirmBooking) {
       if (!bookingState.tanggal || !bookingState.jam || !bookingState.customer_name) {
         await clearState(sender, context.channelId);
         reply = "Sesi booking kamu sudah kedaluwarsa. Ketik *halo* untuk mulai lagi.";

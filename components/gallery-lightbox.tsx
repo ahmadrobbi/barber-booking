@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 type GalleryLightboxProps = {
@@ -39,10 +40,13 @@ export function GalleryLightbox({ images }: GalleryLightboxProps) {
             onClick={() => setActiveIndex(index)}
             className="group relative h-56 overflow-hidden text-left focus:outline-none"
           >
-            <img
+            <Image
               src={image}
               alt={`Gallery Barokah ${index + 1}`}
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              fill
+              unoptimized
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              className="object-cover transition duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/15" />
             <figcaption className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/55 px-3 py-2 text-sm text-white">
@@ -74,11 +78,16 @@ export function GalleryLightbox({ images }: GalleryLightboxProps) {
             className="max-h-full w-full max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-[#111]"
             onClick={(event) => event.stopPropagation()}
           >
-            <img
-              src={activeImage}
-              alt={`Gallery preview ${activeIndex + 1}`}
-              className="max-h-[82vh] w-full object-contain"
-            />
+            <div className="relative h-[82vh] w-full">
+              <Image
+                src={activeImage}
+                alt={`Gallery preview ${activeIndex + 1}`}
+                fill
+                unoptimized
+                sizes="100vw"
+                className="object-contain"
+              />
+            </div>
           </div>
         </div>
       ) : null}

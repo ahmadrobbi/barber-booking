@@ -15,6 +15,20 @@ export type ChatbotTemplates = {
   reminder: string;
 };
 
+export type ChatbotReplyStyle = {
+  assistantLabel: string;
+  tone: "friendly" | "warm" | "professional";
+  brevity: "compact" | "balanced";
+  emojiLevel: "none" | "low" | "medium";
+  closingLine: string;
+  useNaturalLanguage: boolean;
+};
+
+export type ChatbotChannelOverrides = {
+  reply_style?: Partial<ChatbotReplyStyle>;
+  fallback_templates?: Partial<ChatbotTemplates>;
+} & Partial<ChatbotTemplates>;
+
 export const DEFAULT_CHATBOT_TEMPLATES: ChatbotTemplates = {
   greeting:
     "Halo 👋 Selamat datang di *{{business_name}}* 💈\n\nKami siap bantu booking kamu dengan cepat dan rapi.\n\n{{service_list}}\nBalas dengan nomor layanan ya 👇",
@@ -36,7 +50,120 @@ export const DEFAULT_CHATBOT_TEMPLATES: ChatbotTemplates = {
     "⏰ *Reminder Booking*\n\nHalo 👋\nJangan lupa booking kamu hari ini:\n\n{{layanan}}\n{{tanggal}}\n{{jam}}\n\nDatang 10 menit lebih awal ya 🙌",
 };
 
+export const DEFAULT_CHATBOT_REPLY_STYLE: ChatbotReplyStyle = {
+  assistantLabel: "BookLink Assistant",
+  tone: "warm",
+  brevity: "balanced",
+  emojiLevel: "low",
+  closingLine: "Kalau mau, kamu bisa jawab santai seperti lagi chat biasa ya.",
+  useNaturalLanguage: true,
+};
+
 export type ChatbotTemplateOverrides = Partial<ChatbotTemplates>;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export function normalizeChatbotReplyStyle(
+  value: Partial<ChatbotReplyStyle> | null | undefined
+): ChatbotReplyStyle {
+  return {
+    assistantLabel:
+      typeof value?.assistantLabel === "string" && value.assistantLabel.trim()
+        ? value.assistantLabel.trim()
+        : DEFAULT_CHATBOT_REPLY_STYLE.assistantLabel,
+    tone:
+      value?.tone === "friendly" || value?.tone === "warm" || value?.tone === "professional"
+        ? value.tone
+        : DEFAULT_CHATBOT_REPLY_STYLE.tone,
+    brevity:
+      value?.brevity === "compact" || value?.brevity === "balanced"
+        ? value.brevity
+        : DEFAULT_CHATBOT_REPLY_STYLE.brevity,
+    emojiLevel:
+      value?.emojiLevel === "none" || value?.emojiLevel === "low" || value?.emojiLevel === "medium"
+        ? value.emojiLevel
+        : DEFAULT_CHATBOT_REPLY_STYLE.emojiLevel,
+    closingLine:
+      typeof value?.closingLine === "string" && value.closingLine.trim()
+        ? value.closingLine.trim()
+        : DEFAULT_CHATBOT_REPLY_STYLE.closingLine,
+    useNaturalLanguage:
+      typeof value?.useNaturalLanguage === "boolean"
+        ? value.useNaturalLanguage
+        : DEFAULT_CHATBOT_REPLY_STYLE.useNaturalLanguage,
+  };
+}
+
+export function normalizeChatbotChannelOverrides(
+  value: unknown
+): {
+  replyStyle: ChatbotReplyStyle;
+  fallbackTemplates: ChatbotTemplateOverrides;
+} {
+  if (!isRecord(value)) {
+    return {
+      replyStyle: DEFAULT_CHATBOT_REPLY_STYLE,
+      fallbackTemplates: {},
+    };
+  }
+
+  const fallbackTemplates: ChatbotTemplateOverrides = {};
+
+  for (const key of Object.keys(DEFAULT_CHATBOT_TEMPLATES) as Array<keyof ChatbotTemplates>) {
+    const candidate =
+      isRecord(value.fallback_templates) && typeof value.fallback_templates[key] === "string"
+        ? value.fallback_templates[key]
+        : typeof value[key] === "string"
+          ? value[key]
+          : null;
+
+    if (candidate && candidate.trim()) {
+      fallbackTemplates[key] = candidate.trim();
+    }
+  }
+
+  const replyStyle = normalizeChatbotReplyStyle(
+    isRecord(value.reply_style)
+      ? {
+          assistantLabel:
+            typeof value.reply_style.assistantLabel === "string"
+              ? value.reply_style.assistantLabel
+              : undefined,
+          tone:
+            value.reply_style.tone === "friendly" ||
+            value.reply_style.tone === "warm" ||
+            value.reply_style.tone === "professional"
+              ? value.reply_style.tone
+              : undefined,
+          brevity:
+            value.reply_style.brevity === "compact" || value.reply_style.brevity === "balanced"
+              ? value.reply_style.brevity
+              : undefined,
+          emojiLevel:
+            value.reply_style.emojiLevel === "none" ||
+            value.reply_style.emojiLevel === "low" ||
+            value.reply_style.emojiLevel === "medium"
+              ? value.reply_style.emojiLevel
+              : undefined,
+          closingLine:
+            typeof value.reply_style.closingLine === "string"
+              ? value.reply_style.closingLine
+              : undefined,
+          useNaturalLanguage:
+            typeof value.reply_style.useNaturalLanguage === "boolean"
+              ? value.reply_style.useNaturalLanguage
+              : undefined,
+        }
+      : null
+  );
+
+  return {
+    replyStyle,
+    fallbackTemplates,
+  };
+}
 
 export async function getGlobalChatbotTemplates() {
   const supabase = createAdminSupabase();

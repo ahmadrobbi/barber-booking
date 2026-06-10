@@ -3,7 +3,9 @@ import { getSession } from "@/lib/auth";
 import {
   getGlobalChatbotTemplates,
   mergeChatbotTemplates,
-  type ChatbotTemplateOverrides,
+  normalizeChatbotChannelOverrides,
+  type ChatbotChannelOverrides,
+  type ChatbotReplyStyle,
 } from "@/lib/chatbot";
 import { INDUSTRIES, type IndustryKey } from "@/lib/industries";
 import { getIndustryConfig } from "@/lib/industry-config";
@@ -25,7 +27,7 @@ export type WhatsappChannel = {
   industry: IndustryKey | null;
   is_active: boolean | null;
   is_default: boolean | null;
-  template_overrides: ChatbotTemplateOverrides | null;
+  template_overrides: ChatbotChannelOverrides | null;
   created_at?: string | null;
   updated_at?: string | null;
 };
@@ -45,6 +47,7 @@ export type WhatsappRuntimeContext = {
   officialMessageTemplateName: string | null;
   officialMessageTemplateLanguage: string | null;
   templates: ReturnType<typeof mergeChatbotTemplates>;
+  replyStyle: ChatbotReplyStyle;
   isLegacyFallback: boolean;
 };
 
@@ -96,7 +99,7 @@ function mapChannelRow(row: unknown): WhatsappChannel | null {
     is_active: typeof row.is_active === "boolean" ? row.is_active : null,
     is_default: typeof row.is_default === "boolean" ? row.is_default : null,
     template_overrides: isRecord(row.template_overrides)
-      ? (row.template_overrides as ChatbotTemplateOverrides)
+      ? (row.template_overrides as ChatbotChannelOverrides)
       : null,
     created_at: typeof row.created_at === "string" ? row.created_at : null,
     updated_at: typeof row.updated_at === "string" ? row.updated_at : null,
@@ -271,6 +274,7 @@ export async function resolveWhatsappRuntimeContext(
     : await getWhatsappChannelByDevice(identity.deviceNumber ?? null);
   const industry = channel?.industry ?? config.default;
   const industryTemplates = INDUSTRIES[industry]?.templates;
+  const normalizedOverrides = normalizeChatbotChannelOverrides(channel?.template_overrides);
   const businessName = await getBusinessNameByUserId(channel?.user_id);
   const chatbotProvider = channel?.chatbot_provider ?? (identity.officialPhoneNumberId ? "official" : "fonnte");
 
@@ -288,7 +292,12 @@ export async function resolveWhatsappRuntimeContext(
     officialVerifyToken: channel?.official_verify_token ?? officialConfig.verifyToken,
     officialMessageTemplateName: channel?.official_message_template_name ?? null,
     officialMessageTemplateLanguage: channel?.official_message_template_language ?? "en_US",
-    templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),
+    templates: mergeChatbotTemplates(
+      globalTemplates,
+      industryTemplates,
+      normalizedOverrides.fallbackTemplates
+    ),
+    replyStyle: normalizedOverrides.replyStyle,
     isLegacyFallback: !channel,
   };
 }
@@ -309,6 +318,7 @@ export async function resolveWhatsappContextFromBooking(booking: {
     (typeof booking.industry === "string" ? (booking.industry as IndustryKey) : null) ??
     config.default;
   const industryTemplates = INDUSTRIES[industry]?.templates;
+  const normalizedOverrides = normalizeChatbotChannelOverrides(channel?.template_overrides);
   const resolvedUserId = channel?.user_id ?? booking.user_id ?? null;
   const businessName = await getBusinessNameByUserId(resolvedUserId);
 
@@ -326,7 +336,12 @@ export async function resolveWhatsappContextFromBooking(booking: {
     officialVerifyToken: channel?.official_verify_token ?? officialConfig.verifyToken,
     officialMessageTemplateName: channel?.official_message_template_name ?? null,
     officialMessageTemplateLanguage: channel?.official_message_template_language ?? "en_US",
-    templates: mergeChatbotTemplates(globalTemplates, industryTemplates, channel?.template_overrides),
+    templates: mergeChatbotTemplates(
+      globalTemplates,
+      industryTemplates,
+      normalizedOverrides.fallbackTemplates
+    ),
+    replyStyle: normalizedOverrides.replyStyle,
     isLegacyFallback: !channel,
   } satisfies WhatsappRuntimeContext;
 }

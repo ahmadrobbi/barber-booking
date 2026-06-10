@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminSupabase } from "@/lib/supabase";
 import { updateTransactionStatus } from "@/lib/transactions";
 
 export async function POST(request: NextRequest) {

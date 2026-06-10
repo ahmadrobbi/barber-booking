@@ -62,6 +62,10 @@ Checklist deploy dan smoke test MVP ada di [docs/MVP_DEPLOY_CHECKLIST.md](/Users
 
 Copy satu halaman untuk pitching ke merchant ada di [docs/sales-pitch.md](/Users/robbi-kaspin/Documents/barber_booking/barber-booking/docs/sales-pitch.md:1).
 
+## Hybrid AI Booking
+
+Desain flow booking hybrid AI + rules engine ada di [docs/HYBRID_AI_BOOKING_DESIGN.md](/Users/robbi-kaspin/Documents/barber_booking/barber-booking/docs/HYBRID_AI_BOOKING_DESIGN.md:1).
+
 ## CI Migration
 
 Repo ini punya workflow `.github/workflows/supabase-db-push.yml` untuk mendorong migration ke Supabase.

@@ -4,86 +4,165 @@ const plans = [
   {
     name: "Trial",
     price: "Rp 0",
+    billing: "7-14 hari",
     description:
-      "Untuk bisnis booking baru yang ingin mencoba alur booking, FAQ AI, dan reminder sebelum masuk paket berbayar.",
-    accent: "bg-blue-50 text-blue-700",
-    features: ["1 bisnis", "1 cabang", "FAQ AI dasar", "Booking sandbox"],
+      "Cocok untuk validasi cepat. Merchant bisa lihat alur booking, FAQ AI, dan reminder tanpa komitmen awal.",
+    accent: "bg-sky-50 text-sky-700",
+    features: [
+      "1 bisnis",
+      "1 cabang",
+      "FAQ AI dasar",
+      "Booking sandbox",
+      "Public booking page",
+    ],
   },
   {
     name: "Starter",
     price: "Rp 299.000",
+    billing: "per bulan",
     description:
-      "Paket awal untuk bisnis aktif yang ingin AI menjawab FAQ, cabang, jam buka, dan booking dasar dari satu nomor official.",
-    accent: "bg-indigo-600 text-white",
+      "Paket utama untuk UMKM yang ingin WhatsApp jadi kanal booking rapi, cepat, dan mudah dijual ke owner awam.",
+    accent: "bg-slate-900 text-white",
     features: [
       "1 bisnis aktif",
       "1-2 cabang",
       "AI FAQ + booking flow",
       "Reminder otomatis",
+      "Dashboard owner",
+      "Public booking page",
     ],
     featured: true,
   },
   {
-    name: "Growth / Pro",
-    price: "Custom",
+    name: "Growth",
+    price: "Rp 699.000",
+    billing: "per bulan",
     description:
-      "Untuk bisnis yang butuh banyak cabang, knowledge khusus, handoff ke admin, dan SLA yang lebih serius.",
-    accent: "bg-slate-100 text-slate-900",
-    features: ["Multi cabang", "Custom knowledge", "Human handoff", "Support prioritas"],
+      "Untuk bisnis yang mulai serius scale, punya lebih banyak cabang, dan butuh handoff ke admin yang lebih rapi.",
+    accent: "bg-emerald-50 text-emerald-700",
+    features: [
+      "2-3 cabang",
+      "Custom knowledge lebih banyak",
+      "Human handoff",
+      "Reporting lebih lengkap",
+      "Support prioritas",
+    ],
   },
 ];
 
 const addOns = [
-  "Dedicated WhatsApp number untuk bisnis tertentu",
-  "Cabang tambahan di luar kuota paket",
-  "Custom prompt / knowledge tuning per bisnis",
-  "Integrasi CRM, export data, atau dashboard lanjutan",
+  "Cabang tambahan",
+  "Dedicated WhatsApp number",
+  "Setup dan onboarding done-for-you",
+  "Custom knowledge tuning per bisnis",
+  "Integrasi CRM, export data, atau workflow lanjutan",
+];
+
+const buyingTriggers = [
+  "Chat booking sering masuk di WhatsApp dan admin kewalahan balas satu-satu.",
+  "Pelanggan sering tanya jam buka, harga, layanan, dan lokasi berulang-ulang.",
+  "No-show masih tinggi karena reminder manual atau sering lupa follow-up.",
+  "Owner ingin booking lebih rapi tanpa pindah ke aplikasi baru.",
 ];
 
 export default function PricingPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 text-[15px] text-slate-800 sm:text-base">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),_transparent_30%),linear-gradient(180deg,_#f8fbff,_#eef4ff)] text-[15px] text-slate-800 sm:text-base">
       <section className="mx-auto max-w-7xl px-6 py-8 sm:px-8 lg:px-10">
-        <div className="mb-10 flex items-center justify-between gap-4">
+        <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-blue-600"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-sky-700"
           >
             <span aria-hidden="true">←</span>
             Kembali ke landing
           </Link>
-          <Link
-            href="/register"
-            className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-          >
-            Coba Sekarang
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/pitch-deck"
+              className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-sky-300 hover:text-sky-700"
+            >
+              Lihat pitch deck
+            </Link>
+            <Link
+              href="/register"
+              className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Coba Sekarang
+            </Link>
+          </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div>
-            <p className="font-nav text-xs uppercase tracking-[0.24em] text-blue-600">
-              Paket Awal
+            <p className="font-nav text-xs uppercase tracking-[0.24em] text-sky-700">
+              Pricing yang gampang dijual
             </p>
-            <h1 className="mt-4 max-w-3xl text-3xl font-bold leading-tight text-slate-900 sm:text-4xl md:text-5xl">
-              Paket yang sederhana, jelas, dan mudah dijual ke merchant awam.
+            <h1 className="mt-4 max-w-3xl text-3xl font-bold leading-tight text-slate-950 sm:text-4xl md:text-5xl">
+              Satu produk, satu manfaat utama: bantu UMKM menerima booking lewat WhatsApp dengan lebih rapi.
             </h1>
             <p className="mt-5 max-w-2xl text-sm leading-7 text-slate-600 md:text-base">
-              Fokus pricing di fase awal adalah validasi pasar: satu nomor WhatsApp Official, satu bisnis di belakangnya, dan AI yang membaca data dari database sebelum menjawab pelanggan.
+              BookLink diposisikan per bisnis, bukan per fitur. Merchant membayar untuk hasil yang jelas:
+              chat lebih cepat dibalas, booking lebih teratur, dan reminder otomatis yang membantu menekan no-show.
             </p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/register"
+                className="rounded-full bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-500"
+              >
+                Mulai Trial
+              </Link>
+              <Link
+                href="/pitch-deck"
+                className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-sky-300 hover:text-sky-700"
+              >
+                Lihat versi sales
+              </Link>
+            </div>
           </div>
 
-          <div className="rounded-[2rem] border border-blue-200 bg-white p-6 shadow-xl shadow-blue-950/5">
-            <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Positioning</p>
-            <h2 className="mt-3 text-2xl font-semibold text-slate-900">Per bisnis, bukan per fitur</h2>
-            <ul className="mt-5 space-y-3 text-sm leading-7 text-slate-600">
-              <li>AI jawab FAQ dari data bisnis</li>
-              <li>Booking divalidasi oleh rules engine</li>
-              <li>Cabang, jam buka, libur, dan layanan tetap terpisah</li>
-              <li>Dedicated number jadi add-on premium</li>
+          <div className="rounded-[2rem] border border-sky-200 bg-white p-6 shadow-xl shadow-sky-950/5">
+            <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Kenapa dibeli</p>
+            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
+              Bukan chatbot generik, tapi sistem booking yang langsung terasa manfaatnya.
+            </h2>
+            <ul className="mt-6 space-y-3 text-sm leading-7 text-slate-600">
+              {buyingTriggers.map((item) => (
+                <li key={item} className="rounded-2xl bg-slate-50 px-4 py-3">
+                  {item}
+                </li>
+              ))}
             </ul>
           </div>
         </div>
+
+        <section className="mt-12 grid gap-4 rounded-[2rem] border border-sky-100 bg-white p-6 shadow-sm md:grid-cols-2">
+          <div>
+            <p className="text-sm uppercase tracking-[0.28em] text-slate-500">Positioning</p>
+            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
+              Per bisnis, bukan per fitur
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-slate-600">
+              UMKM tidak membeli “AI”. Mereka membeli hasil: admin lebih ringan, jadwal lebih rapi, dan
+              pelanggan tidak perlu menunggu balasan lama.
+            </p>
+          </div>
+          <div className="grid gap-3 text-sm leading-7 text-slate-600">
+            <div className="rounded-2xl bg-sky-50 px-4 py-3">
+              AI menjawab FAQ dari knowledge bisnis
+            </div>
+            <div className="rounded-2xl bg-emerald-50 px-4 py-3">
+              Slot booking divalidasi oleh rules engine
+            </div>
+            <div className="rounded-2xl bg-amber-50 px-4 py-3">
+              Reminder otomatis membantu mengurangi no-show
+            </div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-3">
+              Data bisnis tetap terpisah per merchant
+            </div>
+          </div>
+        </section>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
           {plans.map((plan) => (
@@ -91,7 +170,7 @@ export default function PricingPage() {
               key={plan.name}
               className={`rounded-[2rem] border p-8 shadow-lg ${
                 plan.featured
-                  ? "border-indigo-300 bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-indigo-950/20"
+                  ? "border-sky-300 bg-slate-950 text-white shadow-slate-950/20"
                   : "border-slate-200 bg-white text-slate-900"
               }`}
             >
@@ -103,14 +182,25 @@ export default function PricingPage() {
                 {plan.name}
               </div>
 
-              <div className="mt-8 text-3xl font-bold">{plan.price}</div>
-              <p className={`mt-4 text-sm leading-7 ${plan.featured ? "text-slate-100" : "text-slate-600"}`}>
+              <div className="mt-8">
+                <div className={`text-3xl font-bold ${plan.featured ? "text-white" : "text-slate-950"}`}>
+                  {plan.price}
+                </div>
+                <div className={`mt-1 text-sm uppercase tracking-[0.18em] ${plan.featured ? "text-slate-300" : "text-slate-500"}`}>
+                  {plan.billing}
+                </div>
+              </div>
+
+              <p className={`mt-4 text-sm leading-7 ${plan.featured ? "text-slate-200" : "text-slate-600"}`}>
                 {plan.description}
               </p>
 
               <ul className={`mt-8 space-y-3 text-sm leading-6 ${plan.featured ? "text-slate-100/90" : "text-slate-600"}`}>
                 {plan.features.map((feature) => (
-                  <li key={feature}>{feature}</li>
+                  <li key={feature} className="flex items-start gap-3">
+                    <span className={`mt-1 h-2 w-2 rounded-full ${plan.featured ? "bg-sky-300" : "bg-sky-500"}`} />
+                    <span>{feature}</span>
+                  </li>
                 ))}
               </ul>
 
@@ -118,44 +208,44 @@ export default function PricingPage() {
                 href="/register"
                 className={`mt-8 inline-flex w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold transition ${
                   plan.featured
-                    ? "bg-white text-slate-900 hover:bg-slate-100"
+                    ? "bg-white text-slate-950 hover:bg-slate-100"
                     : "bg-slate-900 text-white hover:bg-slate-800"
                 }`}
               >
-                Mulai dari {plan.name}
+                {plan.name === "Trial" ? "Mulai Trial" : plan.name === "Starter" ? "Pilih Starter" : "Minta Demo"}
               </Link>
             </article>
           ))}
         </div>
 
-        <div className="mt-12 grid gap-8 lg:grid-cols-[1fr_0.9fr]">
-          <section className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-            <p className="font-nav text-xs uppercase tracking-[0.24em] text-slate-500">
-              Add-ons
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold text-slate-900">Kalau bisnis butuh lebih jauh</h2>
+        <section className="mt-12 grid gap-8 lg:grid-cols-[1fr_0.9fr]">
+          <article className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+            <p className="font-nav text-xs uppercase tracking-[0.24em] text-slate-500">Add-ons</p>
+            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
+              Kalau bisnis sudah siap scale
+            </h2>
             <ul className="mt-6 space-y-3 text-sm leading-7 text-slate-600">
               {addOns.map((item) => (
-                <li key={item}>{item}</li>
+                <li key={item} className="rounded-2xl bg-slate-50 px-4 py-3">
+                  {item}
+                </li>
               ))}
             </ul>
-          </section>
+          </article>
 
-          <section className="rounded-[2rem] border border-slate-200 bg-slate-900 p-8 text-white shadow-sm">
-            <p className="font-nav text-xs uppercase tracking-[0.24em] text-amber-300/80">
-              Catatan MVP
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold">Jangan terlalu banyak paket di awal</h2>
+          <article className="rounded-[2rem] border border-slate-200 bg-slate-950 p-8 text-white shadow-sm">
+            <p className="font-nav text-xs uppercase tracking-[0.24em] text-amber-300/80">Saran MVP</p>
+            <h2 className="mt-3 text-2xl font-semibold">Sederhanakan dulu, baru scale</h2>
             <p className="mt-4 text-sm leading-7 text-slate-300">
-              Untuk fase awal, saya sarankan fokus pada satu paket utama yang paling gampang dibeli.
-              Paket lain bisa menyusul setelah pilot bisnis pertama terbukti jalan.
+              Untuk pasar UMKM Indonesia, paket yang terlalu banyak justru membuat owner bingung. Paling
+              aman adalah membuat satu paket inti yang gampang dipahami, lalu add-on untuk kebutuhan khusus.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/register"
-                className="rounded-full bg-amber-400 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-amber-300"
+                className="rounded-full bg-amber-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-300"
               >
-                Coba gratis
+                Mulai Trial
               </Link>
               <Link
                 href="/"
@@ -164,8 +254,8 @@ export default function PricingPage() {
                 Lihat landing
               </Link>
             </div>
-          </section>
-        </div>
+          </article>
+        </section>
       </section>
     </main>
   );

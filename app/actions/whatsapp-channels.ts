@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import {
   DEFAULT_CHATBOT_TEMPLATES,
-  type ChatbotTemplateOverrides,
+  type ChatbotChannelOverrides,
+  type ChatbotReplyStyle,
 } from "@/lib/chatbot";
 import { getAvailableIndustries, type IndustryKey } from "@/lib/industries";
 import { createAdminSupabase } from "@/lib/supabase";
@@ -43,22 +44,93 @@ function getRedirectTarget(formData: FormData) {
   return "/admin/settings/webhook";
 }
 
-function buildTemplateOverrides(formData: FormData): ChatbotTemplateOverrides {
+function buildFallbackTemplates(formData: FormData) {
   const entries = Object.entries(DEFAULT_CHATBOT_TEMPLATES);
 
-  return entries.reduce<ChatbotTemplateOverrides>((acc, [key, defaultValue]) => {
-    const value = normalizeText(formData.get(`template_${key}`));
-    if (value && value !== defaultValue) {
-      acc[key as keyof ChatbotTemplateOverrides] = value;
-    }
-    return acc;
-  }, {});
+  return entries.reduce<Partial<Record<keyof typeof DEFAULT_CHATBOT_TEMPLATES, string>>>(
+    (acc, [key, defaultValue]) => {
+      const value =
+        normalizeText(formData.get(`fallback_template_${key}`)) ||
+        normalizeText(formData.get(`template_${key}`));
+
+      if (value && value !== defaultValue) {
+        acc[key as keyof typeof DEFAULT_CHATBOT_TEMPLATES] = value;
+      }
+
+      return acc;
+    },
+    {}
+  );
+}
+
+function buildReplyStyle(formData: FormData): Partial<ChatbotReplyStyle> {
+  const assistantLabel = normalizeText(formData.get("style_assistant_label"));
+  const tone = normalizeText(formData.get("style_tone"));
+  const brevity = normalizeText(formData.get("style_brevity"));
+  const emojiLevel = normalizeText(formData.get("style_emoji_level"));
+  const closingLine = normalizeText(formData.get("style_closing_line"));
+  const useNaturalLanguageRaw = formData.get("style_use_natural_language");
+  const style: Partial<ChatbotReplyStyle> = {};
+
+  if (assistantLabel) {
+    style.assistantLabel = assistantLabel;
+  }
+
+  if (tone === "friendly" || tone === "warm" || tone === "professional") {
+    style.tone = tone;
+  }
+
+  if (brevity === "compact" || brevity === "balanced") {
+    style.brevity = brevity;
+  }
+
+  if (emojiLevel === "none" || emojiLevel === "low" || emojiLevel === "medium") {
+    style.emojiLevel = emojiLevel;
+  }
+
+  if (closingLine) {
+    style.closingLine = closingLine;
+  }
+
+  if (typeof useNaturalLanguageRaw === "string") {
+    style.useNaturalLanguage = useNaturalLanguageRaw === "on";
+  }
+
+  return style;
+}
+
+function buildTemplateOverrides(formData: FormData): ChatbotChannelOverrides {
+  const fallbackTemplates = buildFallbackTemplates(formData);
+  const replyStyle = buildReplyStyle(formData);
+
+  const payload: ChatbotChannelOverrides = {};
+
+  if (Object.keys(fallbackTemplates).length > 0) {
+    payload.fallback_templates = fallbackTemplates;
+  }
+
+  if (Object.keys(replyStyle).length > 0) {
+    payload.reply_style = replyStyle;
+  }
+
+  return payload;
 }
 
 function hasTemplateOverrideFields(formData: FormData) {
-  return Object.keys(DEFAULT_CHATBOT_TEMPLATES).some((key) =>
-    formData.has(`template_${key}`)
+  const hasFallbackTemplateFields = Object.keys(DEFAULT_CHATBOT_TEMPLATES).some((key) =>
+    formData.has(`fallback_template_${key}`) || formData.has(`template_${key}`)
   );
+
+  const hasStyleFields = [
+    "style_assistant_label",
+    "style_tone",
+    "style_brevity",
+    "style_emoji_level",
+    "style_closing_line",
+    "style_use_natural_language",
+  ].some((key) => formData.has(key));
+
+  return hasFallbackTemplateFields || hasStyleFields;
 }
 
 function toStatusUrl(kind: "success" | "error", message: string, redirectTo: string) {
@@ -255,7 +327,7 @@ export async function saveWhatsappChannel(formData: FormData) {
 
         const storedTemplates = existingTemplates.data?.template_overrides;
         if (storedTemplates && typeof storedTemplates === "object") {
-          Object.assign(templateOverrides, storedTemplates as ChatbotTemplateOverrides);
+          Object.assign(templateOverrides, storedTemplates as ChatbotChannelOverrides);
         }
       }
     }

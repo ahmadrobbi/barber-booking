@@ -1,6 +1,7 @@
 "use server";
 
 import type { BusinessSettingsState } from "@/lib/business-settings-state";
+import type { IndustryKey } from "@/lib/industry-config";
 import { saveIndustryConfig, getIndustryConfig } from "@/lib/industry-config";
 import { createAdminSupabase } from "@/lib/supabase";
 
@@ -53,7 +54,7 @@ export async function updateBusinessSettings(
     const currentConfig = await getIndustryConfig();
     const updatedConfig = {
       ...currentConfig,
-      default: defaultIndustry as any, // Type assertion for simplicity
+      default: defaultIndustry as IndustryKey,
     };
 
     await saveIndustryConfig(updatedConfig);
